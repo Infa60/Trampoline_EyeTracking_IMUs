@@ -96,6 +96,9 @@ def plot_synchro(
         time_offset,
         output_file_name,
 ):
+    """
+    Plot the synchronization between the Xsens and the Pupil data
+    """
 
     plt.figure()
     plot_xsens_threshold_selection(time_vector_xsens, Xsens_sensorFreeAcceleration_averaged_norm,
@@ -264,6 +267,9 @@ def chose_closest_index_xsens(time_vector_pupil,
                               time_vector_xsens,
                               start_of_move_index,
                               end_of_move_index):
+    """
+    This function finds the closest index in the Xsens time vector to the pupil time vector
+    """
 
     time_vector_pupil_offset = time_vector_pupil - time_offset
     xsens_start_of_jump_index = np.zeros((len(start_of_jump_pupil_index)))
@@ -288,7 +294,11 @@ def chose_closest_index_xsens(time_vector_pupil,
     return xsens_start_of_jump_index, xsens_end_of_jump_index, xsens_start_of_move_index, xsens_end_of_move_index, time_vector_pupil_offset
 
 def optim_time(time_vector_pupil, time_vector_xsens, start_of_jump_pupil_index_this_time, end_of_jump_pupil_index_this_time, candidate_start_xsens_this_time, candidate_end_xsens_this_time, diff_time, time_offset, pupil_start_index_optim, pupil_end_index_optim, candidate_start_xsens_index_optim, candidate_end_xsens_index_optim):
-
+    """
+    This function optimizes the time offset between the Xsens and the Pupil data.
+    Xsens begining and end of jumps are determined with the acceleration profile.
+    Pupil begining and end of jumps are determined with the manual labeling of the eye-tracking data.
+    """
     x0 = - (time_vector_xsens[candidate_start_xsens_this_time[0]] - time_vector_pupil[start_of_jump_pupil_index_this_time.astype(int)[0]])
 
     time_diff = SX.sym("time_diff", 1)
@@ -343,6 +353,7 @@ def sync_jump(
     It returns the pupil time vector that is shifted to match the Xsens timestamps. 
     """
 
+    # remove nans at the begining of the trial from csv_eye_tracking
     i = 0
     while np.isnan(csv_eye_tracking[i, 0]):
         i += 1
@@ -351,10 +362,12 @@ def sync_jump(
     time_vector_pupil = (csv_eye_tracking[:, 0] - csv_eye_tracking[0, 0]) / 1e9
     time_vector_xsens = (Xsens_ms - Xsens_ms[0]) / 1000
 
+    # moving average of the acceleration to smooth the signal
     moving_average_window_size = 3
     Xsens_sensorFreeAcceleration_averaged = moving_average(Xsens_sensorFreeAcceleration[:, 6:9], moving_average_window_size)
     Xsens_sensorFreeAcceleration_averaged_norm = np.linalg.norm(Xsens_sensorFreeAcceleration_averaged, axis=1)
 
+    # If there is no acceleration we consider that the athlete is in the air. (we do not measure the gravitational accleration due to the sensor's box being also in free fall)
     idx_jump_candidates_xsens = Xsens_sensorFreeAcceleration_averaged_norm < max_threshold
     idx_jump_candidates_xsens = idx_jump_candidates_xsens.astype(int)
     diff = idx_jump_candidates_xsens[1:] - idx_jump_candidates_xsens[:-1]
@@ -479,7 +492,7 @@ def sync_jump(
             output_file_name,
         )
 
-
+    # Apply the same time offset to the blinks time stamps too
     csv_blinks[:, 0] = (csv_blinks[:, 0] - csv_eye_tracking[0, 0]) / 1e9 - time_offset  # Start
     csv_blinks[:, 1] = (csv_blinks[:, 1] - csv_eye_tracking[0, 0]) / 1e9 - time_offset  # End
 

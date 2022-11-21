@@ -16,9 +16,11 @@ from CoM_transfo import CoM_transfo
 from get_data_at_same_timestamps import get_data_at_same_timestamps
 from animate_JCS import animate
 from remove_data_during_blinks import remove_data_during_blinks
+from set_initial_orientation import rotate_pelvis_to_initial_orientation, get_initial_gaze_orientation
 import sys
+sys.path.append('../trampoline_bed_labeling/')
+from create_gaussian_heatMap import run_create_heatmaps, load_pupil
 
-from ..trampoline_bed_labeling.create_gaussian_heatMap import run_create_heatmaps, load_pupil
 
 def load_anthropo(anthropo_name):
     """
@@ -136,6 +138,7 @@ def run_analysis(
         end_of_move_index_image,
         start_of_jump_index_image,
         end_of_jump_index_image,
+        time_stamps_eye_tracking_index_on_pupil,
         SCENE_CAMERA_SERIAL_NUMBER,
     ) = load_pupil(gaze_position_labels, eye_tracking_data_path)
 
@@ -193,17 +196,22 @@ def run_analysis(
             Pupil_jump_idx,
         )
 
+        pelvis_resting_frames = np.arange(Xsens_frames_zero[0], Xsens_frames_zero[1])
+        Xsens_position_rotated = rotate_pelvis_to_initial_orientation(num_joints, Xsens_position, Xsens_centerOfMass, pelvis_resting_frames)
+
         (
             time_vector_pupil_per_move,
             Xsens_orientation_per_move,
-            Xsens_position_per_move,
+            Xsens_position_rotated_per_move,
             Xsens_jointAngle_per_move,
             Xsens_CoM_per_move,
             elevation_per_move,
             azimuth_per_move,
+            eye_azimuth_resting_orientation,
+            eye_elevation_resting_orientation,
         ) = get_data_at_same_timestamps(
             Xsens_orientation,
-            Xsens_position,
+            Xsens_position_rotated,
             Xsens_jointAngle,
             xsens_start_of_move_index,
             xsens_end_of_move_index,
@@ -215,16 +223,15 @@ def run_analysis(
             Xsens_centerOfMass,
             SCENE_CAMERA_SERIAL_NUMBER,
             num_joints,
+            Pupil_frames_zero,
             FLAG_PUPIL_ANGLES_PLOT,
         )
 
-        Xsens_position_no_level_CoM_corrected_per_move, CoM_trajectory_per_move = CoM_transfo(
-            time_vector_pupil_per_move, Xsens_position_per_move, Xsens_CoM_per_move, num_joints, hip_height, FLAG_COM_PLOTS
+        Xsens_position_no_level_CoM_corrected_rotated_per_move, CoM_trajectory_per_move = CoM_transfo(
+            time_vector_pupil_per_move, Xsens_position_rotated_per_move, Xsens_CoM_per_move, num_joints, hip_height, FLAG_COM_PLOTS
         )
         
-        Xsens_position_no_level_CoM_corrected_rotated_per_move = rotate_pelvis_to_initial_orientation(Xsens_position_no_level_CoM_corrected_per_move, CoM_trajectory_per_move)
-
-        for j in range(len(Xsens_position_per_move)):
+        for j in range(len(Xsens_position_rotated_per_move)):
             print(f'Analysis of {move_names[j]} {repetition_number[j]}')
             if '/' in move_names[j]:
                 move_surname = move_names[j][:-1]
@@ -297,12 +304,15 @@ def run_analysis(
                     folder_name,
                     0,
                     blink_duration_threshold,
+                    eye_azimuth_resting_orientation,
+                    eye_elevation_resting_orientation,
                     FLAG_ANIMAITON,
                     FLAG_GAZE_TRAJECTORY,
                     FLAG_GENERATE_STATS_METRICS,
                     FLAG_PUPIL_ANGLES_PLOT,
                 )
 
+            # Save the data in a dictionnary for the stats analysis and plots.
             move_summary = {"subject_expertise": subject_expertise,
             "subject_name": subject_name,
             "number_of_fixation" : number_of_fixation,
@@ -378,7 +388,7 @@ trial_table = np.char.split(pd.read_csv(csv_name, sep="\t").values.astype("str")
 
 for i_trial in range(len(trial_table)):
 
-    if trial_table[i_trial][0][20] != "True":
+    if trial_table[i_trial][0][22] != "True":
         continue
 
     subject_name = trial_table[i_trial][0][0]
@@ -398,8 +408,9 @@ for i_trial in range(len(trial_table)):
     else:
         air_time_threshold = 0.25
     Xsens_jump_idx = ([int(x) for x in trial_table[i_trial][0][18].split(" ")] if trial_table[i_trial][0][18] != "" else [])
-    Pupil_jump_idx = ([int(x) for x in trial_table[i_trial][0][19].split(" ")] if trial_table[i_trial][0][18] != "" else [])
-
+    Pupil_jump_idx = ([int(x) for x in trial_table[i_trial][0][19].split(" ")] if trial_table[i_trial][0][19] != "" else [])
+    Xsens_frames_zero = ([int(x) for x in trial_table[i_trial][0][20].split(" ")] if trial_table[i_trial][0][20] != "" else [])
+    Pupil_frames_zero = ([int(x) for x in trial_table[i_trial][0][21].split(" ")] if trial_table[i_trial][0][21] != "" else [])
     print(f'Analysis of trial {xsens_file_name} started')
 
     points_labeled_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"

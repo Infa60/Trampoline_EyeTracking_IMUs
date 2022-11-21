@@ -49,7 +49,6 @@ def load_pupil(gaze_position_labels, eye_tracking_data_path):
         csv_blinks[i, 2] = float(csv_blink_read[i][0][5])  # duration
         csv_blinks[i, 3] = np.argmin(np.abs(csv_blinks[i, 0] - timestamp_image))  # closest image timestemp
 
-    time_stamps_eye_tracking = np.zeros((len(timestamp_image),))
     time_stamps_eye_tracking_index_on_pupil = np.zeros((len(timestamp_image),))
     for i in range(len(timestamp_image)):
         time_stamps_eye_tracking_index_on_pupil[i] = np.argmin(np.abs(csv_eye_tracking[:, 0] - float(timestamp_image[i])))
@@ -96,7 +95,7 @@ def load_pupil(gaze_position_labels, eye_tracking_data_path):
     end_of_jump_index = time_stamps_eye_tracking_index_on_pupil[end_of_jump_index_image]
     start_of_jump_index = time_stamps_eye_tracking_index_on_pupil[start_of_jump_index_image]
 
-    return curent_AOI_label, csv_eye_tracking, csv_blinks, start_of_move_index, end_of_move_index, start_of_jump_index, end_of_jump_index, start_of_move_index_image, end_of_move_index_image, start_of_jump_index_image, end_of_jump_index_image, SCENE_CAMERA_SERIAL_NUMBER
+    return curent_AOI_label, csv_eye_tracking, csv_blinks, start_of_move_index, end_of_move_index, start_of_jump_index, end_of_jump_index, start_of_move_index_image, end_of_move_index_image, start_of_jump_index_image, end_of_jump_index_image, time_stamps_eye_tracking_index_on_pupil, SCENE_CAMERA_SERIAL_NUMBER
 
 
 def points_to_percentile(centers):
@@ -318,6 +317,7 @@ def __main__():
          end_of_move_index_image,
          start_of_jump_index_image,
          end_of_jump_index_image,
+         time_stamps_eye_tracking_index_on_pupil,
          SCENE_CAMERA_SERIAL_NUMBER, ) = load_pupil(gaze_position_labels,
         eye_tracking_data_path)
 

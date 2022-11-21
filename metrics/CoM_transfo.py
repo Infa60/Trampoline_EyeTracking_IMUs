@@ -16,6 +16,16 @@ from unproject_PI_2d_pixel_gaze_estimates import pixelPoints_to_gazeAngles
 def CoM_transfo(
     time_vector_pupil_per_move, Xsens_position_per_move, Xsens_CoM_per_move, num_joints, hip_height, FLAG_COM_PLOTS
 ):
+    """
+    This function transforms the Xsens CoM trajectory to the expected CoM trajectory of the athlete.
+    Xsens has a realy bad approximation of the translations. Therefore, we collected the data in 'no level' mode, and we
+    reconstruct the translations afterwards.
+    The CoM position is taken from Xsens based ont the posture of the athlete. The translation of the joints is
+    retrieved by computing the CoM trajectory.
+    The Z component of the CoM trajectory is computed with the free fall equation (z = z0 + v0*t + 1/2*g*t^2), where we
+    know the duration of the acrobatics and assume that the CoM is at the kip height at takeoff and landing.
+    The X and Y components are set to zero, as we assume the acrobatic is executed perfectly without lateral translation.
+    """
 
     if FLAG_COM_PLOTS:
         labels_CoM = ["X", "Y", "Z", "vitesse X", "vitesse Y", "vitesse Z", "acc X", "acc Y", "acc Z"]
