@@ -5,11 +5,13 @@ This repository is linked to a research project on the visual strategies of tram
 We measured the kinematics with IMUs (Xsens) and the visual startegies with a wearable eye-tracking (Pupil invisible). The Xsens data is exported in HD with 'no level' mode and is extracted from the .mvnx with codes available in xsens_data_unpack. The Pupil data is manually labled (with codes available in trampoline_bed_labeling) to identify characteristic points on the trampoline bed.
 
 Codes in metrics allow to extrack the metrics compared in the article such as:
+
 _Primary analysis_
 - Fixation number and duration
 - Quiet eye duration
 - Neck and eye movement amplitude
 - Neck and eye max amplitude
+
 _Exploratory analysis_
 - Spreading of the heatmap of the gaze on the trampoline bed (90th percentile)
 - Temporal evolution of the projected visual orientation
