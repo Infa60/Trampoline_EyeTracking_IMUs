@@ -2,14 +2,10 @@ import biorbd
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
-import scipy
-import scipy.io as sio
 from scipy import signal
 from IPython import embed
-import pandas as pd
 import mpl_toolkits.mplot3d.axes3d as p3
 import matplotlib.animation as animation
-from os.path import exists
 import itertools
 from operator import itemgetter
 from unproject_PI_2d_pixel_gaze_estimates import pixelPoints_to_gazeAngles
@@ -766,10 +762,10 @@ def animate(
         csv_blinks,
         output_file_name,
         folder_name,
-        max_frame=0,
-        blink_duration_threshold=0.1,
         eye_azimuth_resting_orientation,
         eye_elevation_resting_orientation,
+        max_frame=0,
+        blink_duration_threshold=0.1,
         FLAG_ANIMAITON=True,
         FLAG_GAZE_TRAJECTORY=True,
         FLAG_GENERATE_STATS_METRICS=True,

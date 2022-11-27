@@ -2,22 +2,19 @@ import biorbd
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
-import scipy
 import scipy.io as sio
-from scipy import signal
 from IPython import embed
 import pandas as pd
-import mpl_toolkits.mplot3d.axes3d as p3
-import matplotlib.animation as animation
+import argparse
 import os
-from unproject_PI_2d_pixel_gaze_estimates import pixelPoints_to_gazeAngles
+import sys
+
 from sync_jump import sync_jump
 from CoM_transfo import CoM_transfo
 from get_data_at_same_timestamps import get_data_at_same_timestamps
 from animate_JCS import animate
 from remove_data_during_blinks import remove_data_during_blinks
 from set_initial_orientation import rotate_pelvis_to_initial_orientation, get_initial_gaze_orientation
-import sys
 sys.path.append('../trampoline_bed_labeling/')
 from create_gaussian_heatMap import run_create_heatmaps, load_pupil
 
@@ -116,6 +113,7 @@ def run_analysis(
     FLAG_GAZE_TRAJECTORY,
     FLAG_GENERATE_STATS_METRICS,
     FLAG_ANALYSIS,
+    API_KEY,
 ):
     """
     This function is the main function of the analysis pipeline. It is called by the main.py script.
@@ -220,8 +218,10 @@ def run_analysis(
             end_of_move_index,
             time_vector_pupil_offset,
             csv_eye_tracking_confident_synced,
+            time_stamps_eye_tracking_index_on_pupil,
             Xsens_centerOfMass,
             SCENE_CAMERA_SERIAL_NUMBER,
+            API_KEY,
             num_joints,
             Pupil_frames_zero,
             FLAG_PUPIL_ANGLES_PLOT,
@@ -302,10 +302,10 @@ def run_analysis(
                     csv_blinks,
                     output_file_name,
                     folder_name,
-                    0,
-                    blink_duration_threshold,
                     eye_azimuth_resting_orientation,
                     eye_elevation_resting_orientation,
+                    0,
+                    blink_duration_threshold,
                     FLAG_ANIMAITON,
                     FLAG_GAZE_TRAJECTORY,
                     FLAG_GENERATE_STATS_METRICS,
@@ -374,6 +374,12 @@ FLAG_GAZE_TRAJECTORY = True  # False  #
 FLAG_GENERATE_STATS_METRICS = True  # False #
 FLAG_ANALYSIS = True  # False #
 
+
+parser = argparse.ArgumentParser("Enter Pupils API_KEY")
+parser.add_argument("API_KEY", action="store", help="Pupils API_KEY")
+args = parser.parse_args()
+API_KEY = args.API_KEY
+
 if os.path.exists("/home/user"):
     home_path = "/home/user"
 elif os.path.exists("/home/fbailly"):
@@ -409,8 +415,8 @@ for i_trial in range(len(trial_table)):
         air_time_threshold = 0.25
     Xsens_jump_idx = ([int(x) for x in trial_table[i_trial][0][18].split(" ")] if trial_table[i_trial][0][18] != "" else [])
     Pupil_jump_idx = ([int(x) for x in trial_table[i_trial][0][19].split(" ")] if trial_table[i_trial][0][19] != "" else [])
-    Xsens_frames_zero = ([int(x) for x in trial_table[i_trial][0][20].split(" ")] if trial_table[i_trial][0][20] != "" else [])
-    Pupil_frames_zero = ([int(x) for x in trial_table[i_trial][0][21].split(" ")] if trial_table[i_trial][0][21] != "" else [])
+    Xsens_frames_zero = ([int(x) for x in trial_table[i_trial][0][20].split(" ")] if trial_table[i_trial][0][20] != "" else [0, 30])
+    Pupil_frames_zero = ([int(x) for x in trial_table[i_trial][0][21].split(" ")] if trial_table[i_trial][0][21] != "" else [0, 30])
     print(f'Analysis of trial {xsens_file_name} started')
 
     points_labeled_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"
@@ -448,6 +454,7 @@ for i_trial in range(len(trial_table)):
         FLAG_GAZE_TRAJECTORY,
         FLAG_GENERATE_STATS_METRICS,
         FLAG_ANALYSIS,
+        API_KEY,
     )
 
     plt.close("all")

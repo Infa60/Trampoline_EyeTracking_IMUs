@@ -1,18 +1,11 @@
-import biorbd
 import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import scipy
-import scipy.io as sio
-from scipy import signal
 from IPython import embed
-import pandas as pd
 import quaternion
-import mpl_toolkits.mplot3d.axes3d as p3
-import matplotlib.animation as animation
-from os.path import exists
 from unproject_PI_2d_pixel_gaze_estimates import pixelPoints_to_gazeAngles
-from set_initial_orientation import get_initial_eye_orientation
+from set_initial_orientation import get_initial_gaze_orientation
 
 
 def get_data_at_same_timestamps(
@@ -29,6 +22,7 @@ def get_data_at_same_timestamps(
     time_stamps_eye_tracking_index_on_pupil,
     Xsens_centerOfMass,
     SCENE_CAMERA_SERIAL_NUMBER,
+    API_KEY,
     num_joints,
     Pupil_frames_zero,
     FLAG_PUPIL_ANGLES_PLOT=True,
@@ -129,7 +123,7 @@ def get_data_at_same_timestamps(
     elevation_pupil_pixel = csv_eye_tracking[:, 1]
     azimuth_pupil_pixel = csv_eye_tracking[:, 2]
     elevation, azimuth = pixelPoints_to_gazeAngles(
-        elevation_pupil_pixel, azimuth_pupil_pixel, SCENE_CAMERA_SERIAL_NUMBER
+        elevation_pupil_pixel, azimuth_pupil_pixel, SCENE_CAMERA_SERIAL_NUMBER, API_KEY,
     )
 
     elevation_per_move = [np.array([]) for i in range(len(start_of_move_index))]
@@ -149,10 +143,10 @@ def get_data_at_same_timestamps(
         for i in range(len(time_vector_pupil_per_move)):
             plt.plot(time_vector_pupil_per_move[i], elevation_per_move[i], "-m")
             plt.plot(time_vector_pupil_per_move[i], azimuth_per_move[i], "-c")
-        plt.show()
-    
-    eye_resting_frames = np.where(np.logical_and(time_stamps_eye_tracking_index_on_pupil[:, 0] > Pupil_frames_zero[0], time_stamps_eye_tracking_index_on_pupil[:, 0] < Pupil_frames_zero[1]))
-    eye_azimuth_resting_orientation, eye_elevation_resting_orientation = get_initial_eye_orientation(eye_resting_frames, azimuth, elevation)
+        # plt.show()
+
+    eye_resting_frames = np.where(np.logical_and(time_stamps_eye_tracking_index_on_pupil > Pupil_frames_zero[0], time_stamps_eye_tracking_index_on_pupil < Pupil_frames_zero[1]))
+    eye_azimuth_resting_orientation, eye_elevation_resting_orientation = get_initial_gaze_orientation(eye_resting_frames, azimuth, elevation)
 
     return (
         time_vector_pupil_per_move,
