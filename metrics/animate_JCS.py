@@ -901,7 +901,8 @@ def animate(
         )
 
         anim.save(output_file_name, fps=60, extra_args=["-vcodec", "libx264"])
-        # plt.show()
+        plt.show()
+        embed()
         plt.close("all")
 
     if FLAG_GAZE_TRAJECTORY:

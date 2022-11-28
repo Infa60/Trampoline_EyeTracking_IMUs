@@ -2,7 +2,7 @@ import biorbd
 import numpy as np
 from IPython import embed
 
-def rotate_pelvis_to_initial_orientation(num_joints, Xsens_position, Xsens_CoM, pelvis_resting_frames):
+def rotate_pelvis_to_initial_orientation(num_joints, Xsens_position, Xsens_orientation, pelvis_resting_frames):
     """
     This function realigns the pelvis to be faced to the front wall at the beginig of the trial.
     """
@@ -41,7 +41,34 @@ def rotate_pelvis_to_initial_orientation(num_joints, Xsens_position, Xsens_CoM, 
     # ax.plot(Xsens_CoM[pelvis_resting_frames[0], 0], Xsens_CoM[pelvis_resting_frames[0], 1], Xsens_CoM[pelvis_resting_frames[0], 2], '.r')
     # plt.show()
 
-    return Xsens_position_centered_on_CoM_rotated # Xsens_position_rotated
+    Xsens_orientation_rotated = np.zeros(np.shape(Xsens_orientation))
+    Xsens_orientation_rotated[:, :] = Xsens_orientation[:, :]
+    for i in range(np.shape(Xsens_orientation)[0]):
+        Quat_normalized_head = Xsens_orientation[i, 24:28] / np.linalg.norm(
+            Xsens_orientation[i, 24:28]
+        )
+        Quat_normalized_thorax = Xsens_orientation[i, 16:20] / np.linalg.norm(
+            Xsens_orientation[i, 16:20]
+        )
+        Quat_head = biorbd.Quaternion(Quat_normalized_head[0], Quat_normalized_head[1], Quat_normalized_head[2],
+                                      Quat_normalized_head[3])
+        Quat_thorax = biorbd.Quaternion(Quat_normalized_thorax[0], Quat_normalized_thorax[1], Quat_normalized_thorax[2],
+                                        Quat_normalized_thorax[3])
+        RotMat_head = biorbd.Quaternion.toMatrix(Quat_head).to_array()
+        RotMat_thorax = biorbd.Quaternion.toMatrix(Quat_thorax).to_array()
+        RotMat_head_rotated = rotation_matrix * RotMat_head
+        RotMat_thorax_rotated = rotation_matrix * RotMat_thorax
+
+        Quat_head_rotated = biorbd.Quaternion.fromMatrix(biorbd.Rotation(RotMat_head_rotated[0, 0], RotMat_head_rotated[0, 1], RotMat_head_rotated[0, 2],
+                                                                         RotMat_head_rotated[1, 0], RotMat_head_rotated[1, 1], RotMat_head_rotated[1, 2],
+                                                                         RotMat_head_rotated[2, 0], RotMat_head_rotated[2, 1], RotMat_head_rotated[2, 2])).to_array()
+        Quat_thorax_rotated = biorbd.Quaternion.fromMatrix(biorbd.Rotation(RotMat_thorax_rotated[0, 0], RotMat_thorax_rotated[0, 1], RotMat_thorax_rotated[0, 2],
+                                                                            RotMat_thorax_rotated[1, 0], RotMat_thorax_rotated[1, 1], RotMat_thorax_rotated[1, 2],
+                                                                            RotMat_thorax_rotated[2, 0], RotMat_thorax_rotated[2, 1], RotMat_thorax_rotated[2, 2])).to_array()
+        Xsens_orientation_rotated[i, 24:28] = Quat_head_rotated
+        Xsens_orientation_rotated[i, 16:20] = Quat_thorax_rotated
+
+    return Xsens_position_centered_on_CoM_rotated, Xsens_orientation_rotated
 
 
 def get_initial_gaze_orientation(eye_resting_frames, azimuth, elevation):
