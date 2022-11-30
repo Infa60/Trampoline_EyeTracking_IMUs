@@ -86,7 +86,7 @@ def primary_plots(df, move_list, subelite_names, elite_names, home_path):
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Neck amplitude', '?', 'neck_amplitude', home_path + '/disk/Eye-tracking/plots/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Maximum eye amplitude', '?', 'max_eye_amplitude', home_path + '/disk/Eye-tracking/plots/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Maximum neck amplitude', '?', 'max_neck_amplitude', home_path + '/disk/Eye-tracking/plots/')
-
+    # see what we want to do with the zero from Pupil
     return
 
 def trajectory_plots(df, move_list, subelite_names, elite_names):
@@ -329,7 +329,8 @@ def movement_pourcentage_plots(df, move_list, subelite_names, elite_names, home_
     ax = bar_plots(df, type_names, subelite_names, elite_names, True, True)
 
     ax.set_ylabel('Proportion of the acrobatics [%]')
-    ax.set_xticks(ticks=[0, 2, 4, 6], labels=[i + '/' for i in move_list], fontweight='bold')
+    ax.set_xticks(ticks=[0, 2, 4, 6])
+    ax.set_xticklabels([i + '/' for i in move_list], fontweight='bold')
     ax.tick_params(axis='x', pad=15)
     # plt.legend(ncol=2, loc='upper center', bbox_to_anchor=(0.5, 1.55))
     ax.legend(ncol=2, loc='upper center', bbox_to_anchor=(0.5, 1.25))
@@ -348,7 +349,8 @@ def AOI_pourcentage_plots(df, move_list, subelite_names, elite_names, home_path)
     ax = bar_plots(df, type_names, subelite_names, elite_names, True, False)
 
     ax.set_ylabel('Proportion of the acrobatics [%]')
-    ax.set_xticks(ticks=[0, 2, 4, 6], labels=[i + '/' for i in move_list], fontweight='bold')
+    ax.set_xticks(ticks=[0, 2, 4, 6])
+    ax.set_xticklabels([i + '/' for i in move_list], fontweight='bold')
     ax.tick_params(axis='x', pad=15)
     # plt.legend(ncol=2, loc='upper center', bbox_to_anchor=(0.5, 1.55))
     ax.legend(ncol=3, loc='upper center', bbox_to_anchor=(0.5, 1.25))
@@ -660,6 +662,11 @@ if GENRATE_DATA_FRAME_FLAG:
 
 
     savemat(home_path + '/disk/Eye-tracking/plots/primary_table.mat', {'primary_table': primary_table})
+    savemat(home_path + '/disk/Eye-tracking/plots/trajectories_table.mat', {'trajectories_table': trajectories_table})
+    savemat(home_path + '/disk/Eye-tracking/plots/AOI_proportions_table.mat', {'AOI_proportions_table': AOI_proportions_table})
+    savemat(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_table.mat', {'neck_eye_movements_table': neck_eye_movements_table})
+    savemat(home_path + '/disk/Eye-tracking/plots/heatmaps_spreading_table.mat', {'heatmaps_spreading_table': heatmaps_spreading_table})
+    savemat(home_path + '/disk/Eye-tracking/plots/qualitative_table.mat', {'qualitative_table': qualitative_table})
 
 else:
     primary_table = loadmat(home_path + '/disk/Eye-tracking/plots/primary_table.mat')['primary_table']
@@ -697,7 +704,14 @@ timing_plots(qualitative_data_frame, move_list, subelite_names, elite_names, hom
 
 
 
-
+import matplotlib.pyplot as plt
+plt.figure()
+plt.plot(0, 0, '-k', label='Athlete')
+plt.plot(0, 0, '.c', label='Eyes')
+plt.plot(0, 0, '.r', label='Center of mass')
+plt.plot(0, 0, '.b', label='Gaze')
+plt.legend()
+plt.show()
 
 
 
