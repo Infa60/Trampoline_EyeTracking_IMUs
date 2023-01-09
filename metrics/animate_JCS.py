@@ -672,7 +672,7 @@ def plot_gaze_trajectory(
         ax.plot_surface(X, Y, Z, color=plt.cm.viridis(timing), alpha=0.3)
     ax.set_title("Gaze trajectory")
 
-    plt.savefig(output_file_name[:-4] + "_gaze_trajectory.png")
+    plt.savefig(output_file_name[:-4] + "_gaze_trajectory.png", dpi=300)
     # plt.show()
     plt.close("all")
     return
@@ -900,9 +900,8 @@ def animate(
             blit=False,
         )
 
-        anim.save(output_file_name, fps=60, extra_args=["-vcodec", "libx264"])
+        anim.save(output_file_name, fps=60, extra_args=["-vcodec", "libx264"], dpi=300)
         plt.show()
-        embed()
         plt.close("all")
 
     if FLAG_GAZE_TRAJECTORY:
