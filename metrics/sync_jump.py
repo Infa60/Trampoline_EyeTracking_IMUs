@@ -258,7 +258,7 @@ def plot_synchro(
     plt.legend()
     plt.title("Xsens")
     plt.savefig(output_file_name)
-    # plt.show()
+    plt.show()
 
 def chose_closest_index_xsens(time_vector_pupil,
                               time_offset,
@@ -402,6 +402,28 @@ def sync_jump(
                                        candidate_end_xsens)
         plt.show()
 
+    if FLAG_SYNCHRO_PLOTS:
+        plot_synchro(
+            moving_average_window_size,
+            idx_jump_candidates_xsens,
+            candidate_start_xsens,
+            candidate_end_xsens,
+            start_of_jump_pupil_index,
+            end_of_jump_pupil_index,
+            Xsens_sensorFreeAcceleration_averaged_norm,
+            np.arange(0, len(start_of_jump_pupil_index)),  # pupil_start_index_optim,
+            np.arange(0, len(candidate_start_xsens)),  # xsens_start_of_jump_index,
+            np.arange(0, len(candidate_start_xsens)),  # xsens_end_of_jump_index,
+            np.arange(0, len(candidate_start_xsens)),  # candidate_start_xsens_index_optim,
+            np.arange(0, len(candidate_start_xsens)),  # candidate_end_xsens_index_optim,
+            start_of_move_index,
+            np.arange(0, len(candidate_start_xsens)),  # xsens_start_of_move_index,
+            np.arange(0, len(candidate_start_xsens)),  # xsens_end_of_move_index,
+            time_vector_pupil,
+            time_vector_xsens,
+            0,  #time_offset,
+            output_file_name,
+        )
 
     diff_time = 10000
     time_offset = 0
