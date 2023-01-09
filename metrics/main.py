@@ -195,7 +195,7 @@ def run_analysis(
         )
 
         pelvis_resting_frames = np.arange(Xsens_frames_zero[0], Xsens_frames_zero[1])
-        Xsens_position_rotated, Xsens_orientation_rotated = rotate_pelvis_to_initial_orientation(num_joints, Xsens_position, Xsens_orientation, pelvis_resting_frames)
+        Xsens_position_rotated, Xsens_orientation_rotated = rotate_pelvis_to_initial_orientation(num_joints, move_orientation, Xsens_position, Xsens_orientation, pelvis_resting_frames)
 
         (
             time_vector_pupil_per_move,

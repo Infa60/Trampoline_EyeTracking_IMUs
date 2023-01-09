@@ -2,13 +2,10 @@ import biorbd
 import numpy as np
 from IPython import embed
 
-def rotate_pelvis_to_initial_orientation(num_joints, Xsens_position, Xsens_orientation, pelvis_resting_frames):
+def rotate_pelvis_to_initial_orientation(num_joints, move_orientation, Xsens_position, Xsens_orientation, pelvis_resting_frames):
     """
     This function realigns the pelvis to be faced to the front wall at the beginig of the trial.
     """
-
-
-    ### Attention à l'orientation initial de l'athlete (vers quel mur il regarde)
 
     vect_hips = Xsens_position[pelvis_resting_frames, 15*3:(15+1)*3] - Xsens_position[pelvis_resting_frames, 19*3:(19+1)*3]
     vect_vert = Xsens_position[pelvis_resting_frames, 0*3:(0+1)*3] - (Xsens_position[pelvis_resting_frames, 15*3:(15+1)*3] + Xsens_position[pelvis_resting_frames, 19*3:(19+1)*3])/2
@@ -16,7 +13,13 @@ def rotate_pelvis_to_initial_orientation(num_joints, Xsens_position, Xsens_orien
     vect_vert_mean = np.mean(vect_vert, axis=0)
     vect_front_mean = np.cross(vect_hips_mean, vect_vert_mean)
     vect_hips_mean[2] = 0
-    desired_vector = np.array([0, -1, 0])  # desired_vector = np.array([1, 0, 0])
+    if move_orientation[0] == 1:
+        desired_vector = np.array([0, -1, 0])
+    elif move_orientation[0] == -1:
+        desired_vector = np.array([0, 1, 0])
+    else:
+        print('Error: move_orientation[0] should be 1 or -1')
+        embed()
 
     angle_needed = np.arccos(np.dot(vect_hips_mean, desired_vector) / (np.linalg.norm(vect_hips_mean) * np.linalg.norm(desired_vector)))
     if vect_front_mean[0] < 0:
