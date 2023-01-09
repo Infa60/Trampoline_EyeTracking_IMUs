@@ -668,8 +668,41 @@ if GENRATE_DATA_FRAME_FLAG:
     savemat(home_path + '/disk/Eye-tracking/plots/heatmaps_spreading_table.mat', {'heatmaps_spreading_table': heatmaps_spreading_table})
     savemat(home_path + '/disk/Eye-tracking/plots/qualitative_table.mat', {'qualitative_table': qualitative_table})
 
+    # save as pickle files
+    with open(home_path + '/disk/Eye-tracking/plots/primary_table.pkl', 'wb') as f:
+        pickle.dump(primary_table, f)
+    with open(home_path + '/disk/Eye-tracking/plots/trajectories_table.pkl', 'wb') as f:
+        pickle.dump(trajectories_table, f)
+    with open(home_path + '/disk/Eye-tracking/plots/AOI_proportions_table.pkl', 'wb') as f:
+        pickle.dump(AOI_proportions_table, f)
+    with open(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_table.pkl', 'wb') as f:
+        pickle.dump(neck_eye_movements_table, f)
+    with open(home_path + '/disk/Eye-tracking/plots/heatmaps_spreading_table.pkl', 'wb') as f:
+        pickle.dump(heatmaps_spreading_table, f)
+    with open(home_path + '/disk/Eye-tracking/plots/qualitative_table.pkl', 'wb') as f:
+        pickle.dump(qualitative_table, f)
+
 else:
     primary_table = loadmat(home_path + '/disk/Eye-tracking/plots/primary_table.mat')['primary_table']
+    trajectories_table = loadmat(home_path + '/disk/Eye-tracking/plots/trajectories_table.mat')['trajectories_table']
+    AOI_proportions_table = loadmat(home_path + '/disk/Eye-tracking/plots/AOI_proportions_table.mat')['AOI_proportions_table']
+    neck_eye_movements_table = loadmat(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_table.mat')['neck_eye_movements_table']
+    heatmaps_spreading_table = loadmat(home_path + '/disk/Eye-tracking/plots/heatmaps_spreading_table.mat')['heatmaps_spreading_table']
+    qualitative_table = loadmat(home_path + '/disk/Eye-tracking/plots/qualitative_table.mat')['qualitative_table']
+
+    # load the pickle files
+    with open(home_path + '/disk/Eye-tracking/plots/primary_table.pkl', 'rb') as f:
+        primary_table = pickle.load(f)
+    with open(home_path + '/disk/Eye-tracking/plots/trajectories_table.pkl', 'rb') as f:
+        trajectories_table = pickle.load(f)
+    with open(home_path + '/disk/Eye-tracking/plots/AOI_proportions_table.pkl', 'rb') as f:
+        AOI_proportions_table = pickle.load(f)
+    with open(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_table.pkl', 'rb') as f:
+        neck_eye_movements_table = pickle.load(f)
+    with open(home_path + '/disk/Eye-tracking/plots/heatmaps_spreading_table.pkl', 'rb') as f:
+        heatmaps_spreading_table = pickle.load(f)
+    with open(home_path + '/disk/Eye-tracking/plots/qualitative_table.pkl', 'rb') as f:
+        qualitative_table = pickle.load(f)
 
 move_list = ['4-', '41', '42', '43']
 
@@ -701,17 +734,6 @@ heatmap_spreading_plots(heatmap_spreading_data_frame, move_list, subelite_names,
 
 qualitative_data_frame = pd.DataFrame(qualitative_table[1:], columns=qualitative_table[0])
 timing_plots(qualitative_data_frame, move_list, subelite_names, elite_names, home_path)
-
-
-
-import matplotlib.pyplot as plt
-plt.figure()
-plt.plot(0, 0, '-k', label='Athlete')
-plt.plot(0, 0, '.c', label='Eyes')
-plt.plot(0, 0, '.r', label='Center of mass')
-plt.plot(0, 0, '.b', label='Gaze')
-plt.legend()
-plt.show()
 
 
 
