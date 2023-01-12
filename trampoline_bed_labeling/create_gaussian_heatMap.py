@@ -33,7 +33,9 @@ def load_pupil(gaze_position_labels, eye_tracking_data_path):
     for i in range(len(timestamp_image_read)):
         timestamp_image[i] = timestamp_image_read[i][0][2]
     info = np.char.split(pd.read_csv(filename_info, sep='\t').values.astype('str'), sep=',')
-    serial_number_str = info[15][0][0]
+    for i in range(len(info)):
+        if "scene_camera_serial_number" in info[i][0][0]:
+            serial_number_str = info[i][0][0]
     num_quote = 0
     for pos, char in enumerate(serial_number_str):
         if char == '"':
