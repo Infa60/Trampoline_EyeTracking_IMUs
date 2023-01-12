@@ -16,6 +16,7 @@ import spm1d
 PRIMARY_ANALYSIS_FLAG = False
 AOI_ANALYSIS_FLAG = False
 NECK_EYE_ANALYSIS_FLAG = True
+SPREADING_HEATMAP_FLAG = True
 QUALITATIVE_ANALYSIS_FLAG = False # True
 
 if os.path.exists("/home/user"):
@@ -268,46 +269,70 @@ if NECK_EYE_ANALYSIS_FLAG:
     neck_eye_movements_table = neck_eye_movements_table_temporary
 
 
-    print("Mixed ANOVA for Trampoline")
+    print("Mixed ANOVA for Anticipatory movements")
     out = pg.mixed_anova(data=neck_eye_movements_table, dv='Anticipatory movements', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
-    print("Mixed ANOVA for Wall front")
+    print("Mixed ANOVA for Compensatory movements")
     out = pg.mixed_anova(data=neck_eye_movements_table, dv='Compensatory movements', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
-    print("Mixed ANOVA for Wall back")
-    out = pg.mixed_anova(data=neck_eye_movements_table, dv='Wall back', within='Acrobatics', between='Expertise', subject='Name')
-    print(f'{out}\n\n')
-    print("Mixed ANOVA for Ceiling")
+    print("Mixed ANOVA for Spotting movements")
     out = pg.mixed_anova(data=neck_eye_movements_table, dv='Spotting movements', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
-    print("Mixed ANOVA for Wall sides")
+    print("Mixed ANOVA for Movement detection")
     out = pg.mixed_anova(data=neck_eye_movements_table, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
-    print("Mixed ANOVA for Athlete himself")
+    print("Mixed ANOVA for Blinks")
     out = pg.mixed_anova(data=neck_eye_movements_table, dv='Blinks', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
 
-    print("pairwise t-test for Trampoline")
+    print("pairwise t-test for Anticipatory movements")
     out = pg.pairwise_tests(data=neck_eye_movements_table, dv='Anticipatory movements', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
-    print("pairwise t-test for Wall front")
+    print("pairwise t-test for Compensatory movements")
     out = pg.pairwise_tests(data=neck_eye_movements_table, dv='Compensatory movements', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
-    print("pairwise t-test for Wall back")
-    out = pg.pairwise_tests(data=neck_eye_movements_table, dv='Wall back', within='Acrobatics', between='Expertise', subject='Name')
-    print(f'{out}\n\n')
-    print("pairwise t-test for Ceiling")
+    print("pairwise t-test for Spotting movements")
     out = pg.pairwise_tests(data=neck_eye_movements_table, dv='Spotting movements', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
-    print("pairwise t-test for Wall sides")
+    print("pairwise t-test for Movement detection")
     out = pg.pairwise_tests(data=neck_eye_movements_table, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
-    print("pairwise t-test for Athlete himself")
+    print("pairwise t-test for Blinks")
     out = pg.pairwise_tests(data=neck_eye_movements_table, dv='Blinks', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
 
 
-# -------------------------------- Qualitative data frame = SPM1D ------------------------------------ #
+# ----------------------------------- Heatmap spreading data frame = Mixed ANOVA -------------------------------------- #
+
+if SPREADING_HEATMAP_FLAG:
+    heatmaps_spreading_table_temporary = pd.DataFrame(columns=['Name', 'Expertise', 'Acrobatics',
+                                                               'Distance from the center of each point of the heatmap',
+                                                               'Heat map 90th percentile'])
+    num_rows = 0
+    for i in range(len(heatmaps_spreading_table)):
+        if i in list_move_ok_for_now:
+            df = {'Name': [heatmaps_spreading_table['Name'][i]],
+                  'Expertise': [heatmaps_spreading_table['Expertise'][i]],
+                  'Acrobatics': [heatmaps_spreading_table['Acrobatics'][i]],
+                  'Distance from the center of each point of the heatmap': [heatmaps_spreading_table['Distance from the center of each point of the heatmap'][i]],
+                  'Heat map 90th percentile': [heatmaps_spreading_table['Heat map 90th percentile'][i]]}
+            primary_data_frame_temporary = pd.concat([heatmaps_spreading_table_temporary, pd.DataFrame(df)])
+            num_rows += 1
+
+    heatmaps_spreading_table = heatmaps_spreading_table_temporary
+
+    print("Mixed ANOVA for Heat map 90th percentile")
+    out = pg.mixed_anova(data=heatmaps_spreading_table, dv='Heat map 90th percentile', within='Acrobatics',
+                         between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+
+    print("pairwise t-test for Heat map 90th percentile")
+    out = pg.pairwise_tests(data=heatmaps_spreading_table, dv='Heat map 90th percentile', within='Acrobatics',
+                            between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+
+
+# ---------------------------------------- Qualitative data frame = SPM1D -------------------------------------------- #
 def nearest_interp(xi, x, y):
     out = np.zeros((len(xi),))
     for i in range(len(xi)):
