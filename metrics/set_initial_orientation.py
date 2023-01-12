@@ -15,18 +15,32 @@ def rotate_pelvis_to_initial_orientation(num_joints, move_orientation, Xsens_pos
     vect_hips_mean[2] = 0
     if move_orientation[0] == 1:
         desired_vector = np.array([0, -1, 0])
+        print("\nMove orientation = 1 \n")
     elif move_orientation[0] == -1:
         desired_vector = np.array([0, 1, 0])
+        print("\nMove orientation = -1 \n")
     else:
         print('Error: move_orientation[0] should be 1 or -1')
         embed()
 
     angle_needed = np.arccos(np.dot(vect_hips_mean, desired_vector) / (np.linalg.norm(vect_hips_mean) * np.linalg.norm(desired_vector)))
-    if vect_front_mean[0] < 0:
-        angle_needed = -angle_needed
+    print("\nvect_front_mean = ", vect_front_mean, " \n")
+
     rotation_matrix = biorbd.Rotation.fromEulerAngles(np.array([0, 0, angle_needed]), 'xyz').to_array()
-    print('\n****angle_needed : ', angle_needed*180/np.pi, '****')
-    print('Hips vector : ', vect_hips_mean)
+    vec_hip_rotated = rotation_matrix @ vect_hips_mean
+    residual_angle = np.arccos(np.dot(vec_hip_rotated, desired_vector) / (np.linalg.norm(vec_hip_rotated) * np.linalg.norm(desired_vector)))
+
+    rotation_matrix_opposite_rotation = biorbd.Rotation.fromEulerAngles(np.array([0, 0, -angle_needed]), 'xyz').to_array()
+    vec_hip_rotated_opposite_rotation = rotation_matrix_opposite_rotation @ vect_hips_mean
+    residual_angle_opposite_rotation = np.arccos(np.dot(vec_hip_rotated_opposite_rotation, desired_vector) / (np.linalg.norm(vec_hip_rotated_opposite_rotation) * np.linalg.norm(desired_vector)))
+
+    if np.abs(residual_angle) > np.abs(residual_angle_opposite_rotation):
+        angle_needed = -angle_needed
+        rotation_matrix = rotation_matrix_opposite_rotation
+        vec_hip_rotated = vec_hip_rotated_opposite_rotation
+
+    print('\n**** angle_needed : ', angle_needed*180/np.pi, 'degrees ****')
+    print('vec_hip_rotated : ', vec_hip_rotated)
     print('Desired vector : ', desired_vector)
     print('\n')
 
@@ -64,7 +78,6 @@ def rotate_pelvis_to_initial_orientation(num_joints, move_orientation, Xsens_pos
         Xsens_orientation_rotated[i, 16:20] = Quat_thorax_rotated
 
 
-    # embed()
     # import matplotlib.pyplot as plt
     # from animate_JCS import plot_gymnasium
     # fig = plt.figure()
