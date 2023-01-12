@@ -4,6 +4,9 @@ import pingouin as pg
 import pickle
 import os
 import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.cm as cm
+import spm1d
 
 ##########################################################################################
 # run --- python stats_test.py > stats_output.txt ---  to save the output to a file
@@ -13,6 +16,7 @@ import pandas as pd
 PRIMARY_ANALYSIS_FLAG = False
 AOI_ANALYSIS_FLAG = False
 NECK_EYE_ANALYSIS_FLAG = True
+QUALITATIVE_ANALYSIS_FLAG = False # True
 
 if os.path.exists("/home/user"):
     home_path = "/home/user"
@@ -36,6 +40,15 @@ with open(home_path + '/disk/Eye-tracking/plots/heatmaps_spreading_table.pkl', '
 with open(home_path + '/disk/Eye-tracking/plots/qualitative_table.pkl', 'rb') as f:
     qualitative_table = pickle.load(f)
 
+subelite_names = []
+elite_names = []
+for i in range(len(primary_table)):
+    if primary_table[i][1] == 'SubElite':
+        if primary_table[i][0] not in subelite_names:
+            subelite_names.append(primary_table[i][0])
+    if primary_table[i][1] == 'Elite':
+        if primary_table[i][0] not in elite_names:
+            elite_names.append(primary_table[i][0])
 
 # ------------------------------------ Primary data frame = Mixed Anova ---------------------------------------- #
 if PRIMARY_ANALYSIS_FLAG:
@@ -164,7 +177,9 @@ if PRIMARY_ANALYSIS_FLAG:
 # ----------------------------------------- AOI data frame = Mixed ANOVA --------------------------------------------- #
 # AOI_proportions_table
 if AOI_ANALYSIS_FLAG:
-    AOI_proportions_table_temporary = pd.DataFrame(columns=AOI_proportions_table[0])
+    AOI_proportions_table_temporary = pd.DataFrame(columns=['Name', 'Expertise', 'Acrobatics', 'Trampoline',
+                                                            'Wall back front', 'Ceiling', 'Wall sides',
+                                                            'Athlete himself', 'Blink'])
     num_rows = 0
     for i in range(len(AOI_proportions_table)):
         # if primary_data_frame['Name'][i] != 'MaBo':
@@ -173,12 +188,11 @@ if AOI_ANALYSIS_FLAG:
             'Expertise': [AOI_proportions_table['Expertise'][i]],
             'Acrobatics': [AOI_proportions_table['Acrobatics'][i]],
             'Trampoline': [AOI_proportions_table['Trampoline'][i]],
-            'Wall front': [primary_data_frame['Wall front'][i]],
-            'Wall back': [primary_data_frame['Wall back'][i]],
-            'Ceiling': [primary_data_frame['Ceiling'][i]],
-            'Wall sides': [primary_data_frame['Wall sides'][i]],
-            'Athlete himself': [primary_data_frame['Athlete himself'][i]],
-            'Blink': [primary_data_frame['Blink'][i]]}
+            'Wall back front': [AOI_proportions_table['Wall front'][i] + AOI_proportions_table['Wall back'][i]],
+            'Ceiling': [AOI_proportions_table['Ceiling'][i]],
+            'Wall sides': [AOI_proportions_table['Wall sides'][i]],
+            'Athlete himself': [AOI_proportions_table['Athlete himself'][i]],
+            'Blink': [AOI_proportions_table['Blink'][i]]}
             primary_data_frame_temporary = pd.concat([AOI_proportions_table_temporary, pd.DataFrame(df)])
             num_rows += 1
 
@@ -186,84 +200,235 @@ if AOI_ANALYSIS_FLAG:
 
 
     print("Mixed ANOVA for Trampoline")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=AOI_proportions_table, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Wall front")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Wall front', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=AOI_proportions_table, dv='Wall front', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Wall back")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Wall back', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=AOI_proportions_table, dv='Wall back', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Ceiling")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Ceiling', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=AOI_proportions_table, dv='Ceiling', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Wall sides")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=AOI_proportions_table, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Athlete himself")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=AOI_proportions_table, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Blink")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Blink', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=AOI_proportions_table, dv='Blink', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
 
     print("pairwise t-test for Trampoline")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=AOI_proportions_table, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Wall front")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Wall front', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=AOI_proportions_table, dv='Wall front', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Wall back")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Wall back', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=AOI_proportions_table, dv='Wall back', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Ceiling")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Ceiling', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=AOI_proportions_table, dv='Ceiling', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Wall sides")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=AOI_proportions_table, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Athlete himself")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=AOI_proportions_table, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Blink")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Blink', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=AOI_proportions_table, dv='Blink', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
-    print("pairwise t-test for Maximum neck amplitude")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Maximum neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
-    print(f'{out}\n\n')
-
 
 
 # -------------------------------- Neck + eye data frame = SPM1D ------------------------------------ #
 if NECK_EYE_ANALYSIS_FLAG:
-
-    nb_trial_per_athlete = {}
-    for i in range(len(neck_eye_movements_table)):
-        if AOI_proportions_table['Name'][i] not in nb_trial_per_athlete.keys():
-
-        if i in list_move_ok_for_now:
-            df = {'Name': [AOI_proportions_table['Name'][i]],
-            'Expertise': [AOI_proportions_table['Expertise'][i]],
-            'Acrobatics': [AOI_proportions_table['Acrobatics'][i]],
-            'Trampoline': [AOI_proportions_table['Trampoline'][i]],
-            'Wall front': [primary_data_frame['Wall front'][i]],
-            'Wall back': [primary_data_frame['Wall back'][i]],
-            'Ceiling': [primary_data_frame['Ceiling'][i]],
-            'Wall sides': [primary_data_frame['Wall sides'][i]],
-            'Athlete himself': [primary_data_frame['Athlete himself'][i]],
-            'Blink': [primary_data_frame['Blink'][i]]}
-            primary_data_frame_temporary = pd.concat([AOI_proportions_table_temporary, pd.DataFrame(df)])
-            num_rows += 1
+    print("To do")
 
 
+# -------------------------------- Qualitative data frame = SPM1D ------------------------------------ #
+def nearest_interp(xi, x, y):
+    out = np.zeros((len(xi),))
+    for i in range(len(xi)):
+        index_closest = np.argmin(np.abs(xi[i]-x))
+        out[i] = y[index_closest]
+    return out
+
+if QUALITATIVE_ANALYSIS_FLAG:
+
+    nb_interp_points = 500
+    xi_interp = np.linspace(0, 1, nb_interp_points)
+    trial_per_athlete_index = {}
+    for i in range(1, len(qualitative_table)):
+        if qualitative_table[i][0] not in trial_per_athlete_index.keys():
+            trial_per_athlete_index[qualitative_table[i][0]] = [i]
+        else:
+            trial_per_athlete_index[qualitative_table[i][0]] += [i]
+
+    presence_curves_per_athelte = {}
+    for j, name in enumerate(trial_per_athlete_index.keys()):
+        index_this_time = trial_per_athlete_index[name]
+        anticipatory_curve = np.zeros((nb_interp_points, ))
+        compensatory_curve = np.zeros((nb_interp_points, ))
+        spotting_curve = np.zeros((nb_interp_points, ))
+        movement_detection_curve = np.zeros((nb_interp_points, ))
+        blink_curve = np.zeros((nb_interp_points, ))
+        for k in index_this_time:
+            x_index_this_time = np.linspace(0, 1, len(qualitative_table[k][4]))
+            anticipatory_presence_this_time = qualitative_table[k][4].astype(int)
+            compensatory_presence_this_time = qualitative_table[k][5].astype(int)
+            spotting_presence_this_time = qualitative_table[k][6].astype(int)
+            movement_detection_presence_this_time = qualitative_table[k][7].astype(int)
+            blink_presence_this_time = qualitative_table[k][8].astype(int)
+
+            anticipatory_curve += nearest_interp(xi_interp, x_index_this_time, anticipatory_presence_this_time)
+            compensatory_curve += nearest_interp(xi_interp, x_index_this_time, compensatory_presence_this_time)
+            spotting_curve += nearest_interp(xi_interp, x_index_this_time, spotting_presence_this_time)
+            movement_detection_curve += nearest_interp(xi_interp, x_index_this_time, movement_detection_presence_this_time)
+            blink_curve += nearest_interp(xi_interp, x_index_this_time, blink_presence_this_time)
+
+        presence_curves_per_athelte[name] = [anticipatory_curve/len(index_this_time),
+                                             compensatory_curve/len(index_this_time),
+                                             spotting_curve/len(index_this_time),
+                                             movement_detection_curve/len(index_this_time),
+                                             blink_curve/len(index_this_time)]
 
 
+    colors_subelites = [cm.get_cmap('plasma')(k) for k in np.linspace(0, 0.4, len(subelite_names))]
+    colors_elites = [cm.get_cmap('plasma')(k) for k in np.linspace(0.6, 1, len(elite_names))]
+    colors = []
+    subelites_anticipatory = []
+    elites_anticipatory = []
+    subelites_compensatory = []
+    elites_compensatory = []
+    subelites_spotting = []
+    elites_spotting = []
+    subelites_movement_detection = []
+    elites_movement_detection = []
+    subelites_blink = []
+    elites_blink = []
+    i_elites = 0
+    i_subelites = 0
+    for name in presence_curves_per_athelte.keys():
+        if name in subelite_names:
+            colors += [colors_subelites[i_subelites]]
+            i_subelites += 1
+            subelites_anticipatory += [presence_curves_per_athelte[name][0]]
+            subelites_compensatory = [presence_curves_per_athelte[name][1]]
+            subelites_spotting = [presence_curves_per_athelte[name][2]]
+            subelites_movement_detection = [presence_curves_per_athelte[name][3]]
+            subelites_blink = [presence_curves_per_athelte[name][4]]
+        elif name in elite_names:
+            colors += [colors_elites[i_elites]]
+            i_elites += 1
+            elites_anticipatory = [presence_curves_per_athelte[name][0]]
+            elites_compensatory = [presence_curves_per_athelte[name][1]]
+            elites_spotting = [presence_curves_per_athelte[name][2]]
+            elites_movement_detection = [presence_curves_per_athelte[name][3]]
+            elites_blink = [presence_curves_per_athelte[name][4]]
+        else:
+            print(f"Probleme de nom: {name} not recognised")
 
 
+    fig, axs = plt.subplots(2, 1)
+    for i, name in enumerate(presence_curves_per_athelte.keys()):
+        if name in subelite_names:
+            axs[0].plot(xi_interp*100, presence_curves_per_athelte[name][0], color=colors[i], label=name)
+    for i, name in enumerate(presence_curves_per_athelte.keys()):
+        if name in elite_names:
+            axs[1].plot(xi_interp*100, presence_curves_per_athelte[name][0], color=colors[i], label=name)
 
+    axs[0].set_xlim(0, 100)
+    axs[1].set_xlim(0, 100)
+    axs[0].set_ylim(0, 1)
+    axs[1].set_ylim(0, 1)
+    axs[0].legend()
+    axs[1].legend()
+    axs[1].set_xlabel("Normalized time [%]")
+    plt.suptitle("Anticipatory movements")
+    plt.savefig(home_path + '/disk/Eye-tracking/plots/' + 'anticiaptory_presence.png', dpi=300)
 
+    fig, axs = plt.subplots(2, 1)
+    for i, name in enumerate(presence_curves_per_athelte.keys()):
+        if name in subelite_names:
+            axs[0].plot(xi_interp*100, presence_curves_per_athelte[name][1], color=colors[i], label=name)
+    for i, name in enumerate(presence_curves_per_athelte.keys()):
+        if name in elite_names:
+            axs[1].plot(xi_interp*100, presence_curves_per_athelte[name][1], color=colors[i], label=name)
 
+    axs[0].set_xlim(0, 100)
+    axs[1].set_xlim(0, 100)
+    axs[0].set_ylim(0, 1)
+    axs[1].set_ylim(0, 1)
+    axs[0].legend()
+    axs[1].legend()
+    axs[1].set_xlabel("Normalized time [%]")
+    plt.suptitle("Compensatory movements")
+    plt.savefig(home_path + '/disk/Eye-tracking/plots/' + 'compensatory_presence.png', dpi=300)
 
+    fig, axs = plt.subplots(2, 1)
+    for i, name in enumerate(presence_curves_per_athelte.keys()):
+        if name in subelite_names:
+            axs[0].plot(xi_interp*100, presence_curves_per_athelte[name][2], color=colors[i], label=name)
+    for i, name in enumerate(presence_curves_per_athelte.keys()):
+        if name in elite_names:
+            axs[1].plot(xi_interp*100, presence_curves_per_athelte[name][2], color=colors[i], label=name)
+
+    axs[0].set_xlim(0, 100)
+    axs[1].set_xlim(0, 100)
+    axs[0].set_ylim(0, 1)
+    axs[1].set_ylim(0, 1)
+    axs[0].legend()
+    axs[1].legend()
+    axs[1].set_xlabel("Normalized time [%]")
+    plt.suptitle("Spotting")
+    plt.savefig(home_path + '/disk/Eye-tracking/plots/' + 'spotting_presence.png', dpi=300)
+
+    fig, axs = plt.subplots(2, 1)
+    for i, name in enumerate(presence_curves_per_athelte.keys()):
+        if name in subelite_names:
+            axs[0].plot(xi_interp*100, presence_curves_per_athelte[name][3], color=colors[i], label=name)
+    for i, name in enumerate(presence_curves_per_athelte.keys()):
+        if name in elite_names:
+            axs[1].plot(xi_interp*100, presence_curves_per_athelte[name][3], color=colors[i], label=name)
+
+    axs[0].set_xlim(0, 100)
+    axs[1].set_xlim(0, 100)
+    axs[0].set_ylim(0, 1)
+    axs[1].set_ylim(0, 1)
+    axs[0].legend()
+    axs[1].legend()
+    axs[1].set_xlabel("Normalized time [%]")
+    plt.suptitle("Movement detection")
+    plt.savefig(home_path + '/disk/Eye-tracking/plots/' + 'movement_detection_presence.png', dpi=300)
+
+    fig, axs = plt.subplots(2, 1)
+    for i, name in enumerate(presence_curves_per_athelte.keys()):
+        if name in subelite_names:
+            axs[0].plot(xi_interp*100, presence_curves_per_athelte[name][4], color=colors[i], label=name)
+    for i, name in enumerate(presence_curves_per_athelte.keys()):
+        if name in elite_names:
+            axs[1].plot(xi_interp*100, presence_curves_per_athelte[name][4], color=colors[i], label=name)
+
+    axs[0].set_xlim(0, 100)
+    axs[1].set_xlim(0, 100)
+    axs[0].set_ylim(0, 1)
+    axs[1].set_ylim(0, 1)
+    axs[0].legend()
+    axs[1].legend()
+    axs[1].set_xlabel("Normalized time [%]")
+    plt.suptitle("Blinks")
+    plt.savefig(home_path + '/disk/Eye-tracking/plots/' + 'blink_presence.png', dpi=300)
+    plt.show()
+
+    print("Il faut exclure les moments ou il n'y a pas de variance...\nChanger subelites_anticipatory pour np.array et faire np.std()")
+
+    # t = spm1d.stats.ttest2(subelites_anticipatory, elites_anticipatory, equal_var=False)
+    # ti = t.inference(alpha=0.05, two_tailed=False, interp=True)
+    # ti.plot()
 
 
 
