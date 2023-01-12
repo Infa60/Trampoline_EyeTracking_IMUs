@@ -297,46 +297,51 @@ def identify_head_eye_movements(elevation, azimuth, eye_azimuth_resting_orientat
     while_bool = True
     current_index = 0
 
-    if not np.all(~np.isnan(elevation)):
-        if np.where(np.isnan(elevation))[0][0] == 0:
-            next_number = np.where(~np.isnan(elevation))[0][0]
-            current_index += next_number
+    if np.all(np.isnan(elevation)):
+        elevation_filtered = elevation
+        azimuth_filtered = azimuth
+        eye_angles = np.vstack((azimuth_filtered, elevation_filtered))
+    else:
+        if not np.all(~np.isnan(elevation)):
+            if np.where(np.isnan(elevation))[0][0] == 0:
+                next_number = np.where(~np.isnan(elevation))[0][0]
+                current_index += next_number
+            else:
+                next_number = 0
         else:
             next_number = 0
-    else:
-        next_number = 0
-    while while_bool:
-        if np.shape(np.where(np.isnan(elevation[next_number:]))[0]) == (0,):
-            next_nan = len(elevation)
-            while_bool = False
-        else:
-            next_nan = np.where(np.isnan(elevation[next_number:]))[0]
-            next_nan = next_nan[0] + current_index
-            current_index = next_nan
-        if len(azimuth[next_number:next_nan]) < 16:
-            azimuth_filtered[next_number:next_nan] = azimuth[next_number:next_nan]
-            elevation_filtered[next_number:next_nan] = elevation[next_number:next_nan]
-        else:
-            azimuth_filtered[next_number:next_nan] = signal.filtfilt(b, a, azimuth[next_number:next_nan])
-            elevation_filtered[next_number:next_nan] = signal.filtfilt(b, a, elevation[next_number:next_nan])
-        next_number = np.where(~np.isnan(elevation[next_nan:]))[0]
-        if np.shape(next_number) == (0,):
-            while_bool = False
-        else:
-            next_number = next_number[0] + current_index
-            current_index = next_number
+        while while_bool:
+            if np.shape(np.where(np.isnan(elevation[next_number:]))[0]) == (0,):
+                next_nan = len(elevation)
+                while_bool = False
+            else:
+                next_nan = np.where(np.isnan(elevation[next_number:]))[0]
+                next_nan = next_nan[0] + current_index
+                current_index = next_nan
+            if len(azimuth[next_number:next_nan]) < 16:
+                azimuth_filtered[next_number:next_nan] = azimuth[next_number:next_nan]
+                elevation_filtered[next_number:next_nan] = elevation[next_number:next_nan]
+            else:
+                azimuth_filtered[next_number:next_nan] = signal.filtfilt(b, a, azimuth[next_number:next_nan])
+                elevation_filtered[next_number:next_nan] = signal.filtfilt(b, a, elevation[next_number:next_nan])
+            next_number = np.where(~np.isnan(elevation[next_nan:]))[0]
+            if np.shape(next_number) == (0,):
+                while_bool = False
+            else:
+                next_number = next_number[0] + current_index
+                current_index = next_number
 
-        plt.figure()
-        plt.plot(azimuth, label="azimuth")
-        plt.plot(azimuth_filtered, label="azimuth_filtered")
-        plt.plot(elevation, label="elevation")
-        plt.plot(elevation_filtered, label="elevation_filtered")
-        plt.legend()
-        plt.savefig(f'{output_file_name[:-4]}__filter.png')
-        # plt.show()
-        plt.close("all")
+            plt.figure()
+            plt.plot(azimuth, label="azimuth")
+            plt.plot(azimuth_filtered, label="azimuth_filtered")
+            plt.plot(elevation, label="elevation")
+            plt.plot(elevation_filtered, label="elevation_filtered")
+            plt.legend()
+            plt.savefig(f'{output_file_name[:-4]}__filter.png')
+            # plt.show()
+            plt.close("all")
 
-        eye_angles = np.vstack((azimuth_filtered, elevation_filtered))
+            eye_angles = np.vstack((azimuth_filtered, elevation_filtered))
 
     eye_displacement_diff_finie = (eye_angles[:, 2:] - eye_angles[:, :-2]) / 2
 
