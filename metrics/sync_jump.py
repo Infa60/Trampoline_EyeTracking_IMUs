@@ -135,6 +135,30 @@ def plot_synchro(
                 linewidth=linewidth,
                 label="End of jump Pupil",
             )
+        else:
+            plt.plot(
+                np.ones((2,)) * time_vector_pupil[int(start_of_jump_pupil_index[i])] - time_offset,
+                np.array(
+                    [
+                        np.min(Xsens_sensorFreeAcceleration_averaged_norm),
+                        np.max(Xsens_sensorFreeAcceleration_averaged_norm),
+                    ]
+                ),
+                "--c",
+            )
+            plt.plot(
+                np.ones((2,)) * time_vector_pupil[int(end_of_jump_pupil_index[i])] - time_offset,
+                np.array(
+                    [
+                        np.min(Xsens_sensorFreeAcceleration_averaged_norm),
+                        np.max(Xsens_sensorFreeAcceleration_averaged_norm),
+                    ]
+                ),
+                "-c",
+            )
+
+    for i in range(len(xsens_start_of_jump_index)):
+        if i == 0:
             plt.plot(
                 np.ones((2,)) * time_vector_xsens[int(xsens_start_of_jump_index[i])],
                 np.array(
@@ -165,26 +189,6 @@ def plot_synchro(
                      label="end of jump considered")
         else:
             plt.plot(
-                np.ones((2,)) * time_vector_pupil[int(start_of_jump_pupil_index[i])] - time_offset,
-                np.array(
-                    [
-                        np.min(Xsens_sensorFreeAcceleration_averaged_norm),
-                        np.max(Xsens_sensorFreeAcceleration_averaged_norm),
-                    ]
-                ),
-                "--c",
-            )
-            plt.plot(
-                np.ones((2,)) * time_vector_pupil[int(end_of_jump_pupil_index[i])] - time_offset,
-                np.array(
-                    [
-                        np.min(Xsens_sensorFreeAcceleration_averaged_norm),
-                        np.max(Xsens_sensorFreeAcceleration_averaged_norm),
-                    ]
-                ),
-                "-c",
-            )
-            plt.plot(
                 np.ones((2,)) * time_vector_xsens[int(xsens_start_of_jump_index[i])],
                 np.array(
                     [
@@ -209,10 +213,11 @@ def plot_synchro(
             plt.plot(time_vector_xsens[candidate_end_xsens_index_optim.astype(int)],
                      np.ones((len(candidate_end_xsens_index_optim, ))), 'xr', markersize=10)
 
-    for i in range(len(start_of_move_index)):
+    # for i in range(len(start_of_move_index)):
+    for i in range(len(xsens_start_of_move_index)):
         if i == 0:
             plt.plot(
-                np.ones((2,)) * time_vector_xsens[int(xsens_start_of_move_index[i])],  ############ pupil time?
+                np.ones((2,)) * time_vector_xsens[int(xsens_start_of_move_index[i])],
                 np.array(
                     [
                         np.min(Xsens_sensorFreeAcceleration_averaged_norm),
