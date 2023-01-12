@@ -7,6 +7,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
 import spm1d
+from scipy.interpolate import interp1d
+import csv
+
 
 ##########################################################################################
 # run --- python stats_test.py > stats_output.txt ---  to save the output to a file
@@ -14,6 +17,7 @@ import spm1d
 
 
 PRIMARY_ANALYSIS_FLAG = False
+TRAJECTORIES_ANALYSIS_FLAG = True
 AOI_ANALYSIS_FLAG = False
 NECK_EYE_ANALYSIS_FLAG = True
 SPREADING_HEATMAP_FLAG = True
@@ -41,7 +45,7 @@ with open(home_path + '/disk/Eye-tracking/plots/heatmaps_spreading_table.pkl', '
 with open(home_path + '/disk/Eye-tracking/plots/qualitative_table.pkl', 'rb') as f:
     qualitative_table = pickle.load(f)
 
-print("Faire un table du nombre d'essais de chaque par athlete")
+
 subelite_names = []
 elite_names = []
 for i in range(len(primary_table)):
@@ -51,6 +55,37 @@ for i in range(len(primary_table)):
     if primary_table[i][1] == 'Elite':
         if primary_table[i][0] not in elite_names:
             elite_names.append(primary_table[i][0])
+
+trial_per_athlete_per_move_index = {}
+for i in range(1, len(trajectories_table)):
+    if trajectories_table[i][0] not in trial_per_athlete_per_move_index.keys():
+        basic_dict = {'4-': [], '41': [], '42': [], '43': [], }
+        trial_per_athlete_per_move_index[trajectories_table[i][0]] = {'4-': [], '41': [], '42': [], '43': [], }
+        trial_per_athlete_per_move_index[trajectories_table[i][0]][trajectories_table[i][2]] += [i]
+    else:
+        trial_per_athlete_per_move_index[trajectories_table[i][0]][trajectories_table[i][2]] += [i]
+
+print("Ajust code for different acrobatics !!!")
+
+with open(home_path + '/disk/Eye-tracking/plots/nb_trial_per_athlete.csv', 'w') as f:
+    writer = csv.writer(f)
+    writer.writerow(['Athlete', '4-/', '41/', '42/', '43/'])
+    for i, name in  enumerate(trial_per_athlete_per_move_index):
+        if name in subelite_names:
+            writer.writerow([name,
+                             len(trial_per_athlete_per_move_index[name]['4-']),
+                             len(trial_per_athlete_per_move_index[name]['41']),
+                             len(trial_per_athlete_per_move_index[name]['42']),
+                             len(trial_per_athlete_per_move_index[name]['43'])])
+    writer.writerow(['-', '-', '-', '-', '-'])
+    for i, name in enumerate(trial_per_athlete_per_move_index):
+        if name in elite_names:
+            writer.writerow([name,
+                             len(trial_per_athlete_per_move_index[name]['4-']),
+                             len(trial_per_athlete_per_move_index[name]['41']),
+                             len(trial_per_athlete_per_move_index[name]['42']),
+                             len(trial_per_athlete_per_move_index[name]['43'])])
+    f.close()
 
 # ------------------------------------ Primary data frame = Mixed Anova ---------------------------------------- #
 if PRIMARY_ANALYSIS_FLAG:
@@ -174,6 +209,139 @@ if PRIMARY_ANALYSIS_FLAG:
 # -------------------------------- Trajectories data frame = SPM1D ? ------------------------------------ #
 # trajectories_table
 # add meanplots
+print("Est-ce qu'on tourne les athletes dans le gymnase pour avoir des trajectoires dans le meme sens?")
+
+if TRAJECTORIES_ANALYSIS_FLAG:
+
+    nb_interp_points = 500
+    xi_interp = np.linspace(0, 1, nb_interp_points)
+    trajectory_curves_per_athelte = {}
+    for j, name in enumerate(trial_per_athlete_index.keys()):
+        index_this_time = trial_per_athlete_index[name]
+        PGO_curve = np.zeros((nb_interp_points, ))
+        for k in index_this_time:
+            x_index_this_time = np.linspace(0, 1, len(trajectories_table[k][4]))
+            trajectory_this_time = trajectories_table[k][3].astype(int)
+            PGO_curve += interp1d(x_index_this_time, trajectory_this_time, kind='cubic')(xi_interp)
+
+        trajectory_curves_per_athelte[name] = PGO_curve/len(index_this_time)
+
+
+    colors_subelites = [cm.get_cmap('plasma')(k) for k in np.linspace(0, 0.4, len(subelite_names))]
+    colors_elites = [cm.get_cmap('plasma')(k) for k in np.linspace(0.6, 1, len(elite_names))]
+    colors = []
+    subelites_PGO = []
+    elites_PGO = []
+    i_elites = 0
+    i_subelites = 0
+    for name in trajectory_curves_per_athelte.keys():
+        if name in subelite_names:
+            colors += [colors_subelites[i_subelites]]
+            i_subelites += 1
+            subelites_PGO += [trajectory_curves_per_athelte[name][0]]
+        elif name in elite_names:
+            colors += [colors_elites[i_elites]]
+            i_elites += 1
+            elites_anticipatory = [trajectory_curves_per_athelte[name][0]]
+        else:
+            print(f"Probleme de nom: {name} not recognised")
+
+
+    # fig, axs = plt.subplots(2, 1)
+    # for i, name in enumerate(presence_curves_per_athelte.keys()):
+    #     if name in subelite_names:
+    #         axs[0].plot(xi_interp*100, presence_curves_per_athelte[name][0], color=colors[i], label=name)
+    # for i, name in enumerate(presence_curves_per_athelte.keys()):
+    #     if name in elite_names:
+    #         axs[1].plot(xi_interp*100, presence_curves_per_athelte[name][0], color=colors[i], label=name)
+    #
+    # axs[0].set_xlim(0, 100)
+    # axs[1].set_xlim(0, 100)
+    # axs[0].set_ylim(0, 1)
+    # axs[1].set_ylim(0, 1)
+    # axs[0].legend()
+    # axs[1].legend()
+    # axs[1].set_xlabel("Normalized time [%]")
+    # plt.suptitle("Anticipatory movements")
+    # plt.savefig(home_path + '/disk/Eye-tracking/plots/' + 'anticiaptory_presence.png', dpi=300)
+    #
+    # fig, axs = plt.subplots(2, 1)
+    # for i, name in enumerate(presence_curves_per_athelte.keys()):
+    #     if name in subelite_names:
+    #         axs[0].plot(xi_interp*100, presence_curves_per_athelte[name][1], color=colors[i], label=name)
+    # for i, name in enumerate(presence_curves_per_athelte.keys()):
+    #     if name in elite_names:
+    #         axs[1].plot(xi_interp*100, presence_curves_per_athelte[name][1], color=colors[i], label=name)
+    #
+    # axs[0].set_xlim(0, 100)
+    # axs[1].set_xlim(0, 100)
+    # axs[0].set_ylim(0, 1)
+    # axs[1].set_ylim(0, 1)
+    # axs[0].legend()
+    # axs[1].legend()
+    # axs[1].set_xlabel("Normalized time [%]")
+    # plt.suptitle("Compensatory movements")
+    # plt.savefig(home_path + '/disk/Eye-tracking/plots/' + 'compensatory_presence.png', dpi=300)
+    #
+    # fig, axs = plt.subplots(2, 1)
+    # for i, name in enumerate(presence_curves_per_athelte.keys()):
+    #     if name in subelite_names:
+    #         axs[0].plot(xi_interp*100, presence_curves_per_athelte[name][2], color=colors[i], label=name)
+    # for i, name in enumerate(presence_curves_per_athelte.keys()):
+    #     if name in elite_names:
+    #         axs[1].plot(xi_interp*100, presence_curves_per_athelte[name][2], color=colors[i], label=name)
+    #
+    # axs[0].set_xlim(0, 100)
+    # axs[1].set_xlim(0, 100)
+    # axs[0].set_ylim(0, 1)
+    # axs[1].set_ylim(0, 1)
+    # axs[0].legend()
+    # axs[1].legend()
+    # axs[1].set_xlabel("Normalized time [%]")
+    # plt.suptitle("Spotting")
+    # plt.savefig(home_path + '/disk/Eye-tracking/plots/' + 'spotting_presence.png', dpi=300)
+    #
+    # fig, axs = plt.subplots(2, 1)
+    # for i, name in enumerate(presence_curves_per_athelte.keys()):
+    #     if name in subelite_names:
+    #         axs[0].plot(xi_interp*100, presence_curves_per_athelte[name][3], color=colors[i], label=name)
+    # for i, name in enumerate(presence_curves_per_athelte.keys()):
+    #     if name in elite_names:
+    #         axs[1].plot(xi_interp*100, presence_curves_per_athelte[name][3], color=colors[i], label=name)
+    #
+    # axs[0].set_xlim(0, 100)
+    # axs[1].set_xlim(0, 100)
+    # axs[0].set_ylim(0, 1)
+    # axs[1].set_ylim(0, 1)
+    # axs[0].legend()
+    # axs[1].legend()
+    # axs[1].set_xlabel("Normalized time [%]")
+    # plt.suptitle("Movement detection")
+    # plt.savefig(home_path + '/disk/Eye-tracking/plots/' + 'movement_detection_presence.png', dpi=300)
+    #
+    # fig, axs = plt.subplots(2, 1)
+    # for i, name in enumerate(presence_curves_per_athelte.keys()):
+    #     if name in subelite_names:
+    #         axs[0].plot(xi_interp*100, presence_curves_per_athelte[name][4], color=colors[i], label=name)
+    # for i, name in enumerate(presence_curves_per_athelte.keys()):
+    #     if name in elite_names:
+    #         axs[1].plot(xi_interp*100, presence_curves_per_athelte[name][4], color=colors[i], label=name)
+    #
+    # axs[0].set_xlim(0, 100)
+    # axs[1].set_xlim(0, 100)
+    # axs[0].set_ylim(0, 1)
+    # axs[1].set_ylim(0, 1)
+    # axs[0].legend()
+    # axs[1].legend()
+    # axs[1].set_xlabel("Normalized time [%]")
+    # plt.suptitle("Blinks")
+    # plt.savefig(home_path + '/disk/Eye-tracking/plots/' + 'blink_presence.png', dpi=300)
+    # plt.show()
+    #
+    # t = spm1d.stats.ttest2(subelites_PGO, elites_PGO, equal_var=False)
+    # ti = t.inference(alpha=0.05, two_tailed=False, interp=True)
+    # ti.plot()
+
 
 
 
@@ -344,13 +512,6 @@ if QUALITATIVE_ANALYSIS_FLAG:
 
     nb_interp_points = 500
     xi_interp = np.linspace(0, 1, nb_interp_points)
-    trial_per_athlete_index = {}
-    for i in range(1, len(qualitative_table)):
-        if qualitative_table[i][0] not in trial_per_athlete_index.keys():
-            trial_per_athlete_index[qualitative_table[i][0]] = [i]
-        else:
-            trial_per_athlete_index[qualitative_table[i][0]] += [i]
-
     presence_curves_per_athelte = {}
     for j, name in enumerate(trial_per_athlete_index.keys()):
         index_this_time = trial_per_athlete_index[name]
