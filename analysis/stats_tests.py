@@ -10,7 +10,9 @@ import pandas as pd
 ##########################################################################################
 
 
-GENRATE_DATA_FRAME_FLAG = True
+PRIMARY_ANALYSIS_FLAG = False
+AOI_ANALYSIS_FLAG = False
+NECK_EYE_ANALYSIS_FLAG = True
 
 if os.path.exists("/home/user"):
     home_path = "/home/user"
@@ -36,125 +38,222 @@ with open(home_path + '/disk/Eye-tracking/plots/qualitative_table.pkl', 'rb') as
 
 
 # ------------------------------------ Primary data frame = Mixed Anova ---------------------------------------- #
-primary_data_frame = pd.DataFrame(primary_table[1:], columns=primary_table[0])
-primary_data_frame.to_csv(home_path + "/disk/Eye-tracking/plots/AllAnalysedMovesGrid.csv")
+if PRIMARY_ANALYSIS_FLAG:
+    primary_data_frame = pd.DataFrame(primary_table[1:], columns=primary_table[0])
+    primary_data_frame.to_csv(home_path + "/disk/Eye-tracking/plots/AllAnalysedMovesGrid.csv")
 
-# # Equal number of movements per group, unequal number of participants OK!
-# list_move_ok_for_now = [29, 30, 31, 32, 33,
-#                         39, 40, 41, 42, 43,
-#                         58, 59, 60, 61, 62,
-#                         68, 69, 70, 71, 72,
-#                         78, 79, 80, 81, 82,
-#                         83, 84, 85, 86, 87,
-#                         93, 94, 95, 96, 97,
-#                         98, 99, 100, 101, 102,
-#                         114, 115, 116, 117, 118,
-#                         122, 123, 124, 125, 126,
-#                         146, 147, 148, 149, 150,
-#                         156, 157, 158, 159, 160,
-#                         185, 186, 187, 188, 189,
-#                         193, 194, 195, 196, 197,
-#                         222, 223, 224, 225, 226,
-#                         228, 229, 230, 231, 232,
-#                         244, 245, 246, 247, 248,
-#                         251, 252, 253, 254, 255]
+    # # Equal number of movements per group, unequal number of participants OK!
+    # list_move_ok_for_now = [29, 30, 31, 32, 33,
+    #                         39, 40, 41, 42, 43,
+    #                         58, 59, 60, 61, 62,
+    #                         68, 69, 70, 71, 72,
+    #                         78, 79, 80, 81, 82,
+    #                         83, 84, 85, 86, 87,
+    #                         93, 94, 95, 96, 97,
+    #                         98, 99, 100, 101, 102,
+    #                         114, 115, 116, 117, 118,
+    #                         122, 123, 124, 125, 126,
+    #                         146, 147, 148, 149, 150,
+    #                         156, 157, 158, 159, 160,
+    #                         185, 186, 187, 188, 189,
+    #                         193, 194, 195, 196, 197,
+    #                         222, 223, 224, 225, 226,
+    #                         228, 229, 230, 231, 232,
+    #                         244, 245, 246, 247, 248,
+    #                         251, 252, 253, 254, 255]
 
-# Unequal number of movements per group, unequal number of participants OK!
-list_move_ok_for_now = [29, 30, 31, 32, 33, 34, 35, 36, 37, 38,
-                        39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
-                        58, 59, 60, 61, 62, 63, 64, 65, 66, 67,
-                        68, 69, 70, 71, 72, 73, 74, 75, 76, 77,
-                        78, 79, 80, 81, 82,
-                        83, 84, 85, 86, 87,
-                        93, 94, 95, 96, 97,
-                        98, 99, 100, 101, 102,
-                        114, 115, 116, 117, 118, 119, 120, 121,
-                        122, 123, 124, 125, 126, 127, 128, 129,
-                        146, 147, 148, 149, 150, 151, 152, 153, 154, 155,
-                        156, 157, 158, 159, 160, 161, 162, 163, 164, 165,
-                        185, 186, 187, 188, 189, 190, 191, 192,
-                        193, 194, 195, 196, 197, 198, 199,
-                        222, 223, 224, 225, 226, 227,
-                        228, 229, 230, 231, 232, 233,
-                        244, 245, 246, 247, 248, 249, 250,
-                        251, 252, 253, 254, 255]
-
-
-
-primary_data_frame_temporary = pd.DataFrame(columns=primary_table[0])
-num_rows = 0
-for i in range(len(primary_data_frame)):
-    # if primary_data_frame['Name'][i] != 'MaBo':
-    if i in list_move_ok_for_now:
-        df = {'Name': [primary_data_frame['Name'][i]],
-        'Expertise': [primary_data_frame['Expertise'][i]],
-        'Acrobatics': [primary_data_frame['Acrobatics'][i]],
-        'Fixations duration': [primary_data_frame['Fixations duration'][i]],
-        'Number of fixations': [primary_data_frame['Number of fixations'][i]],
-        'Quiet eye duration': [primary_data_frame['Quiet eye duration'][i]],
-        'Eye amplitude': [primary_data_frame['Eye amplitude'][i]],
-        'Neck amplitude': [primary_data_frame['Neck amplitude'][i]],
-        'Maximum eye amplitude': [primary_data_frame['Maximum eye amplitude'][i]],
-        'Maximum neck amplitude': [primary_data_frame['Maximum neck amplitude'][i]]}
-        primary_data_frame_temporary = pd.concat([primary_data_frame_temporary, pd.DataFrame(df)])
-        num_rows += 1
-
-primary_data_frame = primary_data_frame_temporary
-
-# Eta squared measures the proportion of the total variance in a dependent variable that is associated with the
-# membership of different groups defined by an independent variable. Partial eta squared is a similar measure in which
-# the effects of other independent variables and interactions are partialled out.
-# from : https://eric.ed.gov/?id=EJ927266#:~:text=Eta%20squared%20measures%20the%20proportion,and%20interactions%20are%20partialled%20out.
-
-print("Mixed ANOVA for Fixations duration")
-out = pg.mixed_anova(data=primary_data_frame, dv='Fixations duration', within='Acrobatics', between='Expertise', subject='Name')
-print(f'{out}\n\n')
-print("Mixed ANOVA for Number of fixations")
-out = pg.mixed_anova(data=primary_data_frame, dv='Number of fixations', within='Acrobatics', between='Expertise', subject='Name')
-print(f'{out}\n\n')
-print("Mixed ANOVA for Quiet eye duration")
-out = pg.mixed_anova(data=primary_data_frame, dv='Quiet eye duration', within='Acrobatics', between='Expertise', subject='Name')
-print(f'{out}\n\n')
-print("Mixed ANOVA for Eye amplitude")
-out = pg.mixed_anova(data=primary_data_frame, dv='Eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
-print(f'{out}\n\n')
-print("Mixed ANOVA for Neck amplitude")
-out = pg.mixed_anova(data=primary_data_frame, dv='Neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
-print(f'{out}\n\n')
-print("Mixed ANOVA for Maximum eye amplitude")
-out = pg.mixed_anova(data=primary_data_frame, dv='Maximum eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
-print(f'{out}\n\n')
-print("Mixed ANOVA for Maximum neck amplitude")
-out = pg.mixed_anova(data=primary_data_frame, dv='Maximum neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
-print(f'{out}\n\n')
-
-
-print("pairwise t-test for Fixations duration")
-out = pg.pairwise_tests(data=primary_data_frame, dv='Fixations duration', within='Acrobatics', between='Expertise', subject='Name')
-print(f'{out}\n\n')
-print("pairwise t-test for Number of fixations")
-out = pg.pairwise_tests(data=primary_data_frame, dv='Number of fixations', within='Acrobatics', between='Expertise', subject='Name')
-print(f'{out}\n\n')
-print("pairwise t-test for Quiet eye duration")
-out = pg.pairwise_tests(data=primary_data_frame, dv='Quiet eye duration', within='Acrobatics', between='Expertise', subject='Name')
-print(f'{out}\n\n')
-print("pairwise t-test for Eye amplitude")
-out = pg.pairwise_tests(data=primary_data_frame, dv='Eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
-print(f'{out}\n\n')
-print("pairwise t-test for Neck amplitude")
-out = pg.pairwise_tests(data=primary_data_frame, dv='Neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
-print(f'{out}\n\n')
-print("pairwise t-test for Maximum eye amplitude")
-out = pg.pairwise_tests(data=primary_data_frame, dv='Maximum eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
-print(f'{out}\n\n')
-print("pairwise t-test for Maximum neck amplitude")
-out = pg.pairwise_tests(data=primary_data_frame, dv='Maximum neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
-print(f'{out}\n\n')
+    # Unequal number of movements per group, unequal number of participants OK!
+    list_move_ok_for_now = [29, 30, 31, 32, 33, 34, 35, 36, 37, 38,
+                            39, 40, 41, 42, 43, 44, 45, 46, 47, 48,
+                            58, 59, 60, 61, 62, 63, 64, 65, 66, 67,
+                            68, 69, 70, 71, 72, 73, 74, 75, 76, 77,
+                            78, 79, 80, 81, 82,
+                            83, 84, 85, 86, 87,
+                            93, 94, 95, 96, 97,
+                            98, 99, 100, 101, 102,
+                            114, 115, 116, 117, 118, 119, 120, 121,
+                            122, 123, 124, 125, 126, 127, 128, 129,
+                            146, 147, 148, 149, 150, 151, 152, 153, 154, 155,
+                            156, 157, 158, 159, 160, 161, 162, 163, 164, 165,
+                            185, 186, 187, 188, 189, 190, 191, 192,
+                            193, 194, 195, 196, 197, 198, 199,
+                            222, 223, 224, 225, 226, 227,
+                            228, 229, 230, 231, 232, 233,
+                            244, 245, 246, 247, 248, 249, 250,
+                            251, 252, 253, 254, 255]
 
 
 
+    primary_data_frame_temporary = pd.DataFrame(columns=primary_table[0])
+    num_rows = 0
+    for i in range(len(AOI_proportions_table)):
+        # if primary_data_frame['Name'][i] != 'MaBo':
+        if i in list_move_ok_for_now:
+            df = {'Name': [primary_data_frame['Name'][i]],
+            'Expertise': [primary_data_frame['Expertise'][i]],
+            'Acrobatics': [primary_data_frame['Acrobatics'][i]],
+            'Fixations duration': [primary_data_frame['Fixations duration'][i]],
+            'Number of fixations': [primary_data_frame['Number of fixations'][i]],
+            'Quiet eye duration': [primary_data_frame['Quiet eye duration'][i]],
+            'Eye amplitude': [primary_data_frame['Eye amplitude'][i]],
+            'Neck amplitude': [primary_data_frame['Neck amplitude'][i]],
+            'Maximum eye amplitude': [primary_data_frame['Maximum eye amplitude'][i]],
+            'Maximum neck amplitude': [primary_data_frame['Maximum neck amplitude'][i]]}
+            primary_data_frame_temporary = pd.concat([primary_data_frame_temporary, pd.DataFrame(df)])
+            num_rows += 1
+
+    primary_data_frame = primary_data_frame_temporary
+
+    # Eta squared measures the proportion of the total variance in a dependent variable that is associated with the
+    # membership of different groups defined by an independent variable. Partial eta squared is a similar measure in which
+    # the effects of other independent variables and interactions are partialled out.
+    # from : https://eric.ed.gov/?id=EJ927266#:~:text=Eta%20squared%20measures%20the%20proportion,and%20interactions%20are%20partialled%20out.
+
+    print("Mixed ANOVA for Fixations duration")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Fixations duration', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Number of fixations")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Number of fixations', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Quiet eye duration")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Quiet eye duration', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Eye amplitude")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Neck amplitude")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Maximum eye amplitude")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Maximum eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Maximum neck amplitude")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Maximum neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
 
 
+    print("pairwise t-test for Fixations duration")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Fixations duration', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Number of fixations")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Number of fixations', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Quiet eye duration")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Quiet eye duration', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Eye amplitude")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Neck amplitude")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Maximum eye amplitude")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Maximum eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Maximum neck amplitude")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Maximum neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+
+
+# -------------------------------- Trajectories data frame = SPM1D ? ------------------------------------ #
+# trajectories_table
+# add meanplots
+
+
+
+# ----------------------------------------- AOI data frame = Mixed ANOVA --------------------------------------------- #
+# AOI_proportions_table
+if AOI_ANALYSIS_FLAG:
+    AOI_proportions_table_temporary = pd.DataFrame(columns=AOI_proportions_table[0])
+    num_rows = 0
+    for i in range(len(AOI_proportions_table)):
+        # if primary_data_frame['Name'][i] != 'MaBo':
+        if i in list_move_ok_for_now:
+            df = {'Name': [AOI_proportions_table['Name'][i]],
+            'Expertise': [AOI_proportions_table['Expertise'][i]],
+            'Acrobatics': [AOI_proportions_table['Acrobatics'][i]],
+            'Trampoline': [AOI_proportions_table['Trampoline'][i]],
+            'Wall front': [primary_data_frame['Wall front'][i]],
+            'Wall back': [primary_data_frame['Wall back'][i]],
+            'Ceiling': [primary_data_frame['Ceiling'][i]],
+            'Wall sides': [primary_data_frame['Wall sides'][i]],
+            'Athlete himself': [primary_data_frame['Athlete himself'][i]],
+            'Blink': [primary_data_frame['Blink'][i]]}
+            primary_data_frame_temporary = pd.concat([AOI_proportions_table_temporary, pd.DataFrame(df)])
+            num_rows += 1
+
+    AOI_proportions_table = AOI_proportions_table_temporary
+
+
+    print("Mixed ANOVA for Trampoline")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Wall front")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Wall front', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Wall back")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Wall back', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Ceiling")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Ceiling', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Wall sides")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Athlete himself")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Blink")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Blink', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+
+    print("pairwise t-test for Trampoline")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Wall front")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Wall front', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Wall back")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Wall back', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Ceiling")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Ceiling', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Wall sides")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Athlete himself")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Blink")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Blink', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Maximum neck amplitude")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Maximum neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+
+
+
+# -------------------------------- Neck + eye data frame = SPM1D ------------------------------------ #
+if NECK_EYE_ANALYSIS_FLAG:
+
+    nb_trial_per_athlete = {}
+    for i in range(len(neck_eye_movements_table)):
+        if AOI_proportions_table['Name'][i] not in nb_trial_per_athlete.keys():
+
+        if i in list_move_ok_for_now:
+            df = {'Name': [AOI_proportions_table['Name'][i]],
+            'Expertise': [AOI_proportions_table['Expertise'][i]],
+            'Acrobatics': [AOI_proportions_table['Acrobatics'][i]],
+            'Trampoline': [AOI_proportions_table['Trampoline'][i]],
+            'Wall front': [primary_data_frame['Wall front'][i]],
+            'Wall back': [primary_data_frame['Wall back'][i]],
+            'Ceiling': [primary_data_frame['Ceiling'][i]],
+            'Wall sides': [primary_data_frame['Wall sides'][i]],
+            'Athlete himself': [primary_data_frame['Athlete himself'][i]],
+            'Blink': [primary_data_frame['Blink'][i]]}
+            primary_data_frame_temporary = pd.concat([AOI_proportions_table_temporary, pd.DataFrame(df)])
+            num_rows += 1
 
 
 
