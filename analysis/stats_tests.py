@@ -40,6 +40,7 @@ with open(home_path + '/disk/Eye-tracking/plots/heatmaps_spreading_table.pkl', '
 with open(home_path + '/disk/Eye-tracking/plots/qualitative_table.pkl', 'rb') as f:
     qualitative_table = pickle.load(f)
 
+print("Faire un table du nombre d'essais de chaque par athlete")
 subelite_names = []
 elite_names = []
 for i in range(len(primary_table)):
@@ -95,6 +96,7 @@ if PRIMARY_ANALYSIS_FLAG:
                             244, 245, 246, 247, 248, 249, 250,
                             251, 252, 253, 254, 255]
 
+    print("Attribuer la moyenne a MaBo a la place")
 
 
     primary_data_frame_temporary = pd.DataFrame(columns=primary_table[0])
@@ -244,9 +246,65 @@ if AOI_ANALYSIS_FLAG:
     print(f'{out}\n\n')
 
 
-# -------------------------------- Neck + eye data frame = SPM1D ------------------------------------ #
+# ------------------------- Neck + eye proportion of movements data frame = Mixed ANOVA ----------------------------- #
 if NECK_EYE_ANALYSIS_FLAG:
-    print("To do")
+    neck_eye_movements_table_temporary = pd.DataFrame(columns=['Name', 'Expertise', 'Acrobatics',
+                                                               'Anticipatory movements', 'Compensatory movements',
+                                                               'Spotting movements', 'Movement detection', 'Blinks'])
+    num_rows = 0
+    for i in range(len(neck_eye_movements_table)):
+        if i in list_move_ok_for_now:
+            df = {'Name': [neck_eye_movements_table['Name'][i]],
+            'Expertise': [neck_eye_movements_table['Expertise'][i]],
+            'Acrobatics': [neck_eye_movements_table['Acrobatics'][i]],
+            'Anticipatory movements': [neck_eye_movements_table['Anticipatory movements'][i]],
+            'Compensatory movements': [neck_eye_movements_table['Compensatory movements'][i]],
+            'Spotting movements': [neck_eye_movements_table['Spotting movements'][i]],
+            'Movement detection': [neck_eye_movements_table['Movement detection'][i]],
+            'Blinks': [neck_eye_movements_table['Blinks'][i]]}
+            primary_data_frame_temporary = pd.concat([neck_eye_movements_table_temporary, pd.DataFrame(df)])
+            num_rows += 1
+
+    neck_eye_movements_table = neck_eye_movements_table_temporary
+
+
+    print("Mixed ANOVA for Trampoline")
+    out = pg.mixed_anova(data=neck_eye_movements_table, dv='Anticipatory movements', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Wall front")
+    out = pg.mixed_anova(data=neck_eye_movements_table, dv='Compensatory movements', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Wall back")
+    out = pg.mixed_anova(data=neck_eye_movements_table, dv='Wall back', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Ceiling")
+    out = pg.mixed_anova(data=neck_eye_movements_table, dv='Spotting movements', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Wall sides")
+    out = pg.mixed_anova(data=neck_eye_movements_table, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("Mixed ANOVA for Athlete himself")
+    out = pg.mixed_anova(data=neck_eye_movements_table, dv='Blinks', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+
+    print("pairwise t-test for Trampoline")
+    out = pg.pairwise_tests(data=neck_eye_movements_table, dv='Anticipatory movements', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Wall front")
+    out = pg.pairwise_tests(data=neck_eye_movements_table, dv='Compensatory movements', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Wall back")
+    out = pg.pairwise_tests(data=neck_eye_movements_table, dv='Wall back', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Ceiling")
+    out = pg.pairwise_tests(data=neck_eye_movements_table, dv='Spotting movements', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Wall sides")
+    out = pg.pairwise_tests(data=neck_eye_movements_table, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
+    print("pairwise t-test for Athlete himself")
+    out = pg.pairwise_tests(data=neck_eye_movements_table, dv='Blinks', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
 
 
 # -------------------------------- Qualitative data frame = SPM1D ------------------------------------ #
