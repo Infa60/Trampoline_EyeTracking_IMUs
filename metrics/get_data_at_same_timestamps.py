@@ -3,9 +3,10 @@ import matplotlib.pyplot as plt
 import pickle
 import scipy
 from IPython import embed
+import biorbd
 import quaternion
 from unproject_PI_2d_pixel_gaze_estimates import pixelPoints_to_gazeAngles
-from set_initial_orientation import get_initial_gaze_orientation
+from set_initial_orientation import rotate_xsens
 
 
 def get_data_at_same_timestamps(
@@ -24,6 +25,7 @@ def get_data_at_same_timestamps(
     SCENE_CAMERA_SERIAL_NUMBER,
     API_KEY,
     num_joints,
+    move_orientation,
     FLAG_PUPIL_ANGLES_PLOT=True,
 ):
     """
@@ -105,6 +107,13 @@ def get_data_at_same_timestamps(
                 interp_quat = quaternion.slerp_evaluate(quat_0, quat_1, relative_time).components
 
                 Xsens_orientation_per_move[i][j, 4 * k : 4 * (k + 1)] = interp_quat
+
+    for i in range(len(start_of_move_index)):
+        if move_orientation[i] == -1:
+            rotation_matrix = biorbd.Rotation.fromEulerAngles(np.array([0, 0, np.pi]), 'xyz').to_array()
+            rotated_position, rotated_orientation = rotate_xsens(Xsens_position_per_move[i], Xsens_orientation_per_move[i], rotation_matrix, num_joints)
+            Xsens_position_per_move[i] = rotated_position
+            Xsens_orientation_per_move[i] = rotated_orientation
 
     Xsens_CoM_per_move = [np.array([]) for i in range(len(start_of_move_index))]
     for i in range(len(start_of_move_index)):

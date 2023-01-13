@@ -263,7 +263,7 @@ def plot_synchro(
     plt.legend()
     plt.title("Xsens")
     plt.savefig(output_file_name)
-    plt.show()
+    # plt.show()
 
 def chose_closest_index_xsens(time_vector_pupil,
                               time_offset,

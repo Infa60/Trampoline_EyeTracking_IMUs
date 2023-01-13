@@ -697,51 +697,77 @@ def plot_gymnasium(bound_side, ax):
     ax.set_zlabel("Z")
 
     # Front right, to front left (bottom)
-    plt.plot(np.array([7.193, 7.360]), np.array([-bound_side, bound_side]), np.array([0, 0]), "-k")
+    # plt.plot(np.array([7.193, 7.360]), np.array([-bound_side, bound_side]), np.array([0, 0]), "-k")
+    plt.plot(np.array([7.2, 7.2]), np.array([-bound_side, bound_side]), np.array([0, 0]), "-k")
     # Front right, to back right (bottom)
-    plt.plot(np.array([-8.881, 7.193]), np.array([-bound_side, -bound_side]), np.array([0, 0]), "-k")
+    # plt.plot(np.array([-8.881, 7.193]), np.array([-bound_side, -bound_side]), np.array([0, 0]), "-k")
+    plt.plot(np.array([-7.2, 7.2]), np.array([-bound_side, -bound_side]), np.array([0, 0]), "-k")
     # Front left, to back left (bottom)
-    plt.plot(np.array([-8.881, 7.360]), np.array([bound_side, bound_side]), np.array([0, 0]), "-k")
+    # plt.plot(np.array([-8.881, 7.360]), np.array([bound_side, bound_side]), np.array([0, 0]), "-k")
+    plt.plot(np.array([-7.2, 7.2]), np.array([bound_side, bound_side]), np.array([0, 0]), "-k")
     # Back right, to back left (bottom)
-    plt.plot(np.array([-8.881, -8.881]), np.array([-bound_side, bound_side]), np.array([0, 0]), "-k")
+    # plt.plot(np.array([-8.881, -8.881]), np.array([-bound_side, bound_side]), np.array([0, 0]), "-k")
+    plt.plot(np.array([-7.2, -7.2]), np.array([-bound_side, bound_side]), np.array([0, 0]), "-k")
 
     # Front right, to front left (ceiling)
+    # plt.plot(
+    #     np.array([7.193, 7.360]),
+    #     np.array([-bound_side, bound_side]),
+    #     np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
+    #     "-k",
+    # )
     plt.plot(
-        np.array([7.193, 7.360]),
+        np.array([7.2, 7.2]),
         np.array([-bound_side, bound_side]),
         np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
-        "-k",
-    )
+        "-k")
+
     # Front right, to back right (ceiling)
+    # plt.plot(
+    #     np.array([-8.881, 7.193]),
+    #     np.array([-bound_side, -bound_side]),
+    #     np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
+    #     "-k",
+    # )
     plt.plot(
-        np.array([-8.881, 7.193]),
+        np.array([-7.2, 7.2]),
         np.array([-bound_side, -bound_side]),
         np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
         "-k",
     )
     # Front left, to back left (ceiling)
+    # plt.plot(
+    #     np.array([-8.881, 7.360]),
+    #     np.array([bound_side, bound_side]),
+    #     np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
+    #     "-k",
+    # )
     plt.plot(
-        np.array([-8.881, 7.360]),
+        np.array([-7.2, 7.2]),
         np.array([bound_side, bound_side]),
         np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
         "-k",
     )
     # Back right, to back left (ceiling)
     plt.plot(
-        np.array([-8.881, -8.881]),
+        np.array([-7.2, -7.2]),
         np.array([-bound_side, bound_side]),
         np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
         "-k",
     )
 
     # Front right bottom, to front right ceiling
-    plt.plot(np.array([7.193, 7.193]), np.array([-bound_side, -bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
+    # plt.plot(np.array([7.193, 7.193]), np.array([-bound_side, -bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
+    plt.plot(np.array([7.2, 7.2]), np.array([-bound_side, -bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
     # Front left bottom, to front left ceiling
-    plt.plot(np.array([7.360, 7.360]), np.array([bound_side, bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
+    # plt.plot(np.array([7.360, 7.360]), np.array([bound_side, bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
+    plt.plot(np.array([7.2, 7.2]), np.array([bound_side, bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
     # Back right bottom, to back right ceiling
-    plt.plot(np.array([-8.881, -8.881]), np.array([-bound_side, -bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
+    # plt.plot(np.array([-8.881, -8.881]), np.array([-bound_side, -bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
+    plt.plot(np.array([-7.2, -7.2]), np.array([-bound_side, -bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
     # Back left bottom, to back left ceiling
-    plt.plot(np.array([-8.881, -8.881]), np.array([bound_side, bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
+    # plt.plot(np.array([-8.881, -8.881]), np.array([bound_side, bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
+    plt.plot(np.array([-7.2, -7.2]), np.array([bound_side, bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
 
     # Trampoline
     X, Y = np.meshgrid([-7 * 0.3048, 7 * 0.3048], [-3.5 * 0.3048, 3.5 * 0.3048])

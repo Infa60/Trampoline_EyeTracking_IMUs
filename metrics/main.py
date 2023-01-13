@@ -221,6 +221,7 @@ def run_analysis(
             SCENE_CAMERA_SERIAL_NUMBER,
             API_KEY,
             num_joints,
+            move_orientation,
             FLAG_PUPIL_ANGLES_PLOT,
         )
 
