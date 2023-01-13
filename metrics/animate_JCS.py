@@ -16,8 +16,6 @@ from sync_jump import moving_average
 def Xsens_quat_to_orientation(
         Xsens_orientation,
         Xsens_position,
-        Xsens_jointAngle,
-        Xsens_global_JCS_orientations,
         elevation,
         azimuth,
         eye_position_height,
@@ -81,13 +79,12 @@ def Xsens_quat_to_orientation(
 def compute_eye_related_positions(
         Xsens_orientation,
         Xsens_position,
-        Xsens_jointAngle,
-        Xsens_global_JCS_orientations,
         elevation,
         azimuth,
         eye_position_height,
         eye_position_depth,
         bound_side,
+        facing_front_wall=False,
 ):
     """
     This function computes the position of the eye and the gaze orientation and the gaze projected on the gymnasium in
@@ -115,15 +112,13 @@ def compute_eye_related_positions(
         ) = Xsens_quat_to_orientation(
             Xsens_orientation[i_time, :],
             Xsens_position[i_time, :],
-            Xsens_jointAngle[i_time, :],
-            Xsens_global_JCS_orientations,
             elevation[i_time],
             azimuth[i_time],
             eye_position_height,
             eye_position_depth,
         )
         gaze_position_temporal_evolution_projected[i_time, :], wall_index[i_time, :] = get_gaze_position_from_intersection(
-            eye_position[i_time, :], gaze_orientation[i_time, :], bound_side
+            eye_position[i_time, :], gaze_orientation[i_time, :], bound_side, facing_front_wall
         )
 
     return Xsens_head_position_calculated, eye_position, gaze_orientation, gaze_position_temporal_evolution_projected, wall_index, EulAngles_head_global, EulAngles_neck, Xsens_orthogonal_thorax_position, Xsens_orthogonal_head_position
@@ -576,11 +571,9 @@ def update(
         i,
         CoM_trajectory,
         Xsens_position,
-        Xsens_head_position_calculated,
         Xsens_orthogonal_thorax_position,
         Xsens_orthogonal_head_position,
         eye_position,
-        gaze_orientation,
         gaze_position_temporal_evolution_projected,
         lines,
         CoM_point,
@@ -645,6 +638,7 @@ def plot_gaze_trajectory(
         bound_side,
         position_threshold_block,
         output_file_name,
+        facing_front_wall,
 ):
     """
     This function plots the gaze trajectory and the fixation positions projected on the gymnasium in 3D.
@@ -652,7 +646,10 @@ def plot_gaze_trajectory(
     fig = plt.figure()
     ax = p3.Axes3D(fig)
 
-    plot_gymnasium(bound_side, ax)
+    if not facing_front_wall:
+        plot_gymnasium(bound_side, ax)
+    else:
+        plot_gymnasium_symmetrized(bound_side, ax)
 
     N = len(gaze_position_temporal_evolution_projected[:, 0]) - 1
     for j in range(N):
@@ -663,17 +660,18 @@ def plot_gaze_trajectory(
             color=plt.cm.viridis(j / N),
         )
 
-    for i in range(len(fixation_positions)):
-        radius = position_threshold_block[i]
-        phi = np.linspace(0, 2 * np.pi, 100)
-        theta = np.linspace(0, np.pi, 100)
-        X = radius * np.outer(np.cos(phi), np.sin(theta)) + fixation_positions[i, 0]
-        Y = radius * np.outer(np.sin(phi), np.sin(theta)) + fixation_positions[i, 1]
-        Z = radius * np.outer(np.ones(np.size(phi)), np.cos(theta)) + fixation_positions[i, 2]
-        timing = (np.median(fixation_timing[i]) - time_vector_pupil[0]) / (
-                time_vector_pupil[-1] - time_vector_pupil[0]
-        )
-        ax.plot_surface(X, Y, Z, color=plt.cm.viridis(timing), alpha=0.3)
+    if not facing_front_wall:
+        for i in range(len(fixation_positions)):
+            radius = position_threshold_block[i]
+            phi = np.linspace(0, 2 * np.pi, 100)
+            theta = np.linspace(0, np.pi, 100)
+            X = radius * np.outer(np.cos(phi), np.sin(theta)) + fixation_positions[i, 0]
+            Y = radius * np.outer(np.sin(phi), np.sin(theta)) + fixation_positions[i, 1]
+            Z = radius * np.outer(np.ones(np.size(phi)), np.cos(theta)) + fixation_positions[i, 2]
+            timing = (np.median(fixation_timing[i]) - time_vector_pupil[0]) / (
+                    time_vector_pupil[-1] - time_vector_pupil[0]
+            )
+            ax.plot_surface(X, Y, Z, color=plt.cm.viridis(timing), alpha=0.3)
     ax.set_title("Gaze trajectory")
 
     plt.savefig(output_file_name[:-4] + "_gaze_trajectory.png", dpi=300)
@@ -697,25 +695,83 @@ def plot_gymnasium(bound_side, ax):
     ax.set_zlabel("Z")
 
     # Front right, to front left (bottom)
-    # plt.plot(np.array([7.193, 7.360]), np.array([-bound_side, bound_side]), np.array([0, 0]), "-k")
+    plt.plot(np.array([7.193, 7.360]), np.array([-bound_side, bound_side]), np.array([0, 0]), "-k")
+    # Front right, to back right (bottom)
+    plt.plot(np.array([-8.881, 7.193]), np.array([-bound_side, -bound_side]), np.array([0, 0]), "-k")
+    # Front left, to back left (bottom)
+    plt.plot(np.array([-8.881, 7.360]), np.array([bound_side, bound_side]), np.array([0, 0]), "-k")
+    # Back right, to back left (bottom)
+    plt.plot(np.array([-8.881, -8.881]), np.array([-bound_side, bound_side]), np.array([0, 0]), "-k")
+
+    # Front right, to front left (ceiling)
+    plt.plot(
+        np.array([7.193, 7.360]),
+        np.array([-bound_side, bound_side]),
+        np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
+        "-k",
+    )
+
+    # Front right, to back right (ceiling)
+    plt.plot(
+        np.array([-8.881, 7.193]),
+        np.array([-bound_side, -bound_side]),
+        np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
+        "-k",
+    )
+    # Front left, to back left (ceiling)
+    plt.plot(
+        np.array([-8.881, 7.360]),
+        np.array([bound_side, bound_side]),
+        np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
+        "-k",
+    )
+    # Back right, to back left (ceiling)
+    plt.plot(
+        np.array([-8.881, -7.193]),
+        np.array([-bound_side, bound_side]),
+        np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
+        "-k",
+    )
+
+    # Front right bottom, to front right ceiling
+    plt.plot(np.array([7.193, 7.193]), np.array([-bound_side, -bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
+    # Front left bottom, to front left ceiling
+    plt.plot(np.array([7.360, 7.360]), np.array([bound_side, bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
+    # Back right bottom, to back right ceiling
+    plt.plot(np.array([-8.881, -8.881]), np.array([-bound_side, -bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
+    # Back left bottom, to back left ceiling
+    plt.plot(np.array([-8.881, -8.881]), np.array([bound_side, bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
+
+    # Trampoline
+    X, Y = np.meshgrid([-7 * 0.3048, 7 * 0.3048], [-3.5 * 0.3048, 3.5 * 0.3048])
+    Z = np.zeros(X.shape)
+    ax.plot_surface(X, Y, Z, color="k", alpha=0.4)
+    return
+
+def plot_gymnasium_symmetrized(bound_side, ax):
+    """
+    Plot the gymnasium in 3D with the walls and trampoline bed.
+    """
+    ax.set_box_aspect([1, 1, 1])
+    ax.view_init(elev=10.0, azim=-90)
+
+    ax.set_xlim3d([-8.0, 8.0])
+    ax.set_ylim3d([-8.0, 8.0])
+    ax.set_zlim3d([-3.0, 13.0])
+    ax.set_xlabel("X")
+    ax.set_ylabel("Y")
+    ax.set_zlabel("Z")
+
+    # Front right, to front left (bottom)
     plt.plot(np.array([7.2, 7.2]), np.array([-bound_side, bound_side]), np.array([0, 0]), "-k")
     # Front right, to back right (bottom)
-    # plt.plot(np.array([-8.881, 7.193]), np.array([-bound_side, -bound_side]), np.array([0, 0]), "-k")
     plt.plot(np.array([-7.2, 7.2]), np.array([-bound_side, -bound_side]), np.array([0, 0]), "-k")
     # Front left, to back left (bottom)
-    # plt.plot(np.array([-8.881, 7.360]), np.array([bound_side, bound_side]), np.array([0, 0]), "-k")
     plt.plot(np.array([-7.2, 7.2]), np.array([bound_side, bound_side]), np.array([0, 0]), "-k")
     # Back right, to back left (bottom)
-    # plt.plot(np.array([-8.881, -8.881]), np.array([-bound_side, bound_side]), np.array([0, 0]), "-k")
     plt.plot(np.array([-7.2, -7.2]), np.array([-bound_side, bound_side]), np.array([0, 0]), "-k")
 
     # Front right, to front left (ceiling)
-    # plt.plot(
-    #     np.array([7.193, 7.360]),
-    #     np.array([-bound_side, bound_side]),
-    #     np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
-    #     "-k",
-    # )
     plt.plot(
         np.array([7.2, 7.2]),
         np.array([-bound_side, bound_side]),
@@ -723,12 +779,6 @@ def plot_gymnasium(bound_side, ax):
         "-k")
 
     # Front right, to back right (ceiling)
-    # plt.plot(
-    #     np.array([-8.881, 7.193]),
-    #     np.array([-bound_side, -bound_side]),
-    #     np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
-    #     "-k",
-    # )
     plt.plot(
         np.array([-7.2, 7.2]),
         np.array([-bound_side, -bound_side]),
@@ -736,12 +786,6 @@ def plot_gymnasium(bound_side, ax):
         "-k",
     )
     # Front left, to back left (ceiling)
-    # plt.plot(
-    #     np.array([-8.881, 7.360]),
-    #     np.array([bound_side, bound_side]),
-    #     np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
-    #     "-k",
-    # )
     plt.plot(
         np.array([-7.2, 7.2]),
         np.array([bound_side, bound_side]),
@@ -757,16 +801,12 @@ def plot_gymnasium(bound_side, ax):
     )
 
     # Front right bottom, to front right ceiling
-    # plt.plot(np.array([7.193, 7.193]), np.array([-bound_side, -bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
     plt.plot(np.array([7.2, 7.2]), np.array([-bound_side, -bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
     # Front left bottom, to front left ceiling
-    # plt.plot(np.array([7.360, 7.360]), np.array([bound_side, bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
     plt.plot(np.array([7.2, 7.2]), np.array([bound_side, bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
     # Back right bottom, to back right ceiling
-    # plt.plot(np.array([-8.881, -8.881]), np.array([-bound_side, -bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
     plt.plot(np.array([-7.2, -7.2]), np.array([-bound_side, -bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
     # Back left bottom, to back left ceiling
-    # plt.plot(np.array([-8.881, -8.881]), np.array([bound_side, bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
     plt.plot(np.array([-7.2, -7.2]), np.array([bound_side, bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
 
     # Trampoline
@@ -779,9 +819,9 @@ def plot_gymnasium(bound_side, ax):
 def animate(
         time_vector_pupil,
         Xsens_orientation,
-        Xsens_jointAngle,
+        Xsens_orientation_facing_front_wall,
         Xsens_position,
-        Xsens_global_JCS_orientations,
+        Xsens_position_facing_front_wall,
         CoM_trajectory,
         elevation,
         azimuth,
@@ -844,13 +884,34 @@ def animate(
     ) = compute_eye_related_positions(
         Xsens_orientation,
         Xsens_position,
-        Xsens_jointAngle,
-        Xsens_global_JCS_orientations,
         elevation,
         azimuth,
         eye_position_height,
         eye_position_depth,
         bound_side,
+        facing_front_wall=False
+    )
+
+    # Compute the same gaze metrics but for the athlete facing the front wall
+    (
+        _,  #Xsens_head_position_calculated_facing_front_wall,
+        eye_position_facing_front_wall,
+        _,  # gaze_orientation_facing_front_wall,
+        gaze_position_temporal_evolution_projected_facing_front_wall,
+        _,  # wall_index,
+        _,  # EulAngles_head_global,
+        _,  # EulAngles_neck,
+        Xsens_orthogonal_thorax_position_facing_front_wall,
+        Xsens_orthogonal_head_position_facing_front_wall,
+    ) = compute_eye_related_positions(
+        Xsens_orientation_facing_front_wall,
+        Xsens_position_facing_front_wall,
+        elevation,
+        azimuth,
+        eye_position_height,
+        eye_position_depth,
+        bound_side,
+        facing_front_wall=True
     )
 
     (fixation_positions,
@@ -908,11 +969,9 @@ def animate(
             fargs=(
                 CoM_trajectory,
                 Xsens_position,
-                Xsens_head_position_calculated,
                 Xsens_orthogonal_thorax_position,
                 Xsens_orthogonal_head_position,
                 eye_position,
-                gaze_orientation,
                 gaze_position_temporal_evolution_projected,
                 lines,
                 CoM_point,
@@ -939,7 +998,20 @@ def animate(
             bound_side,
             position_threshold_block,
             output_file_name,
+            facing_front_wall=False,
         )
+
+        plot_gaze_trajectory(
+            gaze_position_temporal_evolution_projected_facing_front_wall,
+            None,
+            None,
+            time_vector_pupil,
+            bound_side,
+            None,
+            output_file_name[:-4] + "_facing_front_wall.png",
+            facing_front_wall=True,
+        )
+
 
     return (
         number_of_fixation,
@@ -948,6 +1020,7 @@ def animate(
         fixation_timing,
         quiet_eye_duration,
         gaze_position_temporal_evolution_projected,
+        gaze_position_temporal_evolution_projected_facing_front_wall,
         neck_amplitude,
         eye_amplitude,
         max_neck_amplitude,
@@ -964,14 +1037,11 @@ def animate(
         spotting_index,
         movement_detection_index,
         blinks_index,
-        fixation_positions,
-        fixation_timing,
         position_threshold_block,
         wall_index_block,
         Xsens_head_position_calculated,
         eye_position,
         gaze_orientation,
-        gaze_position_temporal_evolution_projected,
         wall_index,
         EulAngles_head_global,
         EulAngles_neck,

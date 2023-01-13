@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from IPython import embed
 
-def get_gaze_position_from_intersection(vector_origin, vector_end, bound_side):
+def get_gaze_position_from_intersection(vector_origin, vector_end, bound_side, facing_front_wall):
     def intersection_plane_vector(vector_origin, vector_end, planes_points, planes_normal_vector):
 
         vector_orientation = vector_end - vector_origin
@@ -11,86 +11,113 @@ def get_gaze_position_from_intersection(vector_origin, vector_end, bound_side):
         )
         return vector_origin + vector_orientation * np.abs(t)
 
-    def verify_intersection_position(vector_origin, vector_end, wall_index, bound_side):
+    def verify_intersection_position(vector_origin, vector_end, wall_index, bound_side, facing_front_wall):
         vector_orientation = vector_end - vector_origin
-        if wall_index == 0:  # trampoline
-            t = (0 - vector_origin[2]) / vector_orientation[2]
-        # elif wall_index == 1:  # wall front
-        #     a = (bound_side - -bound_side) / (7.360 - 7.193)
-        #     b = bound_side - a * 7.360
-        #     t = (b + a * vector_origin[0] - vector_origin[1]) / (vector_orientation[1] - a * vector_orientation[0])
-        elif wall_index == 1:  # wall front
-            t = (7.2 - vector_origin[0]) / vector_orientation[0]
-        elif wall_index == 2:  # ceiling
-            t = (9.4620 - 1.2192 - vector_origin[2]) / vector_orientation[2]
-        # elif wall_index == 3:  # wall back
-        #     t = (-8.881 - vector_origin[0]) / vector_orientation[0]
-        elif wall_index == 3:  # wall back
-            t = (-7.2 - vector_origin[0]) / vector_orientation[0]
-        elif wall_index == 4:  # bound right
-            t = (-bound_side - vector_origin[1]) / vector_orientation[1]
-        elif wall_index == 5:  # bound left
-            t = (bound_side - vector_origin[1]) / vector_orientation[1]
-
+        if not facing_front_wall:
+            if wall_index == 0:  # trampoline
+                t = (0 - vector_origin[2]) / vector_orientation[2]
+            elif wall_index == 1:  # wall front
+                a = (bound_side - -bound_side) / (7.360 - 7.193)
+                b = bound_side - a * 7.360
+                t = (b + a * vector_origin[0] - vector_origin[1]) / (vector_orientation[1] - a * vector_orientation[0])
+            elif wall_index == 2:  # ceiling
+                t = (9.4620 - 1.2192 - vector_origin[2]) / vector_orientation[2]
+            elif wall_index == 3:  # wall back
+                t = (-8.881 - vector_origin[0]) / vector_orientation[0]
+            elif wall_index == 4:  # bound right
+                t = (-bound_side - vector_origin[1]) / vector_orientation[1]
+            elif wall_index == 5:  # bound left
+                t = (bound_side - vector_origin[1]) / vector_orientation[1]
+        else:
+            if wall_index == 0:  # trampoline
+                t = (0 - vector_origin[2]) / vector_orientation[2]
+            elif wall_index == 1:  # wall front
+                t = (7.2 - vector_origin[0]) / vector_orientation[0]
+            elif wall_index == 2:  # ceiling
+                t = (9.4620 - 1.2192 - vector_origin[2]) / vector_orientation[2]
+            elif wall_index == 3:  # wall back
+                t = (-7.2 - vector_origin[0]) / vector_orientation[0]
+            elif wall_index == 4:  # bound right
+                t = (-bound_side - vector_origin[1]) / vector_orientation[1]
+            elif wall_index == 5:  # bound left
+                t = (bound_side - vector_origin[1]) / vector_orientation[1]
         return vector_origin + vector_orientation * t
 
-    # zero is positioned at the center of the trampoline
-    planes_points = np.array(
-        # [
-        #     [7.193, bound_side, 0],  # trampoline
-        #     [7.193, bound_side, 0],  # wall front
-        #     [7.193, bound_side, 9.4620 - 1.2192],  # ceiling
-        #     [-8.881, bound_side, 0],  # wall back
-        #     [7.193, bound_side, 0],  # bound right
-        #     [7.360, -bound_side, 0],  # bound left
-        # ]
-        [
-            [7.2, bound_side, 0],  # trampoline
-            [7.2, bound_side, 0],  # wall front
-            [7.2, bound_side, 9.4620 - 1.2192],  # ceiling
-            [-7.2, bound_side, 0],  # wall back
-            [7.2, bound_side, 0],  # bound right
-            [7.2, -bound_side, 0],  # bound left
-        ]
-    )
+    if not facing_front_wall:
+        # zero is positioned at the center of the trampoline
+        planes_points = np.array(
+            [
+                [7.193, bound_side, 0],  # trampoline
+                [7.193, bound_side, 0],  # wall front
+                [7.193, bound_side, 9.4620 - 1.2192],  # ceiling
+                [-8.881, bound_side, 0],  # wall back
+                [7.193, bound_side, 0],  # bound right
+                [7.360, -bound_side, 0],  # bound left
+            ]
+        )
 
-    planes_normal_vector = np.array(
-        [
-            [0, 0, 1],  # trampoline
-            # np.cross(
-            #     np.array([7.193, bound_side, 0]) - np.array([7.360, -bound_side, 0]), np.array([0, 0, -1])
-            # ).tolist(),  # wall front
-            [-1, 0, 0],  # wall front
-            [0, 0, -1],  # ceiling
-            [1, 0, 0],  # wall back
-            [0, 1, 0],  # bound right
-            [0, -1, 0],  # bound left
-        ]
-    )
+        planes_normal_vector = np.array(
+            [
+                [0, 0, 1],  # trampoline
+                np.cross(
+                    np.array([7.193, bound_side, 0]) - np.array([7.360, -bound_side, 0]), np.array([0, 0, -1])
+                ).tolist(),  # wall front
+                [0, 0, -1],  # ceiling
+                [1, 0, 0],  # wall back
+                [0, 1, 0],  # bound right
+                [0, -1, 0],  # bound left
+            ]
+        )
 
-    # plane_bounds = [
-    #     np.array([[-8.881, 7.360], [-bound_side, bound_side], [0, 0]]),
-    #     np.array([[7.193, 7.360], [-bound_side, bound_side], [0, 9.4620 - 1.2192]]),
-    #     np.array([[-8.881, 7.360], [-bound_side, bound_side], [9.4620 - 1.2192, 9.4620 - 1.2192]]),
-    #     np.array([[-8.881, -8.881], [-bound_side, bound_side], [0, 9.4620 - 1.2192]]),
-    #     np.array([[-8.881, 7.193], [-bound_side, -bound_side], [0, 9.4620 - 1.2192]]),
-    #     np.array([[-8.881, 7.360], [bound_side, bound_side], [0, 9.4620 - 1.2192]]),
-    # ]
-    plane_bounds = [
-        np.array([[-7.2, 7.2], [-bound_side, bound_side], [0, 0]]),
-        np.array([[7.2, 7.2], [-bound_side, bound_side], [0, 9.4620 - 1.2192]]),
-        np.array([[-7.2, 7.2], [-bound_side, bound_side], [9.4620 - 1.2192, 9.4620 - 1.2192]]),
-        np.array([[-7.2, -7.2], [-bound_side, bound_side], [0, 9.4620 - 1.2192]]),
-        np.array([[-7.2, 7.2], [-bound_side, -bound_side], [0, 9.4620 - 1.2192]]),
-        np.array([[-7.2, 7.2], [bound_side, bound_side], [0, 9.4620 - 1.2192]]),
-    ]
+        plane_bounds = [
+            np.array([[-8.881, 7.360], [-bound_side, bound_side], [0, 0]]),
+            np.array([[7.193, 7.360], [-bound_side, bound_side], [0, 9.4620 - 1.2192]]),
+            np.array([[-8.881, 7.360], [-bound_side, bound_side], [9.4620 - 1.2192, 9.4620 - 1.2192]]),
+            np.array([[-8.881, -8.881], [-bound_side, bound_side], [0, 9.4620 - 1.2192]]),
+            np.array([[-8.881, 7.193], [-bound_side, -bound_side], [0, 9.4620 - 1.2192]]),
+            np.array([[-8.881, 7.360], [bound_side, bound_side], [0, 9.4620 - 1.2192]]),
+        ]
+
+    else:
+        # zero is positioned at the center of the trampoline
+        planes_points = np.array(
+            [
+                [7.2, bound_side, 0],  # trampoline
+                [7.2, bound_side, 0],  # wall front
+                [7.2, bound_side, 9.4620 - 1.2192],  # ceiling
+                [-7.2, bound_side, 0],  # wall back
+                [7.2, bound_side, 0],  # bound right
+                [7.2, -bound_side, 0],  # bound left
+            ]
+        )
+
+        planes_normal_vector = np.array(
+            [
+                [0, 0, 1],  # trampoline
+                [-1, 0, 0],  # wall front
+                [0, 0, -1],  # ceiling
+                [1, 0, 0],  # wall back
+                [0, 1, 0],  # bound right
+                [0, -1, 0],  # bound left
+            ]
+        )
+
+        plane_bounds = [
+            np.array([[-7.2, 7.2], [-bound_side, bound_side], [0, 0]]),
+            np.array([[7.2, 7.2], [-bound_side, bound_side], [0, 9.4620 - 1.2192]]),
+            np.array([[-7.2, 7.2], [-bound_side, bound_side], [9.4620 - 1.2192, 9.4620 - 1.2192]]),
+            np.array([[-7.2, -7.2], [-bound_side, bound_side], [0, 9.4620 - 1.2192]]),
+            np.array([[-7.2, 7.2], [-bound_side, -bound_side], [0, 9.4620 - 1.2192]]),
+            np.array([[-7.2, 7.2], [bound_side, bound_side], [0, 9.4620 - 1.2192]]),
+        ]
+
 
     intersection = []
     wall_index = None
     intersection_index = np.zeros((len(planes_points)))
     for i in range(len(planes_points)):
         current_interaction = intersection_plane_vector(
-            vector_origin, vector_end, planes_points[i, :], planes_normal_vector[i, :]
+            vector_origin, vector_end, planes_points[i, :], planes_normal_vector[i, :],
         )
 
         if current_interaction is not None:
@@ -131,7 +158,7 @@ def get_gaze_position_from_intersection(vector_origin, vector_end, bound_side):
         wall_index = np.where(intersection_index == 1)[0][closest_index]
 
     if wall_index is not None:
-        gaze_position = verify_intersection_position(vector_origin, vector_end, wall_index, bound_side)
+        gaze_position = verify_intersection_position(vector_origin, vector_end, wall_index, bound_side, facing_front_wall)
     else:
         gaze_position = None
 

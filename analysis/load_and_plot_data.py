@@ -565,7 +565,7 @@ primary_table = [["Name", "Expertise", "Acrobatics",
                   # "Eye amplitude 90th percentile", "Neck amplitude 90th percentile"
                   ]]
 
-trajectories_table = [["Name", "Expertise", "Acrobatics", "Projected gaze orientation (PGO)"]]  # , "Wall index"]]
+trajectories_table = [["Name", "Expertise", "Acrobatics", "Projected gaze orientation (PGO)", "Projected gaze orientation facing front wall (PGOS)"]]  # , "Wall index"]]
 
 AOI_proportions_table = [["Name", "Expertise", "Acrobatics", "Trampoline",
                     "Wall front", "Wall back",
@@ -616,8 +616,10 @@ if GENRATE_DATA_FRAME_FLAG:
 
                             # Secondary analysis - Trajectory
                             gaze_position_temporal_evolution_projected = eye_tracking_metrics["gaze_position_temporal_evolution_projected"]
+                            gaze_position_temporal_evolution_projected_facing_front_wall = eye_tracking_metrics["gaze_position_temporal_evolution_projected_facong_front_wall"]
                             trajectories_table += [[subject_name, expertise, acrobatics,
-                                              gaze_position_temporal_evolution_projected]]
+                                                    gaze_position_temporal_evolution_projected,
+                                                    gaze_position_temporal_evolution_projected_facing_front_wall]]
 
 
                             # Secondary analysis - Movements

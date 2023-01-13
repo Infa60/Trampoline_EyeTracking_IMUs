@@ -40,6 +40,7 @@ def get_data_at_same_timestamps(
         ]
 
     Xsens_position_per_move = [np.array([]) for i in range(len(start_of_move_index))]
+    Xsens_position_facing_front_wall_per_move = [np.array([]) for i in range(len(start_of_move_index))]
     Xsens_jointAngle_per_move = [np.array([]) for i in range(len(start_of_move_index))]
     for i in range(len(start_of_move_index)):
         Xsens_position_per_move[i] = np.zeros((len(time_vector_pupil_per_move[i]), np.shape(Xsens_position)[1]))
@@ -78,6 +79,7 @@ def get_data_at_same_timestamps(
 
 
     Xsens_orientation_per_move = [np.array([]) for _ in range(len(start_of_move_index))]
+    Xsens_orientation_facing_front_wall_per_move = [np.array([]) for i in range(len(start_of_move_index))]
     for i in range(len(start_of_move_index)):
         Xsens_orientation_per_move[i] = np.zeros((len(time_vector_pupil_per_move[i]), 4 * num_joints))
         for j in range(len(time_vector_pupil_per_move[i])):
@@ -112,8 +114,11 @@ def get_data_at_same_timestamps(
         if move_orientation[i] == -1:
             rotation_matrix = biorbd.Rotation.fromEulerAngles(np.array([0, 0, np.pi]), 'xyz').to_array()
             rotated_position, rotated_orientation = rotate_xsens(Xsens_position_per_move[i], Xsens_orientation_per_move[i], rotation_matrix, num_joints)
-            Xsens_position_per_move[i] = rotated_position
-            Xsens_orientation_per_move[i] = rotated_orientation
+            Xsens_position_facing_front_wall_per_move[i] = rotated_position
+            Xsens_orientation_facing_front_wall_per_move[i] = rotated_orientation
+        else:
+            Xsens_position_facing_front_wall_per_move[i] = Xsens_position_per_move[i]
+            Xsens_orientation_facing_front_wall_per_move[i] = Xsens_orientation_per_move[i]
 
     Xsens_CoM_per_move = [np.array([]) for i in range(len(start_of_move_index))]
     for i in range(len(start_of_move_index)):
@@ -156,7 +161,9 @@ def get_data_at_same_timestamps(
     return (
         time_vector_pupil_per_move,
         Xsens_orientation_per_move,
+        Xsens_orientation_facing_front_wall_per_move,
         Xsens_position_per_move,
+        Xsens_position_facing_front_wall_per_move,
         Xsens_jointAngle_per_move,
         Xsens_CoM_per_move,
         elevation_per_move,

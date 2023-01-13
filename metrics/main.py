@@ -200,7 +200,9 @@ def run_analysis(
         (
             time_vector_pupil_per_move,
             Xsens_orientation_per_move,
+            Xsens_orientation_facing_front_wall_per_move,
             Xsens_position_rotated_per_move,
+            Xsens_position_facing_front_wall_per_move,
             Xsens_jointAngle_per_move,
             Xsens_CoM_per_move,
             elevation_per_move,
@@ -227,6 +229,9 @@ def run_analysis(
 
         Xsens_position_no_level_CoM_corrected_rotated_per_move, CoM_trajectory_per_move = CoM_transfo(
             time_vector_pupil_per_move, Xsens_position_rotated_per_move, Xsens_CoM_per_move, num_joints, hip_height, FLAG_COM_PLOTS
+        )
+        Xsens_position_facing_front_wall_no_level_CoM_corrected_rotated_per_move, _= CoM_transfo(
+            time_vector_pupil_per_move, Xsens_position_facing_front_wall_per_move, Xsens_CoM_per_move, num_joints, hip_height, FLAG_COM_PLOTS
         )
         
         for j in range(len(Xsens_position_rotated_per_move)):
@@ -256,6 +261,7 @@ def run_analysis(
             fixation_timing,
             quiet_eye_duration,
             gaze_position_temporal_evolution_projected,
+            gaze_position_temporal_evolution_projected_facing_front_wall,
             neck_amplitude,
             eye_amplitude,
             max_neck_amplitude,
@@ -272,24 +278,22 @@ def run_analysis(
             spotting_index,
             movement_detection_index,
             blinks_index,
-            fixation_positions,
-            fixation_timing,
             position_threshold_block,
             wall_index_block,
             Xsens_head_position_calculated,
             eye_position,
             gaze_orientation,
-            gaze_intersection,
             wall_index,
             EulAngles_head_global,
             EulAngles_neck,
             Xsens_orthogonal_thorax_position,
-            Xsens_orthogonal_head_position,) = animate(
+            Xsens_orthogonal_head_position,
+            ) = animate(
                     time_vector_pupil_per_move[j],
                     Xsens_orientation_per_move[j],
-                    Xsens_jointAngle_per_move[j],
+                    Xsens_orientation_facing_front_wall_per_move[j],
                     Xsens_position_no_level_CoM_corrected_rotated_per_move[j],
-                    Xsens_global_JCS_orientations[0],
+                    Xsens_position_facing_front_wall_no_level_CoM_corrected_rotated_per_move[j],
                     CoM_trajectory_per_move[j],
                     elevation_per_move[j],
                     azimuth_per_move[j],
@@ -317,6 +321,7 @@ def run_analysis(
             "fixation_timing" : fixation_timing,
             "quiet_eye_duration" : quiet_eye_duration,
             "gaze_position_temporal_evolution_projected" : gaze_position_temporal_evolution_projected,
+            "gaze_position_temporal_evolution_projected_facing_front_wall" : gaze_position_temporal_evolution_projected_facing_front_wall,
             "position_threshold_block" : position_threshold_block,
             "wall_index_block" : wall_index_block,
             "neck_amplitude" : neck_amplitude,
