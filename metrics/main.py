@@ -205,8 +205,6 @@ def run_analysis(
             Xsens_CoM_per_move,
             elevation_per_move,
             azimuth_per_move,
-            eye_azimuth_resting_orientation,
-            eye_elevation_resting_orientation,
         ) = get_data_at_same_timestamps(
             Xsens_orientation_rotated,
             Xsens_position_rotated,
@@ -223,7 +221,6 @@ def run_analysis(
             SCENE_CAMERA_SERIAL_NUMBER,
             API_KEY,
             num_joints,
-            Pupil_frames_zero,
             FLAG_PUPIL_ANGLES_PLOT,
         )
 
@@ -302,8 +299,6 @@ def run_analysis(
                     csv_blinks,
                     output_file_name,
                     folder_name,
-                    eye_azimuth_resting_orientation,
-                    eye_elevation_resting_orientation,
                     0,
                     blink_duration_threshold,
                     FLAG_ANIMAITON,
@@ -373,6 +368,7 @@ FLAG_PUPIL_ANGLES_PLOT = True # False  #
 FLAG_GAZE_TRAJECTORY = True  # False  #
 FLAG_GENERATE_STATS_METRICS = True  # False #
 FLAG_ANALYSIS = True  # False #
+FLAG_TURN_ATHLETES_FOR_PGO = True
 
 
 parser = argparse.ArgumentParser("Enter Pupils API_KEY")
@@ -415,8 +411,10 @@ for i_trial in range(len(trial_table)):
         air_time_threshold = 0.25
     Xsens_jump_idx = ([int(x) for x in trial_table[i_trial][0][18].split(" ")] if trial_table[i_trial][0][18] != "" else [])
     Pupil_jump_idx = ([int(x) for x in trial_table[i_trial][0][19].split(" ")] if trial_table[i_trial][0][19] != "" else [])
-    Xsens_frames_zero = ([int(x) for x in trial_table[i_trial][0][20].split(" ")] if trial_table[i_trial][0][20] != "" else [0, 30])
-    Pupil_frames_zero = ([int(x) for x in trial_table[i_trial][0][21].split(" ")] if trial_table[i_trial][0][21] != "" else [0, 30])
+    # No zero for Pupil, we decided to trust their zero since it is odd to find a personal zero for each subject
+    Pupil_frames_zero = ([int(x) for x in trial_table[i_trial][0][20].split(" ")] if trial_table[i_trial][0][20] != "" else [0, 30])
+    Xsens_frames_zero = ([int(x) for x in trial_table[i_trial][0][21].split(" ")] if trial_table[i_trial][0][21] != "" else [0, 30])
+
     print(f'Analysis of trial {xsens_file_name} started')
 
     points_labeled_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"

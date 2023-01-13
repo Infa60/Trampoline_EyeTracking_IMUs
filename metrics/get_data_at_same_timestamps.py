@@ -24,7 +24,6 @@ def get_data_at_same_timestamps(
     SCENE_CAMERA_SERIAL_NUMBER,
     API_KEY,
     num_joints,
-    Pupil_frames_zero,
     FLAG_PUPIL_ANGLES_PLOT=True,
 ):
     """
@@ -145,9 +144,6 @@ def get_data_at_same_timestamps(
             plt.plot(time_vector_pupil_per_move[i], azimuth_per_move[i], "-c")
         # plt.show()
 
-    eye_resting_frames = np.where(np.logical_and(time_stamps_eye_tracking_index_on_pupil > Pupil_frames_zero[0], time_stamps_eye_tracking_index_on_pupil < Pupil_frames_zero[1]))
-    eye_azimuth_resting_orientation, eye_elevation_resting_orientation = get_initial_gaze_orientation(eye_resting_frames, azimuth, elevation)
-
     return (
         time_vector_pupil_per_move,
         Xsens_orientation_per_move,
@@ -156,6 +152,4 @@ def get_data_at_same_timestamps(
         Xsens_CoM_per_move,
         elevation_per_move,
         azimuth_per_move,
-        eye_azimuth_resting_orientation, 
-        eye_elevation_resting_orientation
     )

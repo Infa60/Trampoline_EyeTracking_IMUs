@@ -276,8 +276,7 @@ def identify_blinks(csv_blinks, time_vector_pupil, blink_duration_threshold):
     return number_of_blinks, blinks_index
 
 
-def identify_head_eye_movements(elevation, azimuth, eye_azimuth_resting_orientation,
-                                eye_elevation_resting_orientation, EulAngles_head_global, EulAngles_neck,
+def identify_head_eye_movements(elevation, azimuth, EulAngles_head_global, EulAngles_neck,
                                 fixation_index, csv_blinks, time_vector_pupil, blink_duration_threshold,
                                 output_file_name, FLAG_PUPIL_ANGLES_PLOT):
     """
@@ -550,7 +549,7 @@ def identify_head_eye_movements(elevation, azimuth, eye_azimuth_resting_orientat
     plt.close("all")
 
     neck_position_norm = np.sqrt(EulAngles_neck[:-1, 1] ** 2 + EulAngles_neck[:-1, 0] ** 2)
-    eye_position_norm = np.sqrt((eye_angles[1, :-1] - eye_azimuth_resting_orientation) ** 2 + (eye_angles[0, :-1] - eye_elevation_resting_orientation) ** 2)
+    eye_position_norm = np.sqrt(eye_angles[1, :-1] ** 2 + eye_angles[0, :-1] ** 2)
     dt = time_vector_pupil[1:] - time_vector_pupil[:-1]
     neck_amplitude = np.nansum(neck_position_norm * dt)
     eye_amplitude = np.nansum(eye_position_norm * dt)
@@ -767,8 +766,6 @@ def animate(
         csv_blinks,
         output_file_name,
         folder_name,
-        eye_azimuth_resting_orientation,
-        eye_elevation_resting_orientation,
         max_frame=0,
         blink_duration_threshold=0.1,
         FLAG_ANIMAITON=True,
@@ -867,8 +864,6 @@ def animate(
         )= identify_head_eye_movements(
             elevation,
             azimuth,
-            eye_azimuth_resting_orientation,
-            eye_elevation_resting_orientation,
             EulAngles_head_global,
             EulAngles_neck,
             fixation_index,
