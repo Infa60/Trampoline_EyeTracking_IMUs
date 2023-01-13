@@ -343,7 +343,6 @@ def run_analysis(
             "Xsens_head_position_calculated" : Xsens_head_position_calculated,
             "eye_position" : eye_position,
             "gaze_orientation" : gaze_orientation,
-            "gaze_intersection" : gaze_intersection,
             "wall_index" : wall_index,
             "EulAngles_head_global" : EulAngles_head_global,
             "EulAngles_neck" : EulAngles_neck,
