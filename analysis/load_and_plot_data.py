@@ -546,7 +546,7 @@ def timing_plots(df, move_list, subelite_names, elite_names, home_path):
 
 ### ------------------------ Code beginig ------------------------ ###
 
-GENRATE_DATA_FRAME_FLAG = True
+GENRATE_DATA_FRAME_FLAG = True # False
 
 if os.path.exists("/home/user"):
     home_path = "/home/user"
@@ -591,9 +591,6 @@ if GENRATE_DATA_FRAME_FLAG:
                             path = results_path + '/' + folder_subject + '/' + folder_move + '/'
                             move_number, eye_tracking_metrics = load_eye_tracking_metrics(path, file)
 
-                            if "distance_heatmaps" not in eye_tracking_metrics.keys():
-                                continue
-
                             # Primary analysis
                             expertise = eye_tracking_metrics["subject_expertise"]
                             subject_name = eye_tracking_metrics["subject_name"]
@@ -616,10 +613,12 @@ if GENRATE_DATA_FRAME_FLAG:
 
                             # Secondary analysis - Trajectory
                             gaze_position_temporal_evolution_projected = eye_tracking_metrics["gaze_position_temporal_evolution_projected"]
-                            gaze_position_temporal_evolution_projected_facing_front_wall = eye_tracking_metrics["gaze_position_temporal_evolution_projected_facong_front_wall"]
+                            gaze_position_temporal_evolution_projected_facing_front_wall = eye_tracking_metrics["gaze_position_temporal_evolution_projected_facing_front_wall"]
+                            wall_index = eye_tracking_metrics["wall_index"]
                             trajectories_table += [[subject_name, expertise, acrobatics,
                                                     gaze_position_temporal_evolution_projected,
-                                                    gaze_position_temporal_evolution_projected_facing_front_wall]]
+                                                    gaze_position_temporal_evolution_projected_facing_front_wall,
+                                                    wall_index]]
 
 
                             # Secondary analysis - Movements
@@ -722,8 +721,8 @@ for i in range(len(primary_data_frame)):
 
 primary_plots(primary_data_frame, move_list, subelite_names, elite_names, home_path)
 
-# trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
-# trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
+trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
+trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
 
 movement_pourcentage_data_frame = pd.DataFrame(neck_eye_movements_table[1:], columns=neck_eye_movements_table[0])
 movement_pourcentage_plots(movement_pourcentage_data_frame, move_list, subelite_names, elite_names, home_path)
