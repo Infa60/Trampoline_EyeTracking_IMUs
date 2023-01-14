@@ -107,7 +107,7 @@ def points_to_percentile(centers):
     mean_centers = np.mean(centers, axis=0)
     distance = np.linalg.norm(centers - mean_centers, axis=1)
     percentile = np.percentile(distance, 90)
-    return percentile
+    return distance, percentile
 
 
 def points_to_gaussian_heatmap(centers, height, width, scale):
@@ -179,6 +179,7 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
 
     centers_gaze_bed = [[] for i in range(len(move_names))]
     percetile_heatmaps = []
+    distance_heatmaps = []
     for i in range(len(move_names)):
         start = start_of_move_index_image[i]
         end = end_of_move_index_image[i]
@@ -229,7 +230,9 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
         plt.title(f"{subject_name}({subject_expertise}): {move_names[i]}")
         plt.axis('off')
 
-        percetile_heatmaps += [points_to_percentile(centers_gaze_bed[i])]
+        distance, pertentile = points_to_percentile(centers_gaze_bed[i])
+        percetile_heatmaps += [pertentile]
+        distance_heatmaps += [distance]
 
         trampoline_bed_proportions = number_of_trampoline_bed / gaze_total_move
         wall_front_proportions = number_of_wall_front / gaze_total_move
@@ -249,7 +252,8 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
                            "ceiling_proportions": ceiling_proportions,
                            "side_proportions": side_proportions,
                            "self_proportions" : self_proportions,
-                           "percetile_heatmaps": percetile_heatmaps[i]}
+                           "percetile_heatmaps": percetile_heatmaps[i],
+                           "distance_heatmaps": distance_heatmaps[i]}
 
         move_summary_light[i] = {"movement_name": move_names[i],
                            "subject_name": subject_name,
@@ -261,7 +265,8 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
                            "ceiling_proportions": ceiling_proportions,
                            "side_proportions": side_proportions,
                            "self_proportions" : self_proportions,
-                           "percetile_heatmaps": percetile_heatmaps[i]}
+                           "percetile_heatmaps": percetile_heatmaps[i],
+                           "distance_heatmaps": distance_heatmaps[i]}
 
         if not os.path.exists(f'{out_path}/{subject_name}'):
             os.makedirs(f'{out_path}/{subject_name}')
