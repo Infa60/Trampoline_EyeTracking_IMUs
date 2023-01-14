@@ -6,6 +6,7 @@ import os
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.cm as cm
+from matplotlib.patches import Rectangle
 import spm1d
 from scipy.interpolate import interp1d
 import csv
@@ -18,11 +19,11 @@ from IPython import embed
 
 
 PRIMARY_ANALYSIS_FLAG = False
-TRAJECTORIES_ANALYSIS_FLAG = False # True
+TRAJECTORIES_ANALYSIS_FLAG = True
 AOI_ANALYSIS_FLAG = False
 NECK_EYE_ANALYSIS_FLAG = False # True
 SPREADING_HEATMAP_FLAG = False # True
-QUALITATIVE_ANALYSIS_FLAG = True
+QUALITATIVE_ANALYSIS_FLAG = False # True
 
 if os.path.exists("/home/user"):
     home_path = "/home/user"
@@ -187,169 +188,164 @@ if PRIMARY_ANALYSIS_FLAG:
 
 
 # -------------------------------- Trajectories data frame = SPM1D ? ------------------------------------ #
-# 
-# def unwrap_gaze_position(gaze_position, bound_side):
-#     # Wall front
-#     # Bound left  # Trampoline  # Bound right
-#     # Wall back
-#     # Ceiling
-# 
-#     if intersection_index[0] == 1:  # trampoline
-#         gaze_position_x_y = gaze_position[:2]
-#     elif intersection_index[1] == 1:  # wall front
-#         # wall front is not normal to the side bounds
-#         wall_front_vector = np.array([bound_side, 7.193, 0]) - np.array([-bound_side, 7.360, 0])
-#         gaze_position_2_norm = gaze_position[2]
-#         y_unknown = np.sqrt(gaze_position_2_norm**2 / (wall_front_vector[1] ** 2 / wall_front_vector[0] ** 2 + 1))
-#         x_unknown = -wall_front_vector[1] / wall_front_vector[0] * y_unknown
-#         gaze_position_x_y = (np.array([gaze_position[0], gaze_position[1]]) + np.array([x_unknown, y_unknown])).tolist()
-#     elif intersection_index[2] == 1:  # ceiling
-#         gaze_position_x_y = [gaze_position[0], gaze_position[1] + 9.462 + 2 * 8.881]
-#     elif intersection_index[2] == 1:  # wall back
-#         gaze_position_x_y = [gaze_position[0], gaze_position[1] - gaze_position[2]]
-#     elif intersection_index[2] == 1:  # bound right
-#         gaze_position_x_y = [gaze_position[0] + gaze_position[2], gaze_position[1]]
-#     elif intersection_index[2] == 1:  # bound left
-#         gaze_position_x_y = [gaze_position[0] - gaze_position[2], gaze_position[1]]
-# 
-#     return gaze_position_x_y
-# 
-# # trajectories_table
-# # add meanplots
-# print("Est-ce qu'on tourne les athletes dans le gymnase pour avoir des trajectoires dans le meme sens?")
-# 
-# if TRAJECTORIES_ANALYSIS_FLAG:
-# 
-#     nb_interp_points = 500
-#     xi_interp = np.linspace(0, 1, nb_interp_points)
-#     trajectory_curves_per_athelte = {}
-#     for j, name in enumerate(trial_per_athlete_per_move_index.keys()):
-#         index_this_time = trial_per_athlete_per_move_index[name]
-#         PGO_curve = np.zeros((nb_interp_points, ))
-#         for k in index_this_time:
-#             x_index_this_time = np.linspace(0, 1, len(trajectories_table[k][4]))
-#             trajectory_this_time = trajectories_table[k][3].astype(int)
-#             PGO_curve += interp1d(x_index_this_time, trajectory_this_time, kind='cubic')(xi_interp)
-# 
-#         trajectory_curves_per_athelte[name] = PGO_curve/len(index_this_time)
-# 
-# 
-#     colors_subelites = [cm.get_cmap('plasma')(k) for k in np.linspace(0, 0.4, len(subelite_names))]
-#     colors_elites = [cm.get_cmap('plasma')(k) for k in np.linspace(0.6, 1, len(elite_names))]
-#     colors = []
-#     subelites_PGO = []
-#     elites_PGO = []
-#     i_elites = 0
-#     i_subelites = 0
-#     for name in trajectory_curves_per_athelte.keys():
-#         if name in subelite_names:
-#             colors += [colors_subelites[i_subelites]]
-#             i_subelites += 1
-#             subelites_PGO += [trajectory_curves_per_athelte[name][0]]
-#         elif name in elite_names:
-#             colors += [colors_elites[i_elites]]
-#             i_elites += 1
-#             elites_anticipatory = [trajectory_curves_per_athelte[name][0]]
-#         else:
-#             print(f"Probleme de nom: {name} not recognised")
-# 
-# 
-#     # fig, axs = plt.subplots(2, 1)
-#     # for i, name in enumerate(presence_curves_per_athelte.keys()):
-#     #     if name in subelite_names:
-#     #         axs[0].plot(xi_interp*100, presence_curves_per_athelte[name][0], color=colors[i], label=name)
-#     # for i, name in enumerate(presence_curves_per_athelte.keys()):
-#     #     if name in elite_names:
-#     #         axs[1].plot(xi_interp*100, presence_curves_per_athelte[name][0], color=colors[i], label=name)
-#     #
-#     # axs[0].set_xlim(0, 100)
-#     # axs[1].set_xlim(0, 100)
-#     # axs[0].set_ylim(0, 1.05)
-#     # axs[1].set_ylim(0, 1.05)
-#     # axs[0].legend()
-#     # axs[1].legend()
-#     # axs[1].set_xlabel("Normalized time [%]")
-#     # plt.suptitle("Anticipatory movements")
-#     # plt.savefig(home_path + '/disk/Eye-tracking/plots/' + 'anticiaptory_presence.png', dpi=300)
-#     #
-#     # fig, axs = plt.subplots(2, 1)
-#     # for i, name in enumerate(presence_curves_per_athelte.keys()):
-#     #     if name in subelite_names:
-#     #         axs[0].plot(xi_interp*100, presence_curves_per_athelte[name][1], color=colors[i], label=name)
-#     # for i, name in enumerate(presence_curves_per_athelte.keys()):
-#     #     if name in elite_names:
-#     #         axs[1].plot(xi_interp*100, presence_curves_per_athelte[name][1], color=colors[i], label=name)
-#     #
-#     # axs[0].set_xlim(0, 100)
-#     # axs[1].set_xlim(0, 100)
-#     # axs[0].set_ylim(0, 1.05)
-#     # axs[1].set_ylim(0, 1.05)
-#     # axs[0].legend()
-#     # axs[1].legend()
-#     # axs[1].set_xlabel("Normalized time [%]")
-#     # plt.suptitle("Compensatory movements")
-#     # plt.savefig(home_path + '/disk/Eye-tracking/plots/' + 'compensatory_presence.png', dpi=300)
-#     #
-#     # fig, axs = plt.subplots(2, 1)
-#     # for i, name in enumerate(presence_curves_per_athelte.keys()):
-#     #     if name in subelite_names:
-#     #         axs[0].plot(xi_interp*100, presence_curves_per_athelte[name][2], color=colors[i], label=name)
-#     # for i, name in enumerate(presence_curves_per_athelte.keys()):
-#     #     if name in elite_names:
-#     #         axs[1].plot(xi_interp*100, presence_curves_per_athelte[name][2], color=colors[i], label=name)
-#     #
-#     # axs[0].set_xlim(0, 100)
-#     # axs[1].set_xlim(0, 100)
-#     # axs[0].set_ylim(0, 1.05)
-#     # axs[1].set_ylim(0, 1.05)
-#     # axs[0].legend()
-#     # axs[1].legend()
-#     # axs[1].set_xlabel("Normalized time [%]")
-#     # plt.suptitle("Spotting")
-#     # plt.savefig(home_path + '/disk/Eye-tracking/plots/' + 'spotting_presence.png', dpi=300)
-#     #
-#     # fig, axs = plt.subplots(2, 1)
-#     # for i, name in enumerate(presence_curves_per_athelte.keys()):
-#     #     if name in subelite_names:
-#     #         axs[0].plot(xi_interp*100, presence_curves_per_athelte[name][3], color=colors[i], label=name)
-#     # for i, name in enumerate(presence_curves_per_athelte.keys()):
-#     #     if name in elite_names:
-#     #         axs[1].plot(xi_interp*100, presence_curves_per_athelte[name][3], color=colors[i], label=name)
-#     #
-#     # axs[0].set_xlim(0, 100)
-#     # axs[1].set_xlim(0, 100)
-#     # axs[0].set_ylim(0, 1.05)
-#     # axs[1].set_ylim(0, 1.05)
-#     # axs[0].legend()
-#     # axs[1].legend()
-#     # axs[1].set_xlabel("Normalized time [%]")
-#     # plt.suptitle("Movement detection")
-#     # plt.savefig(home_path + '/disk/Eye-tracking/plots/' + 'movement_detection_presence.png', dpi=300)
-#     #
-#     # fig, axs = plt.subplots(2, 1)
-#     # for i, name in enumerate(presence_curves_per_athelte.keys()):
-#     #     if name in subelite_names:
-#     #         axs[0].plot(xi_interp*100, presence_curves_per_athelte[name][4], color=colors[i], label=name)
-#     # for i, name in enumerate(presence_curves_per_athelte.keys()):
-#     #     if name in elite_names:
-#     #         axs[1].plot(xi_interp*100, presence_curves_per_athelte[name][4], color=colors[i], label=name)
-#     #
-#     # axs[0].set_xlim(0, 100)
-#     # axs[1].set_xlim(0, 100)
-#     # axs[0].set_ylim(0, 1.05)
-#     # axs[1].set_ylim(0, 1.05)
-#     # axs[0].legend()
-#     # axs[1].legend()
-#     # axs[1].set_xlabel("Normalized time [%]")
-#     # plt.suptitle("Blinks")
-#     # plt.savefig(home_path + '/disk/Eye-tracking/plots/' + 'blink_presence.png', dpi=300)
-#     # plt.show()
-#     #
-#     # t = spm1d.stats.ttest2(subelites_PGO, elites_PGO, equal_var=False)
-#     # ti = t.inference(alpha=0.05, two_tailed=False, interp=True)
-#     # ti.plot()
-# 
 
+def find_significant_timings(xi_interp, subelites_data, elites_data):
+
+    admissible_timings = {'4-': np.zeros((len(xi_interp),)), '41': np.zeros((len(xi_interp),)),
+                           '42': np.zeros((len(xi_interp),)), '43': np.zeros((len(xi_interp),))}
+    significant_timings = {'4-': np.zeros((2,)), '41': np.zeros((2,)), '42': np.zeros((2,)), '43': np.zeros((2,))}
+
+    for j, move in enumerate(['4-', '41', '42', '43']):
+        for i in range(len(xi_interp)):
+            if np.std(subelites_data[move][:, i]) > 0 and np.std(elites_data[move][:, i]) > 0:
+                admissible_timings[move][i] = 1
+        begining_of_clusters = np.where(admissible_timings[move][1:] - admissible_timings[move][:-1] == 1)[0] +1
+        end_of_clusters = np.where(admissible_timings[move][1:] - admissible_timings[move][:-1] == -1)[0] +1
+        if admissible_timings[move][0] == 1:
+            begining_of_clusters = np.concatenate(([0], begining_of_clusters))
+        if admissible_timings[move][-1] == 1:
+            end_of_clusters = np.concatenate((end_of_clusters, [len(xi_interp)]))
+
+        for i in range(len(begining_of_clusters)):
+            t = spm1d.stats.ttest2(subelites_data[move][:, begining_of_clusters[i]:end_of_clusters[i]],
+                                   elites_data[move][:, begining_of_clusters[i]:end_of_clusters[i]], equal_var=False)
+            ti = t.inference(alpha=0.05, two_tailed=False, interp=True)
+            if ti.clusters != []:
+                # ti.plot()
+                # plt.show()
+                # embed()
+                clusters = ti.clusters
+                for k in range(len(clusters)):
+                    cluster_x, cluster_z = clusters[k].get_patch_vertices()
+                    significant_timings[move] = np.vstack((significant_timings[move],
+                                                           np.array([cluster_x[0] + begining_of_clusters[i], cluster_x[1] + begining_of_clusters[i]])))
+
+    return admissible_timings, significant_timings
+
+def plot_trajectories_data_frame(trajectory_curves_per_athelte_per_move, move, title_variable, output_filename, significant_timings, bound_side):
+
+    fig, axs = plt.subplots(1, 2)
+    i_subelite = 0
+    i_elite = 0
+    for i, name in enumerate(trajectory_curves_per_athelte_per_move.keys()):
+        if name in subelite_names:
+            if trajectory_curves_per_athelte_per_move[name][move] != []:
+                axs[0].plot(trajectory_curves_per_athelte_per_move[name][move][0, index_variable], trajectory_curves_per_athelte_per_move[name][move][1, index_variable],
+                            color=colors_subelites[i_subelite],
+                            label=name)
+            i_subelite += 1
+    for i, name in enumerate(trajectory_curves_per_athelte_per_move.keys()):
+        if name in elite_names:
+            if trajectory_curves_per_athelte_per_move[name][move] != []:
+                axs[1].plot(trajectory_curves_per_athelte_per_move[name][move][0, index_variable], trajectory_curves_per_athelte_per_move[name][move][1, index_variable],
+                            color=colors_elites[i_elite],
+                            label=name)
+            i_elite += 1
+
+    print("Ajouter significant differences in bold lines ?")
+
+    for j in range(2):
+        # Plot trampo bed
+        axs[j].add_patch(Rectangle((-3.5 * 0.3048, -7 * 0.3048), 7 * 0.3048, 14 * 0.3048, facecolor='k', alpha=0.2))
+        # Plot horizontal lines of the symmetrized gymnasium
+        axs[j].plot(np.array([-bound_side, bound_side]), np.array([-7.2/2, -7.2/2]), '-k')
+        axs[j].plot(np.array([-bound_side, bound_side]), np.array([7.2/2, 7.2/2]), '-k')
+        axs[j].plot(np.array([-bound_side, bound_side]), np.array([-7.2/2 - (9.4620-1.2192), -7.2/2 - (9.4620-1.2192)]), '-k')
+        axs[j].plot(np.array([-bound_side, bound_side]), np.array([7.2/2 + 9.4620-1.2192, 7.2/2 + 9.4620-1.2192]), '-k')
+        axs[j].plot(np.array([-bound_side, bound_side]), np.array([-7.2/2 - (9.4620-1.2192) - 7.2, -7.2/2 - (9.4620-1.2192) - 7.2]), '-k')
+        axs[j].plot(np.array([-bound_side - (9.4620-1.2192), bound_side]), np.array([-7.2/2, -7.2/2]), '-k')
+        axs[j].plot(np.array([-bound_side - (9.4620-1.2192), bound_side]), np.array([7.2/2, 7.2/2]), '-k')
+        axs[j].plot(np.array([bound_side, bound_side + 9.4620 - 1.2192]), np.array([-7.2/2, -7.2/2]), '-k')
+        axs[j].plot(np.array([bound_side, bound_side + 9.4620 - 1.2192]), np.array([7.2/2, 7.2/2]), '-k')
+        # Plot vertical lines of the symmetrized gymnasium
+        axs[j].plot(np.array([-bound_side, -bound_side]), np.array([-7.2/2, 7.2/2]), '-k')
+        axs[j].plot(np.array([bound_side, bound_side]), np.array([-7.2/2, 7.2/2]), '-k')
+        axs[j].plot(np.array([-bound_side - (9.4620-1.2192), -bound_side - (9.4620-1.2192)]), np.array([-7.2/2, 7.2/2]), '-k')
+        axs[j].plot(np.array([bound_side + 9.4620-1.2192, bound_side + 9.4620-1.2192]), np.array([-7.2/2, 7.2/2]), '-k')
+        axs[j].plot(np.array([-bound_side, -bound_side]), np.array([7.2/2, 7.2 / 2 + 9.4620-1.2192]), '-k')
+        axs[j].plot(np.array([bound_side, bound_side]), np.array([7.2/2, 7.2/2 + 9.4620-1.2192]), '-k')
+        axs[j].plot(np.array([-bound_side, -bound_side]), np.array([-7.2/2 - (9.4620-1.2192), 7.2/2]), '-k')
+        axs[j].plot(np.array([bound_side, bound_side]), np.array([-7.2/2 - (9.4620-1.2192), 7.2/2]), '-k')
+        axs[j].plot(np.array([-bound_side, -bound_side]), np.array([-7.2/2 - (9.4620-1.2192) - 7.2, -7.2/2 - (9.4620-1.2192)]), '-k')
+        axs[j].plot(np.array([bound_side, bound_side]), np.array([-7.2/2 - (9.4620-1.2192) - 7.2, -7.2/2 - (9.4620-1.2192)]), '-k')
+        axs[j].axis('equal')
+    unwrap_and_plot_gaze_position()
+
+    plt.subplots_adjust(right=0.8)
+    plt.suptitle(title_variable + move)
+    plt.savefig(output_filename, dpi=300)
+    plt.show()
+    return
+
+def unwrap_and_plot_gaze_position(gaze_position, wall_index, bound_side):
+
+    gaze_position_x_y = np.zeros((2, wall_index))
+    for i in range(1, len(wall_index)):
+        if wall_index[i][0] == 1:  # trampoline
+            gaze_position_x_y[i] = gaze_position[:2]
+        elif wall_index[i][1] == 1:  # wall front
+            gaze_position_x_y[i] = [gaze_position[0], 7.2/2 + gaze_position[1]]
+        elif wall_index[i][2] == 1:  # ceiling
+            gaze_position_x_y[i] = [gaze_position[0], -7.2/2 - (9.4620-1.2192) - 7.2/2 - gaze_position[1]]
+        elif wall_index[i][3] == 1:  # wall back
+            gaze_position_x_y[i] = [gaze_position[0], -7.2/2 - gaze_position[2]]
+        elif wall_index[i][4] == 1:  # bound right
+            gaze_position_x_y[i] = [bound_side + gaze_position[2], gaze_position[1]]
+        elif wall_index[i][5] == 1:  # bound left
+            gaze_position_x_y[i] = [-bound_side - gaze_position[2], gaze_position[1]]
+
+    return gaze_position_x_y
+
+
+if TRAJECTORIES_ANALYSIS_FLAG:
+
+    bound_side = 3 + 121 * 0.0254 / 2
+
+    nb_interp_points = 500
+    xi_interp = np.linspace(0, 1, nb_interp_points)
+    trajectory_curves_per_athelte_per_move = {}
+    for j, name in enumerate(trial_per_athlete_per_move_index.keys()):
+        trajectory_curves_per_athelte_per_move[name] = {}
+        for i, move in enumerate(trial_per_athlete_per_move_index[name].keys()):
+            trajectory_curves_per_athelte_per_move[name][move] = []
+            index_this_time = trial_per_athlete_per_move_index[name][move]
+            trajectory_curve = np.zeros((nb_interp_points, ))
+            for k in index_this_time:
+                x_index_this_time = np.linspace(0, 1, len(trajectories_table[k][4]))
+                trajectory_this_time = unwrap_and_plot_gaze_position(trajectories_table[k][4], trajectories_table[k][5], bound_side)
+                trajectory_curve += interp1d(x_index_this_time, trajectory_this_time)(xi_interp)
+
+            if len(index_this_time) > 0:
+                trajectory_curves_per_athelte_per_move[name][move] = [trajectory_curve/len(index_this_time)]
+
+    colors_subelites = [cm.get_cmap('plasma')(k) for k in np.linspace(0, 0.4, len(subelite_names))]
+    colors_elites = [cm.get_cmap('plasma')(k) for k in np.linspace(0.6, 1, len(elite_names))]
+    subelites_trajectory = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
+    elites_trajectory = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
+    for name in trajectory_curves_per_athelte_per_move.keys():
+        for move in trajectory_curves_per_athelte_per_move[name].keys():
+            if name in subelite_names:
+                if trajectory_curves_per_athelte_per_move[name][move] != []:
+                    subelites_trajectory[move] = np.vstack((subelites_trajectory[move], trajectory_curves_per_athelte_per_move[name][move]))
+            elif name in elite_names:
+                if trajectory_curves_per_athelte_per_move[name][move] != []:
+                    elites_trajectory[move] = np.vstack((elites_trajectory[move], trajectory_curves_per_athelte_per_move[name][move]))
+            else:
+                print(f"Probleme de nom: {name} not recognised")
+
+    for i, move in enumerate(['4-', '41', '42', '43']):
+        subelites_trajectory[move] = subelites_trajectory[move][1:]
+        elites_trajectory[move] = elites_trajectory[move][1:]
+
+    admissible_timings_x, significant_timings_x = find_significant_timings(xi_interp, subelites_trajectory[0, :], elites_trajectory[0, :])
+    admissible_timings_y, significant_timings_y = find_significant_timings(xi_interp, subelites_trajectory[1, :], elites_trajectory[1, :])
+
+    significant_timings = np.logical_or(significant_timings_x, significant_timings_y)
+    
+    for i, move in enumerate(trial_per_athlete_per_move_index[name].keys()):
+        plot_trajectories_data_frame(trajectory_curves_per_athelte_per_move, move, xi_interp, "Projected gaze trajectory symmetrized (PGOS) ",
+                      home_path + '/disk/Eye-tracking/plots/' + f'PGOS_{move}.png',
+                      significant_timings)
 
 
 # ----------------------------------------- AOI data frame = Mixed ANOVA --------------------------------------------- #
@@ -515,38 +511,7 @@ def nearest_interp(xi, x, y):
         out[i] = y[index_closest]
     return out
 
-def find_significant_timings(xi_interp, subelites_data, elites_data):
 
-    admissible_timings = {'4-': np.zeros((len(xi_interp),)), '41': np.zeros((len(xi_interp),)),
-                           '42': np.zeros((len(xi_interp),)), '43': np.zeros((len(xi_interp),))}
-    significant_timings = {'4-': np.zeros((2,)), '41': np.zeros((2,)), '42': np.zeros((2,)), '43': np.zeros((2,))}
-
-    for j, move in enumerate(['4-', '41', '42', '43']):
-        for i in range(len(xi_interp)):
-            if np.std(subelites_data[move][:, i]) > 0 and np.std(elites_data[move][:, i]) > 0:
-                admissible_timings[move][i] = 1
-        begining_of_clusters = np.where(admissible_timings[move][1:] - admissible_timings[move][:-1] == 1)[0] +1
-        end_of_clusters = np.where(admissible_timings[move][1:] - admissible_timings[move][:-1] == -1)[0] +1
-        if admissible_timings[move][0] == 1:
-            begining_of_clusters = np.concatenate(([0], begining_of_clusters))
-        if admissible_timings[move][-1] == 1:
-            end_of_clusters = np.concatenate((end_of_clusters, [len(xi_interp)]))
-
-        for i in range(len(begining_of_clusters)):
-            t = spm1d.stats.ttest2(subelites_data[move][:, begining_of_clusters[i]:end_of_clusters[i]],
-                                   elites_data[move][:, begining_of_clusters[i]:end_of_clusters[i]], equal_var=False)
-            ti = t.inference(alpha=0.05, two_tailed=False, interp=True)
-            if ti.clusters != []:
-                # ti.plot()
-                # plt.show()
-                # embed()
-                clusters = ti.clusters
-                for k in range(len(clusters)):
-                    cluster_x, cluster_z = clusters[k].get_patch_vertices()
-                    significant_timings[move] = np.vstack((significant_timings[move],
-                                                           np.array([cluster_x[0] + begining_of_clusters[i], cluster_x[1] + begining_of_clusters[i]])))
-
-    return admissible_timings, significant_timings
 def plot_presence(presence_curves_per_athelte, move, xi_interp, index_variable, title_variable, output_file_name, significant_timings):
 
     fig, axs = plt.subplots(2, 1)
