@@ -284,6 +284,7 @@ def run_analysis(
             eye_position,
             gaze_orientation,
             wall_index,
+            wall_index_facing_front_wall,
             EulAngles_head_global,
             EulAngles_neck,
             Xsens_orthogonal_thorax_position,
@@ -324,6 +325,7 @@ def run_analysis(
             "gaze_position_temporal_evolution_projected_facing_front_wall" : gaze_position_temporal_evolution_projected_facing_front_wall,
             "position_threshold_block" : position_threshold_block,
             "wall_index_block" : wall_index_block,
+            "move_orientation": move_orientation[j],
             "neck_amplitude" : neck_amplitude,
             "eye_amplitude" : eye_amplitude,
             "max_neck_amplitude" : max_neck_amplitude,
@@ -344,6 +346,7 @@ def run_analysis(
             "eye_position" : eye_position,
             "gaze_orientation" : gaze_orientation,
             "wall_index" : wall_index,
+            "wall_index_facing_front_wall": wall_index_facing_front_wall,
             "EulAngles_head_global" : EulAngles_head_global,
             "EulAngles_neck" : EulAngles_neck,
             "Xsens_orthogonal_thorax_position" : Xsens_orthogonal_thorax_position,
@@ -354,7 +357,8 @@ def run_analysis(
             "ceiling_proportions" : move_summary_heatmaps[j]["ceiling_proportions"],
             "side_proportions" : move_summary_heatmaps[j]["side_proportions"],
             "self_proportions" : move_summary_heatmaps[j]["self_proportions"],
-            "percetile_heatmaps" : move_summary_heatmaps[j]["percetile_heatmaps"],}
+            "percetile_heatmaps" : move_summary_heatmaps[j]["percetile_heatmaps"],
+            "distance_heatmaps" : move_summary_heatmaps[j]["distance_heatmaps"],}
 
             with open(output_file_name[:-4] + "__eyetracking_metrics.pkl", 'wb') as handle:
                 pickle.dump(move_summary, handle)
