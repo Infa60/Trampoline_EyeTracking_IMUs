@@ -66,10 +66,12 @@ def plot_primary_metrics(df, move_list, subelite_names, elite_names, metric, uni
     plt.xlabel('Acrobatics')
     plt.xticks(ticks=[0, 2, 4, 6], labels=[i + '/' for i in move_list])
 
-    plt.plot(0, 0, 'o', color=subelite_color, markersize=2, label='SubElite')
-    plt.plot(0, 0, 'o', color=elite_color, markersize=2, label='Elite')
-    plt.plot(0, 0, 'ok', markersize=3, label='Men of participant')
-    plt.plot(0, 0, 'ok', markersize=5, label='Mean of means')
+    plt.xlim(-1, 4)
+    plt.ylim(0, 2)
+    plt.plot(-2, 0, 'o', color=subelite_color, markersize=2, label='SubElite')
+    plt.plot(-2, 0, 'o', color=elite_color, markersize=2, label='Elite')
+    plt.plot(-2, 0, 'ok', markersize=3, label='Men of participant')
+    plt.plot(-2, 0, 'ok', markersize=5, label='Mean of means')
     plt.legend(ncol=4, loc='upper center', bbox_to_anchor=(0.5, 1.1))
     plt.subplots_adjust(hspace=0.1, top=0.9)
     plt.savefig(save_path + title + '.png')
@@ -421,10 +423,8 @@ def heatmap_spreading_plots(df, move_list, subelite_names, elite_names, home_pat
                 percentile_computed_from_all_available_trials_ponderated_elites += [np.where(cumulative_sum_of_histogram_pourcentage < 90)[0][-1]]
 
         subelite_list_distance /= num_athletes_subelite
-        # percentile_subelite += [np.nanmean(np.array(means_subelite_90))]
         percentile_subelite += [np.nanmean(np.array(percentile_computed_from_all_available_trials_ponderated_subelites))]
 
-        # percentile_elite += [np.nanmean(np.array(means_elite_90))]
         percentile_elite += [np.nanmean(np.array(percentile_computed_from_all_available_trials_ponderated_elites))]
         elite_list_distance /= len(elite_names)
 
@@ -432,7 +432,6 @@ def heatmap_spreading_plots(df, move_list, subelite_names, elite_names, home_pat
         histogram_elite_distance += [elite_list_distance]
 
     cmap = cm.get_cmap('plasma')
-    # actual_cmap = cmap.set_bad(color=(0., 1., 0., 1.))
     actual_cmap = cmap.set_bad(color='white')
 
     fig, axs = plt.subplots(2, 4)
@@ -565,7 +564,7 @@ primary_table = [["Name", "Expertise", "Acrobatics",
                   # "Eye amplitude 90th percentile", "Neck amplitude 90th percentile"
                   ]]
 
-trajectories_table = [["Name", "Expertise", "Acrobatics", "Projected gaze orientation (PGO)", "Projected gaze orientation facing front wall (PGOS)"]]  # , "Wall index"]]
+trajectories_table = [["Name", "Expertise", "Acrobatics", "Projected gaze orientation (PGO)", "Projected gaze orientation facing front wall (PGOS)", "Wall index", "Wall index facing front wall"]]
 
 AOI_proportions_table = [["Name", "Expertise", "Acrobatics", "Trampoline",
                     "Wall front", "Wall back",
@@ -615,10 +614,18 @@ if GENRATE_DATA_FRAME_FLAG:
                             gaze_position_temporal_evolution_projected = eye_tracking_metrics["gaze_position_temporal_evolution_projected"]
                             gaze_position_temporal_evolution_projected_facing_front_wall = eye_tracking_metrics["gaze_position_temporal_evolution_projected_facing_front_wall"]
                             wall_index = eye_tracking_metrics["wall_index"]
+                            wall_index_facing_front_wall = eye_tracking_metrics["wall_index_facing_front_wall"]
+                            # if move_orientation == -1:
+                            #     wall_index_rotated = np.zeros((wall_index.shape))
+                            #     wall_index_rotated[np.where(wall_index[:, 0] == 1)[0], :] = 3 # Wall front 1 <-> Wall back 3
+                            #     wall_index_rotated[np.where(wall_index[:, 0] == 3)[0], :] = 1 # Wall front 1 <-> Wall back 3
+                            #     wall_index_rotated[np.where(wall_index[:, 0] == 4)[0], :] = 5 # Wall right 4 <-> Wall left 5
+                            #     wall_index_rotated[np.where(wall_index[:, 0] == 5)[0], :] = 4 # Wall right 4 <-> Wall left 5
                             trajectories_table += [[subject_name, expertise, acrobatics,
                                                     gaze_position_temporal_evolution_projected,
                                                     gaze_position_temporal_evolution_projected_facing_front_wall,
-                                                    wall_index]]
+                                                    wall_index,
+                                                    wall_index_facing_front_wall]]
 
 
                             # Secondary analysis - Movements
@@ -722,13 +729,20 @@ for i in range(len(primary_data_frame)):
 primary_plots(primary_data_frame, move_list, subelite_names, elite_names, home_path)
 
 trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
-trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
+# trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
 
 movement_pourcentage_data_frame = pd.DataFrame(neck_eye_movements_table[1:], columns=neck_eye_movements_table[0])
 movement_pourcentage_plots(movement_pourcentage_data_frame, move_list, subelite_names, elite_names, home_path)
 
-AOI_pourcentage_data_frame = pd.DataFrame(AOI_proportions_table[1:], columns=AOI_proportions_table[0])
-AOI_pourcentage_plots(AOI_pourcentage_data_frame, move_list, subelite_names, elite_names, home_path)
+AOI_table_tempo = [['Name', 'Expertise', 'Acrobatics', 'Trampoline', 'Wall back front', 'Ceiling', 'Wall sides',
+                   'Athlete himself', 'Blink']]
+for i in range(1, len(AOI_proportions_table)):
+    AOI_table_tempo += [[AOI_proportions_table[i][0], AOI_proportions_table[i][1], AOI_proportions_table[i][2],
+                            AOI_proportions_table[i][3], AOI_proportions_table[i][4] + AOI_proportions_table[i][5],
+                            AOI_proportions_table[i][6], AOI_proportions_table[i][7], AOI_proportions_table[i][8],
+                            AOI_proportions_table[i][9]]]
+AOI_pourcentage_data_frame_tempo = pd.DataFrame(AOI_table_tempo[1:], columns=AOI_table_tempo[0])
+AOI_pourcentage_plots(AOI_pourcentage_data_frame_tempo, move_list, subelite_names, elite_names, home_path)
 
 heatmap_spreading_data_frame = pd.DataFrame(heatmaps_spreading_table[1:], columns=heatmaps_spreading_table[0])
 heatmap_spreading_plots(heatmap_spreading_data_frame, move_list, subelite_names, elite_names, home_path)

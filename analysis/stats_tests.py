@@ -19,10 +19,11 @@ from IPython import embed
 
 
 PRIMARY_ANALYSIS_FLAG = True
-TRAJECTORIES_ANALYSIS_FLAG = False  # True
+TRAJECTORIES_ANALYSIS_FLAG = True
+GENERATE_EACH_ATHLETE_PGOS_GRAPH = True
 AOI_ANALYSIS_FLAG = True
 NECK_EYE_ANALYSIS_FLAG = True
-SPREADING_HEATMAP_FLAG = False # True
+SPREADING_HEATMAP_FLAG = True
 QUALITATIVE_ANALYSIS_FLAG = True
 
 if os.path.exists("/home/user"):
@@ -135,7 +136,7 @@ for i, name in enumerate(trial_per_athlete_per_move_index):
             heatmaps_spreading_table += [[name,
                                   'Elite' if name in elite_names else 'SubElite',
                                   move,
-                                  np.nanmean(heatmaps_spreading_table_array[index, 3].astype(float)),
+                                  None,
                                   np.nanmean(heatmaps_spreading_table_array[index, 4].astype(float)),
                                   ]]
 
@@ -146,7 +147,6 @@ if PRIMARY_ANALYSIS_FLAG:
     primary_data_frame.to_csv(home_path + "/disk/Eye-tracking/plots/primary_data_frame.csv")
 
     primary_data_frame_temporary = pd.DataFrame(columns=primary_table[0])
-    num_rows = 0
     for i in range(len(primary_data_frame)):
         df = {'Name': [primary_data_frame['Name'][i]],
         'Expertise': [primary_data_frame['Expertise'][i]],
@@ -159,7 +159,6 @@ if PRIMARY_ANALYSIS_FLAG:
         'Maximum eye amplitude': [primary_data_frame['Maximum eye amplitude'][i]],
         'Maximum neck amplitude': [primary_data_frame['Maximum neck amplitude'][i]]}
         primary_data_frame_temporary = pd.concat([primary_data_frame_temporary, pd.DataFrame(df)])
-        num_rows += 1
 
     primary_data_frame = primary_data_frame_temporary
 
@@ -238,20 +237,20 @@ def find_significant_timings(xi_interp, subelites_data, elites_data):
             t = spm1d.stats.ttest2(subelites_data[move][:, begining_of_clusters[i]:end_of_clusters[i]],
                                    elites_data[move][:, begining_of_clusters[i]:end_of_clusters[i]], equal_var=False)
             ti = t.inference(alpha=0.05, two_tailed=False)
-            if ti.clusters != []:
-                # ti.plot()
-                # plt.show()
-                # embed()
-                clusters = ti.clusters
-                for k in range(len(clusters)):
-                    cluster_x, cluster_z = clusters[k].get_patch_vertices()
-                    significant_timings[move] = np.vstack((significant_timings[move],
-                                                           np.array([cluster_x[0] + begining_of_clusters[i], cluster_x[1] + begining_of_clusters[i]])))
+            if hasattr(ti, 'clusters'):
+                if ti.clusters != []:
+                    # ti.plot()
+                    # plt.show()
+                    clusters = ti.clusters
+                    for k in range(len(clusters)):
+                        cluster_x, cluster_z = clusters[k].get_patch_vertices()
+                        significant_timings[move] = np.vstack((significant_timings[move],
+                                                               np.array([cluster_x[0] + begining_of_clusters[i], cluster_x[1] + begining_of_clusters[i]])))
         if significant_timings[move].shape == (2,):
             significant_timings[move] = None
         else:
             significant_timings[move] = significant_timings[move][1:]
-            print(f"Significant timings for {move}")
+            print(f"Significant timings for {move}: {significant_timings[move]}")
     return admissible_timings, significant_timings
 
 def plot_gymnasium_unwrapped(axs, j, FLAG_3D=False):
@@ -312,6 +311,13 @@ def plot_gymnasium_unwrapped(axs, j, FLAG_3D=False):
     axs[j].plot(np.array([-7.2 - (9.4620-1.2192), 7.2]), np.array([bound_side, bound_side]), '-k')
     axs[j].plot(np.array([-7.2 - (9.4620-1.2192) - 2*7.2, -7.2 - (9.4620-1.2192)]), np.array([-bound_side, -bound_side]), '-k')
     axs[j].plot(np.array([-7.2 - (9.4620-1.2192) - 2*7.2, -7.2 - (9.4620-1.2192)]), np.array([bound_side, bound_side]), '-k')
+
+    axs[j].text(-7.2 - (9.4620-1.2192) - 2*7.2 + 7.2/2 + 1, bound_side + 0.1, "Ceiling", fontsize=10)
+    axs[j].text(-7.2 - (9.4620-1.2192) + 1, bound_side + 0.1, "Wall back", fontsize=10)
+    axs[j].text(7.2 + 1, bound_side + 0.1, "Wall front", fontsize=10)
+    axs[j].text(-7.2 + 7.2/2 + 1, bound_side + 9.4620-1.2192 + 0.1, "Wall left", fontsize=10)
+    axs[j].text(-7.2 + 7.2/2 + 0.5, -bound_side - (9.4620-1.2192) - 1, "Wall right", fontsize=10)
+
     return
 
 def plot_trajectories_data_frame(
@@ -319,11 +325,9 @@ def plot_trajectories_data_frame(
         move,
         title_variable,
         output_filename,
-        significant_timings,
-        bound_side
 ):
 
-    fig, axs = plt.subplots(1, 2)
+    fig, axs = plt.subplots(1, 2, figsize=(18, 6))
     i_subelite = 0
     i_elite = 0
     for i, name in enumerate(trajectory_curves_per_athelte_per_move.keys()):
@@ -331,30 +335,36 @@ def plot_trajectories_data_frame(
             if trajectory_curves_per_athelte_per_move[name][move] != []:
                 axs[0].plot(trajectory_curves_per_athelte_per_move[name][move][0, :], trajectory_curves_per_athelte_per_move[name][move][1, :],
                             color=colors_subelites[i_subelite],
+                            marker='.',
+                            linestyle='None',
+                            markersize=1,
                             label=name)
-                if significant_timings[move] is not None:
-                    for index in significant_timings[move].shape:
-                        index_this_time = np.arange(int(round(significant_timings[move][index, 0])),
-                                                    int(round(significant_timings[move][index, 1])))
-                        axs[0].plot(trajectory_curves_per_athelte_per_move[name][move][0, significant_timings[move][index_this_time]],
-                                    trajectory_curves_per_athelte_per_move[name][move][1, significant_timings[move][index_this_time]],
-                                    color=colors_subelites[i_subelite],
-                                    linewidth=3)
+                # if significant_timings[move] is not None:
+                #     for index in significant_timings[move].shape:
+                #         index_this_time = np.arange(int(round(significant_timings[move][index, 0])),
+                #                                     int(round(significant_timings[move][index, 1])))
+                #         axs[0].plot(trajectory_curves_per_athelte_per_move[name][move][0, significant_timings[move][index_this_time]],
+                #                     trajectory_curves_per_athelte_per_move[name][move][1, significant_timings[move][index_this_time]],
+                #                     color=colors_subelites[i_subelite],
+                #                     linewidth=3)
             i_subelite += 1
     for i, name in enumerate(trajectory_curves_per_athelte_per_move.keys()):
         if name in elite_names:
             if not isinstance(trajectory_curves_per_athelte_per_move[name][move], list):
                 axs[1].plot(trajectory_curves_per_athelte_per_move[name][move][0, :], trajectory_curves_per_athelte_per_move[name][move][1, :],
                             color=colors_elites[i_elite],
+                            marker='.',
+                            linestyle='None',
+                            markersize=1,
                             label=name)
-                if significant_timings[move] is not None:
-                    for index in significant_timings[move].shape:
-                        index_this_time = np.arange(int(round(significant_timings[move][index, 0])),
-                                                    int(round(significant_timings[move][index, 1])))
-                        axs[1].plot(trajectory_curves_per_athelte_per_move[name][move][0, significant_timings[move][index_this_time]],
-                                    trajectory_curves_per_athelte_per_move[name][move][1, significant_timings[move][index_this_time]],
-                                    color=colors_elites[i_elite],
-                                    linewidth=3)
+                # if significant_timings[move] is not None:
+                #     for index in significant_timings[move].shape:
+                #         index_this_time = np.arange(int(round(significant_timings[move][index, 0])),
+                #                                     int(round(significant_timings[move][index, 1])))
+                #         axs[1].plot(trajectory_curves_per_athelte_per_move[name][move][0, significant_timings[move][index_this_time]],
+                #                     trajectory_curves_per_athelte_per_move[name][move][1, significant_timings[move][index_this_time]],
+                #                     color=colors_elites[i_elite],
+                #                     linewidth=3)
             i_elite += 1
 
     for j in range(2):
@@ -363,23 +373,56 @@ def plot_trajectories_data_frame(
 
     plt.subplots_adjust(right=0.8)
     plt.suptitle(title_variable + move)
+    axs[0].legend(bbox_to_anchor=(2.3, 1), loc='upper left', borderaxespad=0.)
+    axs[1].legend(bbox_to_anchor=(1.1, 0.5), loc='upper left', borderaxespad=0.)
     plt.savefig(output_filename, dpi=300)
-    plt.show()
+    # plt.show()
     return
 
-def plot_mean_PGOS_per_athlete(name, move, interpolated_unwrapped_trajectory, mean_trajectory):
-    fig, ax = plt.subplots()
-    axs = [ax]
-    plot_gymnasium_unwrapped(axs, 0)
-    for i in range(interpolated_unwrapped_trajectory.shape[2]):
-        plt.plot(interpolated_unwrapped_trajectory[0, :, i], interpolated_unwrapped_trajectory[1, :, i], '.b', label=f'{i}')
-    plt.plot(mean_trajectory[0, :], mean_trajectory[1, :], '-k')
-    plt.title(f"{name} {move}")
-    plt.legend()
-    plt.show()
-    return
+def plot_mean_PGOS_per_athlete(name, move, interpolated_unwrapped_trajectory, home_path):
+    cmap = plt.get_cmap('plasma')
+    colors = [cmap(i/np.shape(interpolated_unwrapped_trajectory)[2]) for i in range(np.shape(interpolated_unwrapped_trajectory)[2])]
+    min_RMSE = 1e20
+    i_min = 0
+    for i in range(len(interpolated_unwrapped_trajectory[0, 0, :])):
+        RMSE =  0
+        for j in range(len(interpolated_unwrapped_trajectory[0, 0, :]) - 1):
+            if i != j:
+                nb_nan_elements = max(np.sum(np.isnan(interpolated_unwrapped_trajectory[0, :, i])),
+                                        np.sum(np.isnan(interpolated_unwrapped_trajectory[0, :, j])))
+                nb_non_nan_elements = 500 - nb_nan_elements
+                # RMSE += np.sqrt(np.mean((interpolated_unwrapped_trajectory[0, :, i] - interpolated_unwrapped_trajectory[0, :, j]) ** 2)) / nb_non_nan_elements
+                RMSE += np.nansum(np.abs(interpolated_unwrapped_trajectory[0, :, i] - interpolated_unwrapped_trajectory[0, :, j])) / nb_non_nan_elements
+        if RMSE < min_RMSE:
+            min_RMSE = RMSE
+            i_min = i
 
-def plot_projection_of_PGOS(name, move, original_trajectory, projected_interpolated_trajectory_curve):
+    if GENERATE_EACH_ATHLETE_PGOS_GRAPH:
+        fig, ax = plt.subplots()
+        axs = [ax]
+        plot_gymnasium_unwrapped(axs, 0)
+        for i in range(interpolated_unwrapped_trajectory.shape[2]):
+            plt.plot(interpolated_unwrapped_trajectory[0, :, i], interpolated_unwrapped_trajectory[1, :, i], color=colors[i], marker='.', markersize=0.5, linestyle='None')
+        # plt.plot(mean_trajectory[0, :], mean_trajectory[1, :], '-k')
+        plt.plot(interpolated_unwrapped_trajectory[0, :, i_min], interpolated_unwrapped_trajectory[1, :, i_min], '-k', alpha=0.5, label='Representative\ntrajectory')
+        plt.title(f"{name} {move}")
+        plt.legend()
+        plt.savefig(home_path + f"/disk/Eye-tracking/plots/PGOS/multiple_trials_{name}_{move}.png", dpi=300)
+        # plt.show()
+
+    # fig, axs = plt.subplots(2, 1)
+    # for i in range(interpolated_unwrapped_trajectory.shape[2]):
+    #     axs[0].plot(np.arange(500), interpolated_unwrapped_trajectory[0, :, i], '.b', label=f'{i}')
+    #     axs[1].plot(np.arange(500), interpolated_unwrapped_trajectory[1, :, i], '.b', label=f'{i}')
+    # axs[0].plot(np.arange(500), mean_trajectory[0, :], '-r')
+    # axs[1].plot(np.arange(500), mean_trajectory[1, :], '-r')
+    # axs[0].plot(np.arange(500), interpolated_unwrapped_trajectory[0, :, i_min], '-m', label=f'{i}')
+    # axs[1].plot(np.arange(500), interpolated_unwrapped_trajectory[1, :, i_min], '-m', label=f'{i}')
+    # plt.suptitle(f"{name} {move}")
+    # plt.show()
+    return interpolated_unwrapped_trajectory[:, :, i_min]
+
+def plot_projection_of_PGOS(name, move, original_trajectory, projected_interpolated_trajectory_curve, home_path):
     fig = plt.figure()
     ax = fig.add_subplot(1, 1, 1, projection='3d')
     axs = [ax]
@@ -387,26 +430,11 @@ def plot_projection_of_PGOS(name, move, original_trajectory, projected_interpola
     plt.plot(original_trajectory[:, 0], original_trajectory[:, 1], original_trajectory[:, 2], '.r')
     plt.plot(projected_interpolated_trajectory_curve[0, :], projected_interpolated_trajectory_curve[1, :], np.zeros((500, )), '.b')
     plt.title(f"{name} {move}")
-    plt.show()
+    plt.savefig(home_path + f"/disk/Eye-tracking/plots/PGOS//plots/PGOS/projection_{name}_{move}.png", dpi=300)
+    # plt.show()
     return
 
 def unwrap_and_plot_gaze_position(gaze_position, wall_index, bound_side):
-
-    # gaze_position_x_y = np.zeros((2, np.shape(wall_index)[0]))
-    # gaze_position_x_y[:, :] = np.nan
-    # for i in range(1, len(wall_index)):
-    #     if wall_index[i] == 0:  # trampoline
-    #         gaze_position_x_y[:, i] = gaze_position[i][:2]
-    #     elif wall_index[i] == 1:  # wall front
-    #         gaze_position_x_y[:, i] = [gaze_position[i][0], 7.2 + gaze_position[i][1]]
-    #     elif wall_index[i] == 2:  # ceiling
-    #         gaze_position_x_y[:, i] = [gaze_position[i][0], -7.2 - (9.4620-1.2192) - 7.2 - gaze_position[i][1]]
-    #     elif wall_index[i] == 3:  # wall back
-    #         gaze_position_x_y[:, i] = [gaze_position[i][0], -7.2 - gaze_position[i][2]]
-    #     elif wall_index[i] == 4:  # bound right
-    #         gaze_position_x_y[:, i] = [bound_side + gaze_position[i][2], gaze_position[i][1]]
-    #     elif wall_index[i] == 5:  # bound left
-    #         gaze_position_x_y[:, i] = [-bound_side - gaze_position[i][2], gaze_position[i][1]]
 
     gaze_position_x_y = np.zeros((2, np.shape(wall_index)[0]))
     gaze_position_x_y[:, :] = np.nan
@@ -420,12 +448,13 @@ def unwrap_and_plot_gaze_position(gaze_position, wall_index, bound_side):
         elif wall_index[i] == 3:  # wall back
             gaze_position_x_y[:, i] = [-7.2 - gaze_position[i][2], gaze_position[i][1]]
         elif wall_index[i] == 4:  # bound right
-            gaze_position_x_y[:, i] = [gaze_position[i][0], bound_side + gaze_position[i][2]]
-        elif wall_index[i] == 5:  # bound left
             gaze_position_x_y[:, i] = [gaze_position[i][0], -bound_side - gaze_position[i][2]]
+        elif wall_index[i] == 5:  # bound left
+            gaze_position_x_y[:, i] = [gaze_position[i][0], bound_side + gaze_position[i][2]]
 
 
     return gaze_position_x_y
+
 
 def nearest_interp(xi, x, y):
     out = np.zeros((len(xi),))
@@ -447,26 +476,29 @@ if TRAJECTORIES_ANALYSIS_FLAG:
             trajectory_curves_per_athelte_per_move[name][move] = []
             index_this_time = trial_per_athlete_per_move_index[name][move]
             trajectory_curves = np.zeros((2, nb_interp_points, 1))
+            trajectory_curves_3D = np.zeros((3, nb_interp_points, 1))
             for k in index_this_time:
                 x_index_this_time = np.linspace(0, 1, len(trajectories_table[k][4]))
                 trajectory_this_time_x = np.reshape(interp1d(x_index_this_time, trajectories_table[k][4][:, 0])(xi_interp), (nb_interp_points, 1))
                 trajectory_this_time_y = np.reshape(interp1d(x_index_this_time, trajectories_table[k][4][:, 1])(xi_interp), (nb_interp_points, 1))
                 trajectory_this_time_z = np.reshape(interp1d(x_index_this_time, trajectories_table[k][4][:, 2])(xi_interp), (nb_interp_points, 1))
-                wall_index_closest = nearest_interp(xi_interp, x_index_this_time, trajectories_table[k][5][:, 0])
+                wall_index_closest = nearest_interp(xi_interp, x_index_this_time, trajectories_table[k][6][:, 0])
                 trajectory_this_time_3d = np.hstack((trajectory_this_time_x, trajectory_this_time_y, trajectory_this_time_z))
                 unwrapped_trajectory_this_time = unwrap_and_plot_gaze_position(
                     trajectory_this_time_3d,
                     wall_index_closest,
                     bound_side)
                 trajectory_curves = np.concatenate((trajectory_curves, np.reshape(unwrapped_trajectory_this_time, (2, nb_interp_points, 1))), axis=2)
+                trajectory_curves_3D = np.concatenate((trajectory_curves_3D, np.reshape(trajectory_this_time_3d, (3, nb_interp_points, 1))), axis=2)
 
             trajectory_curves = trajectory_curves[:, :, 1:]
+            trajectory_curves_3D = trajectory_curves[:, :, 1:]
 
+            # plot_projection_of_PGOS(name, move, trajectories_table[k][4], trajectory_curves[:, :, -1], home_path)
             if len(index_this_time) > 0:
-                trajectory_curves_per_athelte_per_move[name][move] = np.nanmean(trajectory_curves, axis=2)
-
-            plot_projection_of_PGOS(name, move, trajectories_table[k][4], trajectory_curves[:, :, -1])
-            plot_mean_PGOS_per_athlete(name, move, trajectory_curves, trajectory_curves_per_athelte_per_move[name][move])
+                representative_trajectory = plot_mean_PGOS_per_athlete(name, move, trajectory_curves, home_path)
+                trajectory_curves_per_athelte_per_move[name][move] = representative_trajectory
+                plt.close('all')
 
     colors_subelites = [cm.get_cmap('plasma')(k) for k in np.linspace(0, 0.4, len(subelite_names))]
     colors_elites = [cm.get_cmap('plasma')(k) for k in np.linspace(0.6, 1, len(elite_names))]
@@ -497,16 +529,16 @@ if TRAJECTORIES_ANALYSIS_FLAG:
         elites_trajectory_x[move] = elites_trajectory_x[move][1:, :]
         elites_trajectory_y[move] = elites_trajectory_y[move][1:, :]
 
+        plot_trajectories_data_frame(trajectory_curves_per_athelte_per_move, move, "Projected gaze trajectory symmetrized (PGOS) ",
+                      home_path + '/disk/Eye-tracking/plots/' + f'PGOS_{move}.png')
+        plt.close('all')
+
     admissible_timings_x, significant_timings_x = find_significant_timings(xi_interp, subelites_trajectory_x, elites_trajectory_x)
     admissible_timings_y, significant_timings_y = find_significant_timings(xi_interp, subelites_trajectory_y, elites_trajectory_y)
 
     significant_timings = np.logical_or(significant_timings_x, significant_timings_y)
-    
-    for i, move in enumerate(trial_per_athlete_per_move_index[name].keys()):
-        plot_trajectories_data_frame(trajectory_curves_per_athelte_per_move, move, "Projected gaze trajectory symmetrized (PGOS) ",
-                      home_path + '/disk/Eye-tracking/plots/' + f'PGOS_{move}.png',
-                      significant_timings,
-                      bound_side)
+    if significant_timings[move] is not None:
+        print("Significant timings found for SPM1D on PGOS: ", significant_timings[move])
 
 # ----------------------------------------- AOI data frame = Mixed ANOVA --------------------------------------------- #
 
@@ -516,7 +548,6 @@ if AOI_ANALYSIS_FLAG:
     AOI_proportions_table_temporary = pd.DataFrame(columns=['Name', 'Expertise', 'Acrobatics', 'Trampoline',
                                                             'Wall back front', 'Ceiling', 'Wall sides',
                                                             'Athlete himself', 'Blink'])
-    num_rows = 0
     for i in range(len(AOI_proportions_data_frame)):
         # if primary_data_frame['Name'][i] != 'MaBo':
         # if i in list_move_ok_for_now:
@@ -530,7 +561,6 @@ if AOI_ANALYSIS_FLAG:
         'Athlete himself': [AOI_proportions_data_frame['Athlete himself'][i]],
         'Blink': [AOI_proportions_data_frame['Blink'][i]]}
         AOI_proportions_table_temporary = pd.concat([AOI_proportions_table_temporary, pd.DataFrame(df)])
-        num_rows += 1
 
     AOI_proportions_data_frame = AOI_proportions_table_temporary
 
@@ -581,7 +611,6 @@ if NECK_EYE_ANALYSIS_FLAG:
     neck_eye_movements_table_temporary = pd.DataFrame(columns=['Name', 'Expertise', 'Acrobatics',
                                                                'Anticipatory movements', 'Compensatory movements',
                                                                'Spotting movements', 'Movement detection', 'Blinks'])
-    num_rows = 0
     for i in range(len(neck_eye_movements_data_frame)):
         # if i in list_move_ok_for_now:
         df = {'Name': [neck_eye_movements_data_frame['Name'][i]],
@@ -593,7 +622,6 @@ if NECK_EYE_ANALYSIS_FLAG:
         'Movement detection': [neck_eye_movements_data_frame['Movement detection'][i]],
         'Blinks': [neck_eye_movements_data_frame['Blinks'][i]]}
         neck_eye_movements_table_temporary = pd.concat([neck_eye_movements_table_temporary, pd.DataFrame(df)])
-        num_rows += 1
 
     neck_eye_movements_data_frame = neck_eye_movements_table_temporary
 
@@ -646,8 +674,7 @@ if SPREADING_HEATMAP_FLAG:
               'Acrobatics': [heatmaps_spreading_data_frame['Acrobatics'][i]],
               'Distance from the center of each point of the heatmap': [heatmaps_spreading_data_frame['Distance from the center of each point of the heatmap'][i]],
               'Heat map 90th percentile': [heatmaps_spreading_data_frame['Heat map 90th percentile'][i]]}
-        primary_data_frame_temporary = pd.concat([heatmaps_spreading_table_temporary, pd.DataFrame(df)])
-        num_rows += 1
+        heatmaps_spreading_table_temporary = pd.concat([heatmaps_spreading_table_temporary, pd.DataFrame(df)])
 
     heatmaps_spreading_data_frame = heatmaps_spreading_table_temporary
 
