@@ -566,7 +566,7 @@ primary_table = [["Name", "Expertise", "Acrobatics",
 
 trajectories_table = [["Name", "Expertise", "Acrobatics", "Projected gaze orientation (PGO)", "Projected gaze orientation facing front wall (PGOS)", "Wall index", "Wall index facing front wall"]]
 
-AOI_proportions_table = [["Name", "Expertise", "Acrobatics", "Trampoline",
+AOI_proportions_table = [["Name", "Expertise", "Acrobatics", "Trampoline bed", "Trampoline"
                     "Wall front", "Wall back",
                      "Ceiling", "Wall sides",
                     "Athlete himself", "Blink"]]  # All in proportions (was removed from title for the plots legend)
@@ -615,12 +615,6 @@ if GENRATE_DATA_FRAME_FLAG:
                             gaze_position_temporal_evolution_projected_facing_front_wall = eye_tracking_metrics["gaze_position_temporal_evolution_projected_facing_front_wall"]
                             wall_index = eye_tracking_metrics["wall_index"]
                             wall_index_facing_front_wall = eye_tracking_metrics["wall_index_facing_front_wall"]
-                            # if move_orientation == -1:
-                            #     wall_index_rotated = np.zeros((wall_index.shape))
-                            #     wall_index_rotated[np.where(wall_index[:, 0] == 1)[0], :] = 3 # Wall front 1 <-> Wall back 3
-                            #     wall_index_rotated[np.where(wall_index[:, 0] == 3)[0], :] = 1 # Wall front 1 <-> Wall back 3
-                            #     wall_index_rotated[np.where(wall_index[:, 0] == 4)[0], :] = 5 # Wall right 4 <-> Wall left 5
-                            #     wall_index_rotated[np.where(wall_index[:, 0] == 5)[0], :] = 4 # Wall right 4 <-> Wall left 5
                             trajectories_table += [[subject_name, expertise, acrobatics,
                                                     gaze_position_temporal_evolution_projected,
                                                     gaze_position_temporal_evolution_projected_facing_front_wall,
@@ -641,15 +635,17 @@ if GENRATE_DATA_FRAME_FLAG:
 
                             # Secondary analysis - AOI proportions
                             trampoline_bed_proportions = eye_tracking_metrics["trampoline_bed_proportions"]
+                            trampoline_proportions = eye_tracking_metrics["trampoline_proportions"]
                             wall_front_proportions = eye_tracking_metrics["wall_front_proportions"]
                             wall_back_proportions = eye_tracking_metrics["wall_back_proportions"]
                             ceiling_proportions = eye_tracking_metrics["ceiling_proportions"]
                             side_proportions = eye_tracking_metrics["side_proportions"]
                             self_proportions = eye_tracking_metrics["self_proportions"]
                             pourcentage_blinks = eye_tracking_metrics["pourcentage_blinks"]
-                            AOI_proportions_table += [[subject_name, expertise, acrobatics,
-                                              trampoline_bed_proportions, wall_front_proportions, wall_back_proportions,
-                                                 ceiling_proportions, side_proportions, self_proportions, pourcentage_blinks]]
+                            AOI_proportions_table += [[subject_name, expertise, acrobatics, trampoline_bed_proportions,
+                                                       trampoline_proportions, wall_front_proportions,
+                                                       wall_back_proportions, ceiling_proportions, side_proportions,
+                                                       self_proportions, pourcentage_blinks]]
 
                             # Secondary analysis - percetile heatmaps
                             percetile_heatmaps = eye_tracking_metrics["percetile_heatmaps"]

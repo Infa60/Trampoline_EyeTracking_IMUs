@@ -26,6 +26,10 @@ NECK_EYE_ANALYSIS_FLAG = True
 SPREADING_HEATMAP_FLAG = True
 QUALITATIVE_ANALYSIS_FLAG = True
 
+pd.set_option('display.max_rows', 500)
+pd.set_option('display.max_columns', 500)
+pd.set_option('display.width', 150)
+
 if os.path.exists("/home/user"):
     home_path = "/home/user"
 elif os.path.exists("/home/fbailly"):

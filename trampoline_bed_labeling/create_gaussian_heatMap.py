@@ -235,6 +235,7 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
         distance_heatmaps += [distance]
 
         trampoline_bed_proportions = number_of_trampoline_bed / gaze_total_move
+        trampoline_proportions = number_of_trampoline / gaze_total_move
         wall_front_proportions = number_of_wall_front / gaze_total_move
         wall_back_proportions = number_of_wall_back / gaze_total_move
         ceiling_proportions = number_of_ceiling / gaze_total_move
@@ -247,6 +248,7 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
                            "centers": centers_gaze_bed_i,
                            "heat_map": img,
                            "trampoline_bed_proportions": trampoline_bed_proportions,
+                           "trampoline_proportions": trampoline_proportions,
                            "wall_front_proportions": wall_front_proportions,
                            "wall_back_proportions": wall_back_proportions,
                            "ceiling_proportions": ceiling_proportions,
@@ -260,6 +262,7 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
                            "movie_name": movie_name,
                            "centers": centers_gaze_bed_i,
                            "trampoline_bed_proportions": trampoline_bed_proportions,
+                           "trampoline_proportions": trampoline_proportions,
                            "wall_front_proportions": wall_front_proportions,
                            "wall_back_proportions": wall_back_proportions,
                            "ceiling_proportions": ceiling_proportions,
