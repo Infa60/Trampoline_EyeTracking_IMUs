@@ -11,9 +11,6 @@ from scipy.io import savemat, loadmat
 import mpl_toolkits.mplot3d.axes3d as p3
 
 
-#plot results to see if Friedmans (non-parametric) is necessary ??
-
-
 def load_eye_tracking_metrics(path, file):
     index_ = [idx for idx, char in enumerate(file) if char == '_']
     move_number = file[index_[6]+1: index_[7]]
@@ -48,13 +45,13 @@ def plot_primary_metrics(df, move_list, subelite_names, elite_names, metric, uni
             index_this_time = np.where(
                 np.logical_and(df['Name'] == subelite_names[j], df['Acrobatics'] == move_list[i]))
             subelite_list = list(df[metric][index_this_time[0]])
-            means_subelite.append(np.nanmean(subelite_list))
+            means_subelite.append(np.nanmedian(subelite_list))
             plt.plot(i * 2 - 0.1 * (j + 1), means_subelite[j], color='k', marker='o', markersize=3)
         for j in range(len(elite_names)):
             index_this_time = np.where(
                 np.logical_and(df['Name'] == elite_names[j], df['Acrobatics'] == move_list[i]))
             elite_list = df[metric][index_this_time[0]]
-            means_elite.append(np.nanmean(elite_list))
+            means_elite.append(np.nanmedian(elite_list))
             plt.plot(i * 2 + 0.1 * (j + 1), means_elite[j], color='k', marker='o', markersize=3)
 
         plt.errorbar(i * 2 - 0.45, np.nanmean(means_subelite), yerr=np.nanstd(means_subelite), color='black',
@@ -66,28 +63,30 @@ def plot_primary_metrics(df, move_list, subelite_names, elite_names, metric, uni
     plt.xlabel('Acrobatics')
     plt.xticks(ticks=[0, 2, 4, 6], labels=[i + '/' for i in move_list])
 
-    plt.xlim(-1, 4)
-    plt.ylim(0, 2)
+    plt.xlim(-1.2, 7)
+    plt.ylim(np.min(df[metric]) - (np.max(df[metric]) - np.min(df[metric])) * 0.1, np.max(df[metric])  + (np.max(df[metric]) - np.min(df[metric])) * 0.1)
     plt.plot(-2, 0, 'o', color=subelite_color, markersize=2, label='SubElite')
     plt.plot(-2, 0, 'o', color=elite_color, markersize=2, label='Elite')
-    plt.plot(-2, 0, 'ok', markersize=3, label='Men of participant')
-    plt.plot(-2, 0, 'ok', markersize=5, label='Mean of means')
+    plt.plot(-2, 0, 'ok', markersize=3, label='Median per participant')
+    plt.plot(-2, 0, 'ok', markersize=5, label='Mean of medians')
     plt.legend(ncol=4, loc='upper center', bbox_to_anchor=(0.5, 1.1))
     plt.subplots_adjust(hspace=0.1, top=0.9)
     plt.savefig(save_path + title + '.png')
-    # plt.show()
+    plt.show()
 
     return
 
 def primary_plots(df, move_list, subelite_names, elite_names, home_path):
 
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Fixations duration', 's', 'fixation_duration', home_path + '/disk/Eye-tracking/plots/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Fixations duration absolute', 's', 'fixation_duration_absolute', home_path + '/disk/Eye-tracking/plots/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Fixations duration relative', 's', 'fixation_duration_relative', home_path + '/disk/Eye-tracking/plots/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Number of fixations', '', 'fixation_number', home_path + '/disk/Eye-tracking/plots/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye duration', 's', 'quiet_eye_duration', home_path + '/disk/Eye-tracking/plots/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye duration absolute', 's', 'quiet_eye_duration_absolute', home_path + '/disk/Eye-tracking/plots/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye duration relative', 's', 'quiet_eye_duration_relative', home_path + '/disk/Eye-tracking/plots/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Eye amplitude', '?', 'eye_amplitude', home_path + '/disk/Eye-tracking/plots/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Neck amplitude', '?', 'neck_amplitude', home_path + '/disk/Eye-tracking/plots/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Maximum eye amplitude', '?', 'max_eye_amplitude', home_path + '/disk/Eye-tracking/plots/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Maximum neck amplitude', '?', 'max_neck_amplitude', home_path + '/disk/Eye-tracking/plots/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Maximum eye amplitude', 'rad', 'max_eye_amplitude', home_path + '/disk/Eye-tracking/plots/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Maximum neck amplitude', 'rad', 'max_neck_amplitude', home_path + '/disk/Eye-tracking/plots/')
     # see what we want to do with the zero from Pupil
     return
 
@@ -182,9 +181,6 @@ def trajectory_plots(df, move_list, subelite_names, elite_names):
         # save trajectories ?
         # plot unfolded trajectories
         return
-
-
-    embed()
 
     fig1 = plt.figure(0)
     ax1 = p3.Axes3D(fig1)
@@ -341,6 +337,44 @@ def movement_pourcentage_plots(df, move_list, subelite_names, elite_names, home_
         ax.text(-0.3 + i*2 + 0.5, -7, 'Elite')
     # plt.show()
     plt.savefig(home_path + "/disk/Eye-tracking/plots/movement_pourcentage.png")
+
+    return
+
+def movement_blocks_number_plot(table, move_list, subelite_names, elite_names, home_path):
+    def find_clusters(array):
+        array = array.astype(int)
+        diff = array[1:] - array[:-1]
+        clusters = np.where(diff == 1)[0]
+        num_clusters = len(clusters)
+        if array[0] == 1:
+            num_clusters += 1
+        return num_clusters
+    def find_movement_occurence(table):
+
+        table_occurrence = [table[0]]
+        for i in range(1, len(table)):
+            table_occurrence += [[table[i][0], table[i][1], table[i][2]]]
+            for j in range(3, len(table[i])):
+                num_clusters = find_clusters(table[i][j])
+                table_occurrence[i] += [num_clusters]
+        df_occurence = pd.DataFrame(table_occurrence[1:], columns=table_occurrence[0])
+        return df_occurence
+
+    type_names = table[0][3:]
+    df_occurence = find_movement_occurence(table)
+
+    ax = bar_plots(df_occurence, type_names, subelite_names, elite_names, False, False)
+
+    ax.set_ylabel('Number of movement occurrence')
+    ax.set_xticks(ticks=[0, 2, 4, 6])
+    ax.set_xticklabels([i + '/' for i in move_list], fontweight='bold')
+    ax.tick_params(axis='x', pad=15)
+    ax.legend(ncol=2, loc='upper center', bbox_to_anchor=(0.5, 1.25))
+    for i in range(4):
+        ax.text(-0.3 + i*2 - 0.5, -7, 'Subelite')
+        ax.text(-0.3 + i*2 + 0.5, -7, 'Elite')
+    plt.savefig(home_path + "/disk/Eye-tracking/plots/movement_blocks.png")
+    plt.show()
 
     return
 
@@ -558,15 +592,15 @@ results_path = f"{home_path}/disk/Eye-tracking/Results"
 
 
 primary_table = [["Name", "Expertise", "Acrobatics",
-                  "Fixations duration", "Number of fixations", "Quiet eye duration",
-                  "Eye amplitude", "Neck amplitude",
+                  "Fixations duration absolute", "Fixations duration relative", "Number of fixations",
+                  "Quiet eye duration absolute", "Quiet eye duration relative", "Eye amplitude", "Neck amplitude",
                   "Maximum eye amplitude", "Maximum neck amplitude",
                   # "Eye amplitude 90th percentile", "Neck amplitude 90th percentile"
                   ]]
 
 trajectories_table = [["Name", "Expertise", "Acrobatics", "Projected gaze orientation (PGO)", "Projected gaze orientation facing front wall (PGOS)", "Wall index", "Wall index facing front wall"]]
 
-AOI_proportions_table = [["Name", "Expertise", "Acrobatics", "Trampoline bed", "Trampoline"
+AOI_proportions_table = [["Name", "Expertise", "Acrobatics", "Trampoline bed", "Trampoline",
                     "Wall front", "Wall back",
                      "Ceiling", "Wall sides",
                     "Athlete himself", "Blink"]]  # All in proportions (was removed from title for the plots legend)
@@ -574,6 +608,10 @@ AOI_proportions_table = [["Name", "Expertise", "Acrobatics", "Trampoline bed", "
 neck_eye_movements_table = [["Name", "Expertise", "Acrobatics", "Anticipatory movements",
                        "Compensatory movements", "Spotting movements",
                        "Movement detection", "Blinks"]] # all in pourcentage (was removed from title for the plots legend)
+
+neck_eye_movements_indices_table = [["Name", "Expertise", "Acrobatics", "Anticipatory movements index",
+                       "Compensatory movements index", "Spotting movements index",
+                       "Movement detection index", "Blinks index"]]
 
 heatmaps_spreading_table = [["Name", "Expertise", "Acrobatics", "Distance from the center of each point of the heatmap", "Heat map 90th percentile"]]
 
@@ -594,9 +632,11 @@ if GENRATE_DATA_FRAME_FLAG:
                             expertise = eye_tracking_metrics["subject_expertise"]
                             subject_name = eye_tracking_metrics["subject_name"]
                             acrobatics = folder_move
-                            fixation_duration = np.mean(eye_tracking_metrics["fixation_duration"])
+                            fixation_duration_absolute = np.mean(eye_tracking_metrics["fixation_duration_absolute"])
+                            fixation_duration_relative = np.mean(eye_tracking_metrics["fixation_duration_relative"])
                             number_of_fixation = eye_tracking_metrics["number_of_fixation"]
-                            quiet_eye_duration = eye_tracking_metrics["quiet_eye_duration"]
+                            quiet_eye_duration_absolute = eye_tracking_metrics["quiet_eye_duration_absolute"]
+                            quiet_eye_duration_relative = eye_tracking_metrics["quiet_eye_duration_relative"]
                             eye_amplitude = eye_tracking_metrics["eye_amplitude"]
                             neck_amplitude = eye_tracking_metrics["neck_amplitude"]
                             max_eye_amplitude = eye_tracking_metrics["max_eye_amplitude"]
@@ -605,8 +645,9 @@ if GENRATE_DATA_FRAME_FLAG:
                             # neck_amplitude_percentile = eye_tracking_metrics["neck_amplitude_percentile"]
 
                             primary_table += [[subject_name, expertise, acrobatics,
-                                               fixation_duration, number_of_fixation, quiet_eye_duration,
-                                               eye_amplitude, neck_amplitude,
+                                               fixation_duration_absolute, fixation_duration_relative,
+                                               number_of_fixation, quiet_eye_duration_absolute,
+                                               quiet_eye_duration_relative, eye_amplitude, neck_amplitude,
                                                max_eye_amplitude, max_neck_amplitude]]
 
 
@@ -632,6 +673,14 @@ if GENRATE_DATA_FRAME_FLAG:
                                               pourcentage_anticipatory, pourcentage_compensatory, pourcentage_spotting,
                                               pourcentage_movement_detection, pourcentage_blinks]]
 
+                            anticipatory_index = eye_tracking_metrics["anticipatory_index"]
+                            compensatory_index = eye_tracking_metrics["compensatory_index"]
+                            spotting_index = eye_tracking_metrics["spotting_index"]
+                            movement_detection_index = eye_tracking_metrics["movement_detection_index"]
+                            blinks_index = eye_tracking_metrics["blinks_index"]
+                            neck_eye_movements_indices_table += [[subject_name, expertise, acrobatics,
+                                              anticipatory_index, compensatory_index, spotting_index,
+                                              movement_detection_index, blinks_index]]
 
                             # Secondary analysis - AOI proportions
                             trampoline_bed_proportions = eye_tracking_metrics["trampoline_bed_proportions"]
@@ -641,11 +690,11 @@ if GENRATE_DATA_FRAME_FLAG:
                             ceiling_proportions = eye_tracking_metrics["ceiling_proportions"]
                             side_proportions = eye_tracking_metrics["side_proportions"]
                             self_proportions = eye_tracking_metrics["self_proportions"]
-                            pourcentage_blinks = eye_tracking_metrics["pourcentage_blinks"]
+                            blink_proportions = eye_tracking_metrics["blink_proportions"]
                             AOI_proportions_table += [[subject_name, expertise, acrobatics, trampoline_bed_proportions,
                                                        trampoline_proportions, wall_front_proportions,
                                                        wall_back_proportions, ceiling_proportions, side_proportions,
-                                                       self_proportions, pourcentage_blinks]]
+                                                       self_proportions, blink_proportions]]
 
                             # Secondary analysis - percetile heatmaps
                             percetile_heatmaps = eye_tracking_metrics["percetile_heatmaps"]
@@ -669,6 +718,7 @@ if GENRATE_DATA_FRAME_FLAG:
     savemat(home_path + '/disk/Eye-tracking/plots/trajectories_table.mat', {'trajectories_table': trajectories_table})
     savemat(home_path + '/disk/Eye-tracking/plots/AOI_proportions_table.mat', {'AOI_proportions_table': AOI_proportions_table})
     savemat(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_table.mat', {'neck_eye_movements_table': neck_eye_movements_table})
+    savemat(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_indices_table.mat', {'neck_eye_movements_indices_table': neck_eye_movements_indices_table})
     savemat(home_path + '/disk/Eye-tracking/plots/heatmaps_spreading_table.mat', {'heatmaps_spreading_table': heatmaps_spreading_table})
     savemat(home_path + '/disk/Eye-tracking/plots/qualitative_table.mat', {'qualitative_table': qualitative_table})
 
@@ -681,6 +731,8 @@ if GENRATE_DATA_FRAME_FLAG:
         pickle.dump(AOI_proportions_table, f)
     with open(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_table.pkl', 'wb') as f:
         pickle.dump(neck_eye_movements_table, f)
+        with open(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_indices_table.pkl', 'wb') as f:
+            pickle.dump(neck_eye_movements_indices_table, f)
     with open(home_path + '/disk/Eye-tracking/plots/heatmaps_spreading_table.pkl', 'wb') as f:
         pickle.dump(heatmaps_spreading_table, f)
     with open(home_path + '/disk/Eye-tracking/plots/qualitative_table.pkl', 'wb') as f:
@@ -691,6 +743,7 @@ else:
     trajectories_table = loadmat(home_path + '/disk/Eye-tracking/plots/trajectories_table.mat')['trajectories_table']
     AOI_proportions_table = loadmat(home_path + '/disk/Eye-tracking/plots/AOI_proportions_table.mat')['AOI_proportions_table']
     neck_eye_movements_table = loadmat(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_table.mat')['neck_eye_movements_table']
+    neck_eye_movements_indices_table = loadmat(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_table.mat')['neck_eye_movements_indices_table']
     heatmaps_spreading_table = loadmat(home_path + '/disk/Eye-tracking/plots/heatmaps_spreading_table.mat')['heatmaps_spreading_table']
     qualitative_table = loadmat(home_path + '/disk/Eye-tracking/plots/qualitative_table.mat')['qualitative_table']
 
@@ -725,18 +778,19 @@ for i in range(len(primary_data_frame)):
 primary_plots(primary_data_frame, move_list, subelite_names, elite_names, home_path)
 
 trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
-# trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
+trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
 
 movement_pourcentage_data_frame = pd.DataFrame(neck_eye_movements_table[1:], columns=neck_eye_movements_table[0])
 movement_pourcentage_plots(movement_pourcentage_data_frame, move_list, subelite_names, elite_names, home_path)
+movement_blocks_number_plot(neck_eye_movements_indices_table, move_list, subelite_names, elite_names, home_path)
 
-AOI_table_tempo = [['Name', 'Expertise', 'Acrobatics', 'Trampoline', 'Wall back front', 'Ceiling', 'Wall sides',
-                   'Athlete himself', 'Blink']]
+AOI_table_tempo = [['Name', 'Expertise', 'Acrobatics', 'Trampoline bed', 'Trampoline', 'Wall back front', 'Ceiling',
+                    'Wall sides', 'Athlete himself', 'Blink']]
 for i in range(1, len(AOI_proportions_table)):
     AOI_table_tempo += [[AOI_proportions_table[i][0], AOI_proportions_table[i][1], AOI_proportions_table[i][2],
-                            AOI_proportions_table[i][3], AOI_proportions_table[i][4] + AOI_proportions_table[i][5],
-                            AOI_proportions_table[i][6], AOI_proportions_table[i][7], AOI_proportions_table[i][8],
-                            AOI_proportions_table[i][9]]]
+                            AOI_proportions_table[i][3], AOI_proportions_table[i][4], AOI_proportions_table[i][5] + AOI_proportions_table[i][6],
+                            AOI_proportions_table[i][7], AOI_proportions_table[i][8], AOI_proportions_table[i][9],
+                            AOI_proportions_table[i][10]]]
 AOI_pourcentage_data_frame_tempo = pd.DataFrame(AOI_table_tempo[1:], columns=AOI_table_tempo[0])
 AOI_pourcentage_plots(AOI_pourcentage_data_frame_tempo, move_list, subelite_names, elite_names, home_path)
 

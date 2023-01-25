@@ -14,7 +14,7 @@ from IPython import embed
 
 
 ##########################################################################################
-# run --- python stats_test.py > stats_output.txt ---  to save the output to a file
+# run --- python stats_tests.py > stats_output.txt ---  to save the output to a file
 ##########################################################################################
 
 
@@ -127,6 +127,7 @@ for i, name in enumerate(trial_per_athlete_per_move_index):
                                   np.nanmean(AOI_proportions_table_array[index, 7].astype(float)),
                                   np.nanmean(AOI_proportions_table_array[index, 8].astype(float)),
                                   np.nanmean(AOI_proportions_table_array[index, 9].astype(float)),
+                                  np.nanmean(AOI_proportions_table_array[index, 10].astype(float)),
                                   ]]
             neck_eye_movements_table += [[name,
                                   'Elite' if name in elite_names else 'SubElite',
@@ -155,9 +156,9 @@ if PRIMARY_ANALYSIS_FLAG:
         df = {'Name': [primary_data_frame['Name'][i]],
         'Expertise': [primary_data_frame['Expertise'][i]],
         'Acrobatics': [primary_data_frame['Acrobatics'][i]],
-        'Fixations duration': [primary_data_frame['Fixations duration'][i]],
+        'Fixations duration relative': [primary_data_frame['Fixations duration relative'][i]],
         'Number of fixations': [primary_data_frame['Number of fixations'][i]],
-        'Quiet eye duration': [primary_data_frame['Quiet eye duration'][i]],
+        'Quiet eye duration relative': [primary_data_frame['Quiet eye duration relative'][i]],
         'Eye amplitude': [primary_data_frame['Eye amplitude'][i]],
         'Neck amplitude': [primary_data_frame['Neck amplitude'][i]],
         'Maximum eye amplitude': [primary_data_frame['Maximum eye amplitude'][i]],
@@ -171,14 +172,14 @@ if PRIMARY_ANALYSIS_FLAG:
     # the effects of other independent variables and interactions are partialled out.
     # from : https://eric.ed.gov/?id=EJ927266#:~:text=Eta%20squared%20measures%20the%20proportion,and%20interactions%20are%20partialled%20out.
 
-    print("Mixed ANOVA for Fixations duration")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Fixations duration', within='Acrobatics', between='Expertise', subject='Name')
+    print("Mixed ANOVA for Fixations duration relative")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Fixations duration relative', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Number of fixations")
     out = pg.mixed_anova(data=primary_data_frame, dv='Number of fixations', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
-    print("Mixed ANOVA for Quiet eye duration")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Quiet eye duration', within='Acrobatics', between='Expertise', subject='Name')
+    print("Mixed ANOVA for Quiet eye duration relative")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Quiet eye duration relative', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Eye amplitude")
     out = pg.mixed_anova(data=primary_data_frame, dv='Eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
@@ -194,14 +195,14 @@ if PRIMARY_ANALYSIS_FLAG:
     print(f'{out}\n\n')
 
 
-    print("pairwise t-test for Fixations duration")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Fixations duration', within='Acrobatics', between='Expertise', subject='Name')
+    print("pairwise t-test for Fixations duration relative")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Fixations duration relative', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Number of fixations")
     out = pg.pairwise_tests(data=primary_data_frame, dv='Number of fixations', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
-    print("pairwise t-test for Quiet eye duration")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Quiet eye duration', within='Acrobatics', between='Expertise', subject='Name')
+    print("pairwise t-test for Quiet eye duration relative")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Quiet eye duration relative', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Eye amplitude")
     out = pg.pairwise_tests(data=primary_data_frame, dv='Eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
@@ -408,7 +409,7 @@ def plot_mean_PGOS_per_athlete(name, move, interpolated_unwrapped_trajectory, ho
         for i in range(interpolated_unwrapped_trajectory.shape[2]):
             plt.plot(interpolated_unwrapped_trajectory[0, :, i], interpolated_unwrapped_trajectory[1, :, i], color=colors[i], marker='.', markersize=0.5, linestyle='None')
         # plt.plot(mean_trajectory[0, :], mean_trajectory[1, :], '-k')
-        plt.plot(interpolated_unwrapped_trajectory[0, :, i_min], interpolated_unwrapped_trajectory[1, :, i_min], '-k', alpha=0.5, label='Representative\ntrajectory')
+        plt.plot(interpolated_unwrapped_trajectory[0, :, i_min], interpolated_unwrapped_trajectory[1, :, i_min], '-k', alpha=0.8, label='Representative\ntrajectory')
         plt.title(f"{name} {move}")
         plt.legend()
         plt.savefig(home_path + f"/disk/Eye-tracking/plots/PGOS/multiple_trials_{name}_{move}.png", dpi=300)
@@ -549,8 +550,8 @@ if TRAJECTORIES_ANALYSIS_FLAG:
 if AOI_ANALYSIS_FLAG:
     AOI_proportions_data_frame = pd.DataFrame(AOI_proportions_table[1:], columns=AOI_proportions_table[0])
     AOI_proportions_data_frame.to_csv(home_path + "/disk/Eye-tracking/plots/AOI_proportions_data_frame.csv")
-    AOI_proportions_table_temporary = pd.DataFrame(columns=['Name', 'Expertise', 'Acrobatics', 'Trampoline',
-                                                            'Wall back front', 'Ceiling', 'Wall sides',
+    AOI_proportions_table_temporary = pd.DataFrame(columns=['Name', 'Expertise', 'Acrobatics', 'Trampoline bed',
+                                                            'Trampoline', 'Wall back front', 'Ceiling', 'Wall sides',
                                                             'Athlete himself', 'Blink'])
     for i in range(len(AOI_proportions_data_frame)):
         # if primary_data_frame['Name'][i] != 'MaBo':
@@ -558,6 +559,7 @@ if AOI_ANALYSIS_FLAG:
         df = {'Name': [AOI_proportions_data_frame['Name'][i]],
         'Expertise': [AOI_proportions_data_frame['Expertise'][i]],
         'Acrobatics': [AOI_proportions_data_frame['Acrobatics'][i]],
+        'Trampoline bed': [AOI_proportions_data_frame['Trampoline bed'][i]],
         'Trampoline': [AOI_proportions_data_frame['Trampoline'][i]],
         'Wall back front': [AOI_proportions_data_frame['Wall front'][i] + AOI_proportions_data_frame['Wall back'][i]],
         'Ceiling': [AOI_proportions_data_frame['Ceiling'][i]],
@@ -568,7 +570,9 @@ if AOI_ANALYSIS_FLAG:
 
     AOI_proportions_data_frame = AOI_proportions_table_temporary
 
-
+    print("Mixed ANOVA for Trampoline bed")
+    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Trampoline bed', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
     print("Mixed ANOVA for Trampoline")
     out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
@@ -588,6 +592,9 @@ if AOI_ANALYSIS_FLAG:
     out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Blink', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
 
+    print("pairwise t-test for Trampoline bed")
+    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Trampoline bed', within='Acrobatics', between='Expertise', subject='Name')
+    print(f'{out}\n\n')
     print("pairwise t-test for Trampoline")
     out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')

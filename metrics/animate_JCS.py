@@ -210,16 +210,22 @@ def idientify_fixations(time_vector_pupil, gaze_position_temporal_evolution_proj
     else:
         number_of_fixation = np.shape(fixation_positions)[0]
 
-    fixation_duration = []
+    # fixation duration in relative time
+    jump_duration = time_vector_pupil[-1] - time_vector_pupil[0]
+    fixation_duration_absolute = []
+    fixation_duration_relative = []
     for j in range(number_of_fixation):
-        fixation_duration += [fixation_timing[j][-1] - fixation_timing[j][0]]
+        fixation_duration_absolute += [(fixation_timing[j][-1] - fixation_timing[j][0])]
+        fixation_duration_relative += [(fixation_timing[j][-1] - fixation_timing[j][0]) / jump_duration]
 
-    if len(fixation_duration) > 0:
-        quiet_eye_duration = fixation_duration[-1]
+    if len(fixation_duration_absolute) > 0:
+        quiet_eye_duration_absolute = fixation_duration_absolute[-1]
+        quiet_eye_duration_relative = fixation_duration_relative[-1]
     else:
-        quiet_eye_duration = np.nan
+        quiet_eye_duration_absolute = np.nan
+        quiet_eye_duration_relative = np.nan
 
-    return fixation_positions, fixation_timing, position_threshold_block, wall_index_block, fixation_index, fixation_duration, quiet_eye_duration, number_of_fixation
+    return fixation_positions, fixation_timing, position_threshold_block, wall_index_block, fixation_index, fixation_duration_absolute, fixation_duration_relative, quiet_eye_duration_absolute, quiet_eye_duration_relative, number_of_fixation
 
 
 def find_neighbouring_candidates(time_vector_pupil, candidates, duration_threshold):
@@ -727,7 +733,7 @@ def plot_gymnasium(bound_side, ax):
     )
     # Back right, to back left (ceiling)
     plt.plot(
-        np.array([-8.881, -7.193]),
+        np.array([-8.881, -8.881]),
         np.array([-bound_side, bound_side]),
         np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
         "-k",
@@ -919,8 +925,10 @@ def animate(
      position_threshold_block,
      wall_index_block,
      fixation_index,
-     fixation_duration,
-     quiet_eye_duration,
+     fixation_duration_absolute,
+     fixation_duration_relative,
+     quiet_eye_duration_absolute,
+     quiet_eye_duration_relative,
      number_of_fixation,
      ) = idientify_fixations(
     time_vector_pupil,
@@ -1015,10 +1023,12 @@ def animate(
 
     return (
         number_of_fixation,
-        fixation_duration,
+        fixation_duration_absolute,
+        fixation_duration_relative,
         fixation_positions,
         fixation_timing,
-        quiet_eye_duration,
+        quiet_eye_duration_absolute,
+        quiet_eye_duration_relative,
         gaze_position_temporal_evolution_projected,
         gaze_position_temporal_evolution_projected_facing_front_wall,
         neck_amplitude,

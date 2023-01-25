@@ -7,6 +7,9 @@ import pickle
 import os
 import pandas as pd
 from IPython import embed
+import sys
+sys.path.append("../metrics")
+from remove_data_during_blinks import remove_data_during_blinks
 
 
 def load_pupil(gaze_position_labels, eye_tracking_data_path):
@@ -162,6 +165,8 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
     image_height = 428
     gaussian_width = 50
 
+    curent_AOI_label["Blinks"] = np.zeros(np.shape(curent_AOI_label["Trampoline"]))
+
     if len(move_names) != len(start_of_move_index_image) or len(move_names) != len(end_of_move_index_image):
         plt.figure()
         plt.plot(curent_AOI_label["Not an acrobatics"], '-k', label="Not an acrobatics")
@@ -186,15 +191,19 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
         centers_gaze_bed_i = []
         gaze_total_move = end - start
         number_of_trampoline_bed = 0
+        number_of_trampoline = 0
         number_of_wall_front = 0
         number_of_wall_back = 0
         number_of_ceiling = 0
         number_of_side = 0
         number_of_self = 0
-        number_of_trampoline = 0
+        number_of_blinks = 0
         for j in range(start, end):
-            if curent_AOI_label["Trampoline bed"][j] == 1:
-                index_gaze = np.where(csv_eye_tracking[:, 4] == j)[0]
+            index_gaze = np.where(csv_eye_tracking[:, 4] == j)[0]
+            if np.all(np.isnan(csv_eye_tracking[index_gaze, 1])) and np.all(np.isnan(csv_eye_tracking[index_gaze, 2])):
+                number_of_blinks += 1
+                curent_AOI_label["Blinks"][j] = 1
+            elif curent_AOI_label["Trampoline bed"][j] == 1:
                 for k in index_gaze:
                     if csv_eye_tracking[k, 5] != 0 and csv_eye_tracking[k, 6] != 0:
                         if move_orientation[i] < 0:
@@ -221,18 +230,36 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
             elif curent_AOI_label["Self"][j] == 1:
                 number_of_self += 1
 
-        centers_gaze_bed[i] = centers_gaze_bed_i
+        if len(centers_gaze_bed_i) > 0:
+            centers_gaze_bed[i] = centers_gaze_bed_i
 
-        plt.figure()
-        put_lines_on_fig()
-        img = points_to_gaussian_heatmap(centers_gaze_bed[i], image_height, image_width, gaussian_width)
-        plt.imshow(img, cmap=plt.get_cmap('plasma'))
-        plt.title(f"{subject_name}({subject_expertise}): {move_names[i]}")
-        plt.axis('off')
+            plt.figure()
+            put_lines_on_fig()
+            img = points_to_gaussian_heatmap(centers_gaze_bed[i], image_height, image_width, gaussian_width)
+            plt.imshow(img, cmap=plt.get_cmap('plasma'))
+            plt.title(f"{subject_name}({subject_expertise}): {move_names[i]}")
+            plt.axis('off')
 
-        distance, pertentile = points_to_percentile(centers_gaze_bed[i])
-        percetile_heatmaps += [pertentile]
-        distance_heatmaps += [distance]
+            # plt.figure()
+            # plt.plot(np.arange(start, end), curent_AOI_label["Trampoline bed"][start:end], label="Trampoline bed")
+            # plt.plot(np.arange(start, end), curent_AOI_label["Trampoline"][start:end], label="Trampoline")
+            # plt.plot(np.arange(start, end), curent_AOI_label["Wall front"][start:end], label="Wall front")
+            # plt.plot(np.arange(start, end), curent_AOI_label["Wall back"][start:end], label="Wall back")
+            # plt.plot(np.arange(start, end), curent_AOI_label["Wall right"][start:end], label="Wall right")
+            # plt.plot(np.arange(start, end), curent_AOI_label["Wall left"][start:end], label="Wall left")
+            # plt.plot(np.arange(start, end), curent_AOI_label["Self"][start:end], label="Self")
+            # plt.plot(np.arange(start, end), curent_AOI_label["Blinks"][start:end], label="Blinks")
+            # plt.legend()
+            # plt.show()
+
+            distance, pertentile = points_to_percentile(centers_gaze_bed[i])
+            percetile_heatmaps += [pertentile]
+            distance_heatmaps += [distance]
+        else:
+            distance = np.nan
+            percentile = np.nan
+            distance_heatmaps += [distance]
+            percetile_heatmaps += [percentile]
 
         trampoline_bed_proportions = number_of_trampoline_bed / gaze_total_move
         trampoline_proportions = number_of_trampoline / gaze_total_move
@@ -241,6 +268,7 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
         ceiling_proportions = number_of_ceiling / gaze_total_move
         side_proportions = number_of_side / gaze_total_move
         self_proportions = number_of_self / gaze_total_move
+        blink_proportions = number_of_blinks / gaze_total_move
 
         move_summary[i] = {"movement_name": move_names[i],
                            "subject_name": subject_name,
@@ -254,6 +282,7 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
                            "ceiling_proportions": ceiling_proportions,
                            "side_proportions": side_proportions,
                            "self_proportions" : self_proportions,
+                           "blink_proportions" : blink_proportions,
                            "percetile_heatmaps": percetile_heatmaps[i],
                            "distance_heatmaps": distance_heatmaps[i]}
 
@@ -268,6 +297,7 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
                            "ceiling_proportions": ceiling_proportions,
                            "side_proportions": side_proportions,
                            "self_proportions" : self_proportions,
+                           "blink_proportions": blink_proportions,
                            "percetile_heatmaps": percetile_heatmaps[i],
                            "distance_heatmaps": distance_heatmaps[i]}
 
@@ -300,21 +330,25 @@ def __main__():
     elif os.path.exists('/home/charbie'):
         root_path = '/home/charbie'
 
-    csv_name = root_path + "/Documents/Programmation/rectangle-labelling/Trials_name_mapping.csv"
+    csv_name = root_path + "/disk/Eye-tracking/Trials_name_mapping.csv"
     csv_table = np.char.split(pd.read_csv(csv_name, sep='\t').values.astype('str'), sep=',')
 
     for i_trial in range(len(csv_table)):
-        if csv_table[i_trial][0][12] != 'True':
+        if csv_table[i_trial][0][22] != 'True':
             continue
         movie_path = "/home/user/disk/Eye-tracking/PupilData/points_labeled/"
-        movie_name = csv_table[i_trial][0][7].replace('.', '_')
-        gaze_position_labels = movie_path + movie_name + "_labeling_points.pkl"
+        movie_name = csv_table[i_trial][0][11].replace('.', '_')
         out_path = '/home/user/disk/Eye-tracking/Results'
         subject_name = csv_table[i_trial][0][0]
         move_names = csv_table[i_trial][0][1].split(" ")
         repetition_number = csv_table[i_trial][0][2].split(" ")
         move_orientation = [int(x) for x in csv_table[i_trial][0][3].split(" ")]
-        subject_expertise = csv_table[i_trial][0][9]
+        eye_tracking_folder = csv_table[i_trial][0][10]
+        subject_expertise = csv_table[i_trial][0][13]
+        eye_tracking_data_path = root_path + "/disk/Eye-tracking/PupilData/CloudExport/" + subject_name + '/' + eye_tracking_folder + "/"
+
+        points_labeled_path = root_path + "/disk/Eye-tracking/PupilData/points_labeled/"
+        gaze_position_labels = points_labeled_path + movie_name + "_labeling_points.pkl"
 
         (curent_AOI_label,
          csv_eye_tracking,
@@ -328,10 +362,11 @@ def __main__():
          start_of_jump_index_image,
          end_of_jump_index_image,
          time_stamps_eye_tracking_index_on_pupil,
-         SCENE_CAMERA_SERIAL_NUMBER, ) = load_pupil(gaze_position_labels,
-        eye_tracking_data_path)
+         SCENE_CAMERA_SERIAL_NUMBER, ) = load_pupil(gaze_position_labels, eye_tracking_data_path)
 
+        blink_duration_threshold = 0.0001
+        csv_eye_tracking_confident = remove_data_during_blinks(csv_eye_tracking, csv_blinks, blink_duration_threshold)
 
         run_create_heatmaps(subject_name, subject_expertise, move_names, move_orientation, repetition_number, movie_name,
                         out_path, start_of_move_index_image, end_of_move_index_image, curent_AOI_label,
-                        csv_eye_tracking, gaze_position_labels)
+                        csv_eye_tracking_confident, gaze_position_labels)

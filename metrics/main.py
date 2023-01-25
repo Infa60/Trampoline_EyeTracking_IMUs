@@ -256,10 +256,12 @@ def run_analysis(
             )
 
             (number_of_fixation,
-            fixation_duration,
+            fixation_duration_absolute,
+            fixation_duration_relative,
             fixation_positions,
             fixation_timing,
-            quiet_eye_duration,
+            quiet_eye_duration_absolute,
+            quiet_eye_duration_relative,
             gaze_position_temporal_evolution_projected,
             gaze_position_temporal_evolution_projected_facing_front_wall,
             neck_amplitude,
@@ -317,10 +319,12 @@ def run_analysis(
             move_summary = {"subject_expertise": subject_expertise,
             "subject_name": subject_name,
             "number_of_fixation" : number_of_fixation,
-            "fixation_duration" : fixation_duration,
+            "fixation_duration_absolute" : fixation_duration_absolute,
+            "fixation_duration_relative" : fixation_duration_relative,
             "fixation_positions" : fixation_positions,
             "fixation_timing" : fixation_timing,
-            "quiet_eye_duration" : quiet_eye_duration,
+            "quiet_eye_duration_absolute" : quiet_eye_duration_absolute,
+            "quiet_eye_duration_relative" : quiet_eye_duration_relative,
             "gaze_position_temporal_evolution_projected" : gaze_position_temporal_evolution_projected,
             "gaze_position_temporal_evolution_projected_facing_front_wall" : gaze_position_temporal_evolution_projected_facing_front_wall,
             "position_threshold_block" : position_threshold_block,
@@ -352,11 +356,13 @@ def run_analysis(
             "Xsens_orthogonal_thorax_position" : Xsens_orthogonal_thorax_position,
             "Xsens_orthogonal_head_position" : Xsens_orthogonal_head_position,
             "trampoline_bed_proportions" : move_summary_heatmaps[j]["trampoline_bed_proportions"],
+            "trampoline_proportions" : move_summary_heatmaps[j]["trampoline_proportions"],
             "wall_front_proportions" : move_summary_heatmaps[j]["wall_front_proportions"],
             "wall_back_proportions" : move_summary_heatmaps[j]["wall_back_proportions"],
             "ceiling_proportions" : move_summary_heatmaps[j]["ceiling_proportions"],
             "side_proportions" : move_summary_heatmaps[j]["side_proportions"],
             "self_proportions" : move_summary_heatmaps[j]["self_proportions"],
+            "blink_proportions": move_summary_heatmaps[j]["blink_proportions"],
             "percetile_heatmaps" : move_summary_heatmaps[j]["percetile_heatmaps"],
             "distance_heatmaps" : move_summary_heatmaps[j]["distance_heatmaps"],}
 
@@ -380,10 +386,11 @@ FLAG_ANALYSIS = True  # False #
 FLAG_TURN_ATHLETES_FOR_PGO = True
 
 
-parser = argparse.ArgumentParser("Enter Pupils API_KEY")
-parser.add_argument("API_KEY", action="store", help="Pupils API_KEY")
-args = parser.parse_args()
-API_KEY = args.API_KEY
+# parser = argparse.ArgumentParser("Enter Pupils API_KEY")
+# parser.add_argument("API_KEY", action="store", help="Pupils API_KEY")
+# args = parser.parse_args()
+# API_KEY = args.API_KEY
+API_KEY = "VPNzqxefqpunjUdzKWb3Fr9hQM368y7Q6Lqkc4KVxLHT"
 
 if os.path.exists("/home/user"):
     home_path = "/home/user"
