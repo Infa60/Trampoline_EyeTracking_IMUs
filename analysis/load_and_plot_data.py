@@ -64,29 +64,29 @@ def plot_primary_metrics(df, move_list, subelite_names, elite_names, metric, uni
     plt.xticks(ticks=[0, 2, 4, 6], labels=[i + '/' for i in move_list])
 
     plt.xlim(-1.2, 7)
-    plt.ylim(np.min(df[metric]) - (np.max(df[metric]) - np.min(df[metric])) * 0.1, np.max(df[metric])  + (np.max(df[metric]) - np.min(df[metric])) * 0.1)
+    plt.ylim(np.nanmin(df[metric]) - (np.nanmax(df[metric]) - np.nanmin(df[metric])) * 0.1, np.nanmax(df[metric])  + (np.nanmax(df[metric]) - np.nanmin(df[metric])) * 0.1)
     plt.plot(-2, 0, 'o', color=subelite_color, markersize=2, label='SubElite')
     plt.plot(-2, 0, 'o', color=elite_color, markersize=2, label='Elite')
     plt.plot(-2, 0, 'ok', markersize=3, label='Median per participant')
     plt.plot(-2, 0, 'ok', markersize=5, label='Mean of medians')
     plt.legend(ncol=4, loc='upper center', bbox_to_anchor=(0.5, 1.1))
     plt.subplots_adjust(hspace=0.1, top=0.9)
-    plt.savefig(save_path + title + '.png')
-    plt.show()
+    plt.savefig(save_path + title + '.png', dpi=300)
+    # plt.show()
 
     return
 
-def primary_plots(df, move_list, subelite_names, elite_names, home_path):
+def primary_plots(df, move_list, subelite_names, elite_names, plot_path):
 
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Fixations duration absolute', 's', 'fixation_duration_absolute', home_path + '/disk/Eye-tracking/plots/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Fixations duration relative', 's', 'fixation_duration_relative', home_path + '/disk/Eye-tracking/plots/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Number of fixations', '', 'fixation_number', home_path + '/disk/Eye-tracking/plots/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye duration absolute', 's', 'quiet_eye_duration_absolute', home_path + '/disk/Eye-tracking/plots/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye duration relative', 's', 'quiet_eye_duration_relative', home_path + '/disk/Eye-tracking/plots/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Eye amplitude', '?', 'eye_amplitude', home_path + '/disk/Eye-tracking/plots/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Neck amplitude', '?', 'neck_amplitude', home_path + '/disk/Eye-tracking/plots/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Maximum eye amplitude', 'rad', 'max_eye_amplitude', home_path + '/disk/Eye-tracking/plots/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Maximum neck amplitude', 'rad', 'max_neck_amplitude', home_path + '/disk/Eye-tracking/plots/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Fixations duration absolute', 's', 'fixation_duration_absolute', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Fixations duration relative', 's', 'fixation_duration_relative', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Number of fixations', '', 'fixation_number', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye duration absolute', 's', 'quiet_eye_duration_absolute', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye duration relative', 's', 'quiet_eye_duration_relative', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Eye amplitude', '?', 'eye_amplitude', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Neck amplitude', '?', 'neck_amplitude', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Maximum eye amplitude', 'rad', 'max_eye_amplitude', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Maximum neck amplitude', 'rad', 'max_neck_amplitude', f'{plot_path}/')
     # see what we want to do with the zero from Pupil
     return
 
@@ -225,7 +225,7 @@ def trajectory_plots(df, move_list, subelite_names, elite_names):
 
     for i in range(4):
         ax_list[i].view_init(elev=15, azim=-120)
-    plt.savefig(home_path + "/disk/Eye-tracking/plots/gaze_trajectories_3D.png")
+    plt.savefig(f"{plot_path}/gaze_trajectories_3D.png", dpi=300)
     # plt.show()
 
 
@@ -276,6 +276,103 @@ def trajectory_plots(df, move_list, subelite_names, elite_names):
 #         ax.bar(i * 2 + 0.4, 100-total_elite, bottom=total_elite, color='grey', width=0.4, alpha=0.5)
 #     return
 
+def stair_bar_plots(df, type_names, subelite_names, elite_names, pourcentage=True, other=False):
+
+    if pourcentage:
+        factor = 100
+    else:
+        factor = 1
+
+    len_types = len(type_names)
+    cmap = plt.get_cmap('plasma')
+    colors = []
+    for i in range(len_types):
+        colors.append(cmap(i / len_types))
+
+    means_subelite = {key: [[] for _ in range(4)] for key in type_names}
+    means_elite = {key: [[] for _ in range(4)] for key in type_names}
+    for i in range(len(move_list)):
+        for j in range(len(subelite_names)):
+            index_this_time = np.where(np.logical_and(df['Name'] == subelite_names[j], df['Acrobatics'] == move_list[i]))
+            for key in type_names:
+                means_subelite[key][i].append(np.nanmean(list(df[key][index_this_time[0]] * factor)))
+        for j in range(len(elite_names)):
+            index_this_time = np.where(np.logical_and(df['Name'] == elite_names[j], df['Acrobatics'] == move_list[i]))
+            for key in type_names:
+                means_elite[key][i].append(np.nanmean(list(df[key][index_this_time[0]] * factor)))
+
+    fig = plt.figure()
+    ax = fig.add_axes([0.1, 0.1, 0.85, 0.7])
+    for i in range(len(move_list)):
+        total_subelite = 0
+        for j, key in enumerate(type_names):
+            mean = np.nanmean(means_subelite[key][i])
+            std = np.nanstd(means_subelite[key][i])
+            ax.bar(i*2 - 0.4 + 0.8/len(type_names)*j, mean, bottom=total_subelite, yerr=std, color=colors[j], width=0.8/len(type_names), label=(key if i == 0 else None))
+            total_subelite += mean
+        total_elite = 0
+        for j, key in enumerate(type_names):
+            mean = np.nanmean(means_elite[key][i])
+            std = np.nanstd(means_elite[key][i])
+            ax.bar(i * 2 + 0.4 + 0.8/len(type_names)*j, mean, bottom=total_elite, yerr=std, color=colors[j], width=0.8/len(type_names))
+            total_elite += mean
+
+        if other:
+            ax.bar(i * 2 - 0.4 + 0.8/len(type_names)*(j+1), 100-total_subelite, bottom=total_subelite, color='k', width=0.8/len(type_names), label=('Other' if i == 0 else None), alpha=0.1)
+            ax.bar(i * 2 + 0.4 + 0.8/len(type_names)*(j+1), 100-total_elite, bottom=total_elite, color='k', width=0.8/len(type_names), alpha=0.1)
+    return ax
+
+
+def bar_plots_error_bar_translated(df, type_names, subelite_names, elite_names, pourcentage=True, other=False):
+
+    if pourcentage:
+        factor = 100
+    else:
+        factor = 1
+
+    len_types = len(type_names)
+    cmap = plt.get_cmap('plasma')
+    colors = []
+    for i in range(len_types):
+        colors.append(cmap(i / len_types))
+
+    means_subelite = {key: [[] for _ in range(4)] for key in type_names}
+    means_elite = {key: [[] for _ in range(4)] for key in type_names}
+    for i in range(len(move_list)):
+        for j in range(len(subelite_names)):
+            index_this_time = np.where(np.logical_and(df['Name'] == subelite_names[j], df['Acrobatics'] == move_list[i]))
+            for key in type_names:
+                means_subelite[key][i].append(np.nanmean(list(df[key][index_this_time[0]] * factor)))
+        for j in range(len(elite_names)):
+            index_this_time = np.where(np.logical_and(df['Name'] == elite_names[j], df['Acrobatics'] == move_list[i]))
+            for key in type_names:
+                means_elite[key][i].append(np.nanmean(list(df[key][index_this_time[0]] * factor)))
+
+    fig = plt.figure()
+    ax = fig.add_axes([0.1, 0.1, 0.85, 0.7])
+    for i in range(len(move_list)):
+        total_subelite = 0
+        for j, key in enumerate(type_names):
+            mean = np.nanmean(means_subelite[key][i])
+            std = np.nanstd(means_subelite[key][i])
+            ax.bar(i*2 - 0.4, mean, bottom=total_subelite, color=colors[j], width=0.4, label=(key if i == 0 else None), alpha=0.8)
+            ax.plot(np.array([0.1 + i*2 - 0.6 + 0.2/len(type_names)*j, 0.1 + i*2 - 0.6 + 0.2/len(type_names)*j]),
+                    np.array([total_subelite + mean - std, total_subelite + mean + std]), color=colors[j])
+            total_subelite += mean
+        total_elite = 0
+        for j, key in enumerate(type_names):
+            mean = np.nanmean(means_elite[key][i])
+            std = np.nanstd(means_elite[key][i])
+            ax.bar(i * 2 + 0.4, mean, bottom=total_elite, color=colors[j], width=0.4, alpha=0.8)
+            ax.plot(np.array([0.1 + i*2 + 0.2 + 0.2/len(type_names)*j, 0.1 + i*2 + 0.2 + 0.2/len(type_names)*j]),
+                    np.array([total_elite + mean - std, total_elite + mean + std]), color=colors[j])
+            total_elite += mean
+
+        if other:
+            ax.bar(i * 2 - 0.4, 100-total_subelite, bottom=total_subelite, color='k', width=0.4, label=('Other' if i == 0 else None), alpha=0.1)
+            ax.bar(i * 2 + 0.4, 100-total_elite, bottom=total_elite, color='k', width=0.4, alpha=0.1)
+    return ax
+
 def bar_plots(df, type_names, subelite_names, elite_names, pourcentage=True, other=False):
 
     if pourcentage:
@@ -307,12 +404,14 @@ def bar_plots(df, type_names, subelite_names, elite_names, pourcentage=True, oth
         total_subelite = 0
         for j, key in enumerate(type_names):
             mean = np.nanmean(means_subelite[key][i])
-            ax.bar(i*2 - 0.4, mean, bottom=total_subelite, color=colors[j], width=0.4, label=(key if i == 0 else None))
+            std = np.nanstd(means_subelite[key][i])
+            ax.bar(i*2 - 0.4, mean, bottom=total_subelite, yerr=std, color=colors[j], width=0.4, label=(key if i == 0 else None))
             total_subelite += mean
         total_elite = 0
         for j, key in enumerate(type_names):
             mean = np.nanmean(means_elite[key][i])
-            ax.bar(i * 2 + 0.4, mean, bottom=total_elite, color=colors[j], width=0.4)
+            std = np.nanstd(means_elite[key][i])
+            ax.bar(i * 2 + 0.4, mean, bottom=total_elite, yerr=std, color=colors[j], width=0.4)
             total_elite += mean
 
         if other:
@@ -320,11 +419,11 @@ def bar_plots(df, type_names, subelite_names, elite_names, pourcentage=True, oth
             ax.bar(i * 2 + 0.4, 100-total_elite, bottom=total_elite, color='k', width=0.4, alpha=0.1)
     return ax
 
-def movement_pourcentage_plots(df, move_list, subelite_names, elite_names, home_path):
+def movement_pourcentage_plots(df, move_list, subelite_names, elite_names, plot_path):
 
     type_names = df.columns[3:]
 
-    ax = bar_plots(df, type_names, subelite_names, elite_names, True, True)
+    ax = bar_plots_error_bar_translated(df, type_names, subelite_names, elite_names, True, True)
 
     ax.set_ylabel('Proportion of the acrobatics [%]')
     ax.set_xticks(ticks=[0, 2, 4, 6])
@@ -336,11 +435,11 @@ def movement_pourcentage_plots(df, move_list, subelite_names, elite_names, home_
         ax.text(-0.3 + i*2 - 0.5, -7, 'Subelite')
         ax.text(-0.3 + i*2 + 0.5, -7, 'Elite')
     # plt.show()
-    plt.savefig(home_path + "/disk/Eye-tracking/plots/movement_pourcentage.png")
+    plt.savefig(f"{plot_path}/movement_pourcentage.png", dpi=300)
 
     return
 
-def movement_blocks_number_plot(table, move_list, subelite_names, elite_names, home_path):
+def movement_blocks_number_plot(table, move_list, subelite_names, elite_names, plot_path):
     def find_clusters(array):
         array = array.astype(int)
         diff = array[1:] - array[:-1]
@@ -363,7 +462,7 @@ def movement_blocks_number_plot(table, move_list, subelite_names, elite_names, h
     type_names = table[0][3:]
     df_occurence = find_movement_occurence(table)
 
-    ax = bar_plots(df_occurence, type_names, subelite_names, elite_names, False, False)
+    ax = bar_plots_error_bar_translated(df_occurence, type_names, subelite_names, elite_names, False, False)
 
     ax.set_ylabel('Number of movement occurrence')
     ax.set_xticks(ticks=[0, 2, 4, 6])
@@ -373,16 +472,16 @@ def movement_blocks_number_plot(table, move_list, subelite_names, elite_names, h
     for i in range(4):
         ax.text(-0.3 + i*2 - 0.5, -7, 'Subelite')
         ax.text(-0.3 + i*2 + 0.5, -7, 'Elite')
-    plt.savefig(home_path + "/disk/Eye-tracking/plots/movement_blocks.png")
-    plt.show()
+    plt.savefig(f"{plot_path}/movement_blocks.png", dpi=300)
+    # plt.show()
 
     return
 
-def AOI_pourcentage_plots(df, move_list, subelite_names, elite_names, home_path):
+def AOI_pourcentage_plots(df, move_list, subelite_names, elite_names, plot_path):
 
     type_names = df.columns[3:]
 
-    ax = bar_plots(df, type_names, subelite_names, elite_names, True, False)
+    ax = bar_plots_error_bar_translated(df, type_names, subelite_names, elite_names, True, False)
 
     ax.set_ylabel('Proportion of the acrobatics [%]')
     ax.set_xticks(ticks=[0, 2, 4, 6])
@@ -395,16 +494,16 @@ def AOI_pourcentage_plots(df, move_list, subelite_names, elite_names, home_path)
         ax.text(-0.3 + i*2 + 0.5, -7, 'Elite')
 
     # plt.show()
-    plt.savefig(home_path + "/disk/Eye-tracking/plots/AOI_pourcentage.png")
+    plt.savefig(f"{plot_path}/AOI_pourcentage.png", dpi=300)
 
     return
 
-def heatmap_spreading_plots(df, move_list, subelite_names, elite_names, home_path):
+def heatmap_spreading_plots(df, move_list, subelite_names, elite_names, plot_path):
 
     max_spreading = 0
     for i in range(len(df["Distance from the center of each point of the heatmap"])):
-        if np.max(df["Distance from the center of each point of the heatmap"][i]) > max_spreading:
-            max_spreading = np.max(df["Distance from the center of each point of the heatmap"][i])
+        if np.nanmax(df["Distance from the center of each point of the heatmap"][i]) > max_spreading:
+            max_spreading = np.nanmax(df["Distance from the center of each point of the heatmap"][i])
 
     means_subelite_90 = []
     means_elite_90 = []
@@ -511,16 +610,16 @@ def heatmap_spreading_plots(df, move_list, subelite_names, elite_names, home_pat
     plt.text(-320, -145, 'Subelite', rotation=90)
     plt.text(-320, 150, 'Elite', rotation=90)
     plt.subplots_adjust(wspace=-0.8)
-    plt.savefig(home_path + "/disk/Eye-tracking/plots/heatmap_spreading.png", dpi=300)
+    plt.savefig(f"{plot_path}/heatmap_spreading.png", dpi=300)
     # plt.show()
 
     return
 
-def heatmap_percetiel_plot(df, move_list, elite_names, subelite_names, home_path):
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Heat map 90th percentile', 'cm', 'percetile_heatmaps', home_path + '/disk/Eye-tracking/plots/')
+def heatmap_percetiel_plot(df, move_list, elite_names, subelite_names, plot_path):
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Heat map 90th percentile', 'cm', 'percetile_heatmaps', f'{plot_path}/')
     return
 
-def timing_plots(df, move_list, subelite_names, elite_names, home_path):
+def timing_plots(df, move_list, subelite_names, elite_names, plot_path):
 
     move_type_list = ["anticipatory_index", "compensatory_index", "spotting_index", "movement_detection_index", "blinks_index"]
     move_type_labels = ["Anticipatory movement", "Compensatorymovement", "Spotting", "Movement detection", "Blink"]
@@ -571,7 +670,7 @@ def timing_plots(df, move_list, subelite_names, elite_names, home_path):
     axs[1, 3].text(-425, 50, 'Elite', fontsize=12, rotation=90)
     plt.subplots_adjust(hspace=0.1, top=0.9, bottom=0.1)
     # plt.show()
-    plt.savefig(home_path + "/disk/Eye-tracking/plots/timing_movements.png", dpi=300)
+    plt.savefig(f"{plot_path}/timing_movements.png", dpi=300)
 
 
     return
@@ -580,6 +679,7 @@ def timing_plots(df, move_list, subelite_names, elite_names, home_path):
 ### ------------------------ Code beginig ------------------------ ###
 
 GENRATE_DATA_FRAME_FLAG = True # False
+name_results = None # "20ms_threshold"  #
 
 if os.path.exists("/home/user"):
     home_path = "/home/user"
@@ -588,7 +688,14 @@ elif os.path.exists("/home/fbailly"):
 elif os.path.exists("/home/charbie"):
     home_path = "/home/charbie"
 
-results_path = f"{home_path}/disk/Eye-tracking/Results"
+
+if name_results:
+    results_path = f"{home_path}/disk/Eye-tracking/Results_{name_results}"
+    plot_path = home_path + f"/disk/Eye-tracking/plots_{name_results}"
+else:
+    results_path = f"{home_path}/disk/Eye-tracking/Results"
+    plot_path = home_path + f"/disk/Eye-tracking/plots"
+
 
 
 primary_table = [["Name", "Expertise", "Acrobatics",
@@ -714,51 +821,51 @@ if GENRATE_DATA_FRAME_FLAG:
                                              movement_detection_index, blinks_index]]
 
 
-    savemat(home_path + '/disk/Eye-tracking/plots/primary_table.mat', {'primary_table': primary_table})
-    savemat(home_path + '/disk/Eye-tracking/plots/trajectories_table.mat', {'trajectories_table': trajectories_table})
-    savemat(home_path + '/disk/Eye-tracking/plots/AOI_proportions_table.mat', {'AOI_proportions_table': AOI_proportions_table})
-    savemat(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_table.mat', {'neck_eye_movements_table': neck_eye_movements_table})
-    savemat(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_indices_table.mat', {'neck_eye_movements_indices_table': neck_eye_movements_indices_table})
-    savemat(home_path + '/disk/Eye-tracking/plots/heatmaps_spreading_table.mat', {'heatmaps_spreading_table': heatmaps_spreading_table})
-    savemat(home_path + '/disk/Eye-tracking/plots/qualitative_table.mat', {'qualitative_table': qualitative_table})
+    savemat(f'{plot_path}/primary_table.mat', {'primary_table': primary_table})
+    savemat(f'{plot_path}/trajectories_table.mat', {'trajectories_table': trajectories_table})
+    savemat(f'{plot_path}/AOI_proportions_table.mat', {'AOI_proportions_table': AOI_proportions_table})
+    savemat(f'{plot_path}/neck_eye_movements_table.mat', {'neck_eye_movements_table': neck_eye_movements_table})
+    savemat(f'{plot_path}/neck_eye_movements_indices_table.mat', {'neck_eye_movements_indices_table': neck_eye_movements_indices_table})
+    savemat(f'{plot_path}/heatmaps_spreading_table.mat', {'heatmaps_spreading_table': heatmaps_spreading_table})
+    savemat(f'{plot_path}/qualitative_table.mat', {'qualitative_table': qualitative_table})
 
     # save as pickle files
-    with open(home_path + '/disk/Eye-tracking/plots/primary_table.pkl', 'wb') as f:
+    with open(f'{plot_path}/primary_table.pkl', 'wb') as f:
         pickle.dump(primary_table, f)
-    with open(home_path + '/disk/Eye-tracking/plots/trajectories_table.pkl', 'wb') as f:
+    with open(f'{plot_path}/trajectories_table.pkl', 'wb') as f:
         pickle.dump(trajectories_table, f)
-    with open(home_path + '/disk/Eye-tracking/plots/AOI_proportions_table.pkl', 'wb') as f:
+    with open(f'{plot_path}/AOI_proportions_table.pkl', 'wb') as f:
         pickle.dump(AOI_proportions_table, f)
-    with open(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_table.pkl', 'wb') as f:
+    with open(f'{plot_path}/neck_eye_movements_table.pkl', 'wb') as f:
         pickle.dump(neck_eye_movements_table, f)
-        with open(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_indices_table.pkl', 'wb') as f:
+        with open(f'{plot_path}/neck_eye_movements_indices_table.pkl', 'wb') as f:
             pickle.dump(neck_eye_movements_indices_table, f)
-    with open(home_path + '/disk/Eye-tracking/plots/heatmaps_spreading_table.pkl', 'wb') as f:
+    with open(f'{plot_path}/heatmaps_spreading_table.pkl', 'wb') as f:
         pickle.dump(heatmaps_spreading_table, f)
-    with open(home_path + '/disk/Eye-tracking/plots/qualitative_table.pkl', 'wb') as f:
+    with open(f'{plot_path}/qualitative_table.pkl', 'wb') as f:
         pickle.dump(qualitative_table, f)
 
 else:
-    primary_table = loadmat(home_path + '/disk/Eye-tracking/plots/primary_table.mat')['primary_table']
-    trajectories_table = loadmat(home_path + '/disk/Eye-tracking/plots/trajectories_table.mat')['trajectories_table']
-    AOI_proportions_table = loadmat(home_path + '/disk/Eye-tracking/plots/AOI_proportions_table.mat')['AOI_proportions_table']
-    neck_eye_movements_table = loadmat(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_table.mat')['neck_eye_movements_table']
-    neck_eye_movements_indices_table = loadmat(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_table.mat')['neck_eye_movements_indices_table']
-    heatmaps_spreading_table = loadmat(home_path + '/disk/Eye-tracking/plots/heatmaps_spreading_table.mat')['heatmaps_spreading_table']
-    qualitative_table = loadmat(home_path + '/disk/Eye-tracking/plots/qualitative_table.mat')['qualitative_table']
+    primary_table = loadmat(f'{plot_path}/primary_table.mat')['primary_table']
+    trajectories_table = loadmat(f'{plot_path}/trajectories_table.mat')['trajectories_table']
+    AOI_proportions_table = loadmat(f'{plot_path}/AOI_proportions_table.mat')['AOI_proportions_table']
+    neck_eye_movements_table = loadmat(f'{plot_path}/neck_eye_movements_table.mat')['neck_eye_movements_table']
+    neck_eye_movements_indices_table = loadmat(f'{plot_path}/neck_eye_movements_table.mat')['neck_eye_movements_indices_table']
+    heatmaps_spreading_table = loadmat(f'{plot_path}/heatmaps_spreading_table.mat')['heatmaps_spreading_table']
+    qualitative_table = loadmat(f'{plot_path}/qualitative_table.mat')['qualitative_table']
 
     # load the pickle files
-    with open(home_path + '/disk/Eye-tracking/plots/primary_table.pkl', 'rb') as f:
+    with open(f'{plot_path}/primary_table.pkl', 'rb') as f:
         primary_table = pickle.load(f)
-    with open(home_path + '/disk/Eye-tracking/plots/trajectories_table.pkl', 'rb') as f:
+    with open(f'{plot_path}/trajectories_table.pkl', 'rb') as f:
         trajectories_table = pickle.load(f)
-    with open(home_path + '/disk/Eye-tracking/plots/AOI_proportions_table.pkl', 'rb') as f:
+    with open(f'{plot_path}/AOI_proportions_table.pkl', 'rb') as f:
         AOI_proportions_table = pickle.load(f)
-    with open(home_path + '/disk/Eye-tracking/plots/neck_eye_movements_table.pkl', 'rb') as f:
+    with open(f'{plot_path}/neck_eye_movements_table.pkl', 'rb') as f:
         neck_eye_movements_table = pickle.load(f)
-    with open(home_path + '/disk/Eye-tracking/plots/heatmaps_spreading_table.pkl', 'rb') as f:
+    with open(f'{plot_path}/heatmaps_spreading_table.pkl', 'rb') as f:
         heatmaps_spreading_table = pickle.load(f)
-    with open(home_path + '/disk/Eye-tracking/plots/qualitative_table.pkl', 'rb') as f:
+    with open(f'{plot_path}/qualitative_table.pkl', 'rb') as f:
         qualitative_table = pickle.load(f)
 
 move_list = ['4-', '41', '42', '43']
@@ -775,14 +882,14 @@ for i in range(len(primary_data_frame)):
         if primary_data_frame['Name'][i] not in elite_names:
             elite_names.append(primary_data_frame['Name'][i])
 
-primary_plots(primary_data_frame, move_list, subelite_names, elite_names, home_path)
+primary_plots(primary_data_frame, move_list, subelite_names, elite_names, plot_path)
 
 trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
 trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
 
 movement_pourcentage_data_frame = pd.DataFrame(neck_eye_movements_table[1:], columns=neck_eye_movements_table[0])
-movement_pourcentage_plots(movement_pourcentage_data_frame, move_list, subelite_names, elite_names, home_path)
-movement_blocks_number_plot(neck_eye_movements_indices_table, move_list, subelite_names, elite_names, home_path)
+movement_pourcentage_plots(movement_pourcentage_data_frame, move_list, subelite_names, elite_names, plot_path)
+movement_blocks_number_plot(neck_eye_movements_indices_table, move_list, subelite_names, elite_names, plot_path)
 
 AOI_table_tempo = [['Name', 'Expertise', 'Acrobatics', 'Trampoline bed', 'Trampoline', 'Wall back front', 'Ceiling',
                     'Wall sides', 'Athlete himself', 'Blink']]
@@ -792,13 +899,13 @@ for i in range(1, len(AOI_proportions_table)):
                             AOI_proportions_table[i][7], AOI_proportions_table[i][8], AOI_proportions_table[i][9],
                             AOI_proportions_table[i][10]]]
 AOI_pourcentage_data_frame_tempo = pd.DataFrame(AOI_table_tempo[1:], columns=AOI_table_tempo[0])
-AOI_pourcentage_plots(AOI_pourcentage_data_frame_tempo, move_list, subelite_names, elite_names, home_path)
+AOI_pourcentage_plots(AOI_pourcentage_data_frame_tempo, move_list, subelite_names, elite_names, plot_path)
 
 heatmap_spreading_data_frame = pd.DataFrame(heatmaps_spreading_table[1:], columns=heatmaps_spreading_table[0])
-heatmap_spreading_plots(heatmap_spreading_data_frame, move_list, subelite_names, elite_names, home_path)
+heatmap_spreading_plots(heatmap_spreading_data_frame, move_list, subelite_names, elite_names, plot_path)
 
 qualitative_data_frame = pd.DataFrame(qualitative_table[1:], columns=qualitative_table[0])
-timing_plots(qualitative_data_frame, move_list, subelite_names, elite_names, home_path)
+timing_plots(qualitative_data_frame, move_list, subelite_names, elite_names, plot_path)
 
 
 
