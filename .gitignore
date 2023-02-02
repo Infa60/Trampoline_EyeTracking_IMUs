@@ -131,3 +131,5 @@ dmypy.json
 .idea/
 
 analysis/stats_output.txt
+
+*.mp4

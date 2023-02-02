@@ -140,7 +140,7 @@ def run_analysis(
         SCENE_CAMERA_SERIAL_NUMBER,
     ) = load_pupil(gaze_position_labels, eye_tracking_data_path)
 
-    blink_duration_threshold = 0.0001
+    blink_duration_threshold = 0.2
     csv_eye_tracking_confident = remove_data_during_blinks(csv_eye_tracking, csv_blinks, blink_duration_threshold)
 
     if GENERATE_HEATMAPS:
@@ -247,12 +247,10 @@ def run_analysis(
                 os.makedirs(home_path + f"/disk/Eye-tracking/Results/{subject_name}/{move_surname}")
 
             folder_name = (
-                home_path
-                + f"/disk/Eye-tracking/Results/{subject_name}/{move_surname}/{movie_name}__{move_surname}__{repetition_number[j]}"
+                    f"{out_path}/{subject_name}/{move_surname}/{movie_name}__{move_surname}__{repetition_number[j]}"
             )
             output_file_name = (
-                home_path
-                + f"/disk/Eye-tracking/Results/{subject_name}/{move_surname}/{movie_name}__{move_surname}__{repetition_number[j]}.mp4"
+                    f"{out_path}/{subject_name}/{move_surname}/{movie_name}__{move_surname}__{repetition_number[j]}.mp4"
             )
 
             (number_of_fixation,
@@ -386,11 +384,11 @@ FLAG_ANALYSIS = True  # False #
 FLAG_TURN_ATHLETES_FOR_PGO = True
 
 
-# parser = argparse.ArgumentParser("Enter Pupils API_KEY")
-# parser.add_argument("API_KEY", action="store", help="Pupils API_KEY")
-# args = parser.parse_args()
-# API_KEY = args.API_KEY
-API_KEY = "VPNzqxefqpunjUdzKWb3Fr9hQM368y7Q6Lqkc4KVxLHT"
+parser = argparse.ArgumentParser("Enter Pupils API_KEY")
+parser.add_argument("API_KEY", action="store", help="Pupils API_KEY")
+args = parser.parse_args()
+API_KEY = args.API_KEY
+# API_KEY = "VPNzqxefqpunjUdzKWb3Fr9hQM368y7Q6Lqkc4KVxLHT"
 
 if os.path.exists("/home/user"):
     home_path = "/home/user"
@@ -435,7 +433,7 @@ for i_trial in range(len(trial_table)):
 
     points_labeled_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"
     gaze_position_labels = points_labeled_path + movie_name + "_labeling_points.pkl"
-    out_path = home_path + "/disk/Eye-tracking/Results"
+    out_path = home_path + "/disk/Eye-tracking/Results"  # Results_20ms_threshold
     anthropo_name = (
         home_path
         + f"/disk/Eye-tracking/Xsens_measurements/{subject_name}_anthropo.csv"

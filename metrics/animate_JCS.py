@@ -286,7 +286,7 @@ def identify_head_eye_movements(elevation, azimuth, EulAngles_head_global, EulAn
     """
     threhold_angle = 20 * np.pi / 180
     head_velocity_threshold = 120 * np.pi / 180  # 120deg/s Dalvin (2004)
-    duration_threshold = 0.02
+    duration_threshold = 0.04
     position_threshold = 0.5 * np.pi / 180
 
     b, a = signal.butter(4, 0.15)
@@ -839,7 +839,7 @@ def animate(
         output_file_name,
         folder_name,
         max_frame=0,
-        blink_duration_threshold=0.1,
+        blink_duration_threshold=0.2,
         FLAG_ANIMAITON=True,
         FLAG_GAZE_TRAJECTORY=True,
         FLAG_GENERATE_STATS_METRICS=True,
