@@ -196,25 +196,25 @@ if PRIMARY_ANALYSIS_FLAG:
 
 
     print("pairwise t-test for Fixations duration relative")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Fixations duration relative', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=primary_data_frame, dv='Fixations duration relative', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Number of fixations")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Number of fixations', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=primary_data_frame, dv='Number of fixations', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Quiet eye duration relative")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Quiet eye duration relative', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=primary_data_frame, dv='Quiet eye duration relative', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Eye amplitude")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=primary_data_frame, dv='Eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Neck amplitude")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=primary_data_frame, dv='Neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Maximum eye amplitude")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Maximum eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=primary_data_frame, dv='Maximum eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Maximum neck amplitude")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Maximum neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=primary_data_frame, dv='Maximum neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
 
 
@@ -593,25 +593,25 @@ if AOI_ANALYSIS_FLAG:
     print(f'{out}\n\n')
 
     print("pairwise t-test for Trampoline bed")
-    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Trampoline bed', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=AOI_proportions_data_frame, dv='Trampoline bed', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Trampoline")
-    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=AOI_proportions_data_frame, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Wall back front")
-    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Wall back front', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=AOI_proportions_data_frame, dv='Wall back front', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Ceiling")
-    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Ceiling', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=AOI_proportions_data_frame, dv='Ceiling', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Wall sides")
-    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=AOI_proportions_data_frame, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Athlete himself")
-    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Blink")
-    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Blink', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=AOI_proportions_data_frame, dv='Blink', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
 
 
@@ -654,19 +654,19 @@ if NECK_EYE_ANALYSIS_FLAG:
     print(f'{out}\n\n')
 
     print("pairwise t-test for Anticipatory movements")
-    out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Anticipatory movements', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=neck_eye_movements_data_frame, dv='Anticipatory movements', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Compensatory movements")
-    out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Compensatory movements', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=neck_eye_movements_data_frame, dv='Compensatory movements', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Spotting movements")
-    out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Spotting movements', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=neck_eye_movements_data_frame, dv='Spotting movements', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Movement detection")
-    out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=neck_eye_movements_data_frame, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Blinks")
-    out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Blinks', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tukey(data=neck_eye_movements_data_frame, dv='Blinks', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
 
 
@@ -695,7 +695,7 @@ if SPREADING_HEATMAP_FLAG:
     print(f'{out}\n\n')
 
     print("pairwise t-test for Heat map 90th percentile")
-    out = pg.pairwise_tests(data=heatmaps_spreading_data_frame, dv='Heat map 90th percentile', within='Acrobatics',
+    out = pg.pairwise_tukey(data=heatmaps_spreading_data_frame, dv='Heat map 90th percentile', within='Acrobatics',
                             between='Expertise', subject='Name')
     print(f'{out}\n\n')
 
@@ -738,6 +738,72 @@ def plot_presence(presence_curves_per_athelte, move, xi_interp, index_variable, 
     plt.subplots_adjust(right=0.8)
     plt.suptitle(title_variable + move)
     plt.savefig(output_file_name, dpi=300)
+    return
+
+def plot_presence_all_at_the_same_time(presence_curves_per_athelte, move, xi_interp, output_file_name):
+
+    colors = [cm.get_cmap('plasma')(k) for k in np.linspace(0, 1, 5)]
+
+    variable_names = ["Anticipatory movements", "Compensatory movements", "Spotting", "Movement detection", "Blink"]
+
+    presence_curves_subelites = {variable_names[index_variable]: np.zeros((len(xi_interp, ))) for index_variable in range(len(variable_names))}
+    presence_curves_elites = {variable_names[index_variable]: np.zeros((len(xi_interp, ))) for index_variable in range(len(variable_names))}
+    for index_variable, variable_name in enumerate(variable_names):
+        for i, name in enumerate(presence_curves_per_athelte.keys()):
+            if name in subelite_names:
+                if presence_curves_per_athelte[name][move] != []:
+                    presence_curves_subelites[variable_names[index_variable]] = np.vstack((
+                        presence_curves_subelites[variable_names[index_variable]],
+                        presence_curves_per_athelte[name][move][index_variable]))
+        for i, name in enumerate(presence_curves_per_athelte.keys()):
+            if name in elite_names:
+                if presence_curves_per_athelte[name][move] != []:
+                    presence_curves_elites[variable_names[index_variable]] = np.vstack((
+                        presence_curves_elites[variable_names[index_variable]],
+                        presence_curves_per_athelte[name][move][index_variable]))
+
+    presence_curves_subelites = {variable_names[index_variable]: presence_curves_subelites[variable_names[index_variable]][1:, :] for index_variable in range(len(variable_names))}
+    presence_curves_elites = {variable_names[index_variable]: presence_curves_elites[variable_names[index_variable]][1:, :] for index_variable in range(len(variable_names))}
+
+    mean_presence_curves_subelites = {variable_names[index_variable]:
+                                          np.mean(presence_curves_subelites[variable_names[index_variable]], axis=0)
+                                      for index_variable in range(len(variable_names))}
+    std_presence_curves_subelites = {variable_names[index_variable]:
+                                          np.std(presence_curves_subelites[variable_names[index_variable]], axis=0)
+                                      for index_variable in range(len(variable_names))}
+    mean_presence_curves_elites = {variable_names[index_variable]:
+                                          np.mean(presence_curves_elites[variable_names[index_variable]], axis=0)
+                                      for index_variable in range(len(variable_names))}
+    std_presence_curves_elites = {variable_names[index_variable]:
+                                          np.std(presence_curves_elites[variable_names[index_variable]], axis=0)
+                                      for index_variable in range(len(variable_names))}
+
+    fig, axs = plt.subplots(2, 1, figsize=(9, 6))
+    for index_variable in range(len(variable_names)):
+        axs[0].fill_between(xi_interp * 100,
+                            mean_presence_curves_subelites[variable_names[index_variable]] - std_presence_curves_subelites[variable_names[index_variable]],
+                            mean_presence_curves_subelites[variable_names[index_variable]] + std_presence_curves_subelites[variable_names[index_variable]],
+                            alpha=0.2, facecolor=colors[index_variable])
+        axs[0].plot(xi_interp * 100, mean_presence_curves_subelites[variable_names[index_variable]], color=colors[index_variable], label=variable_names[index_variable])
+        axs[1].fill_between(xi_interp * 100,
+                            mean_presence_curves_elites[variable_names[index_variable]] - std_presence_curves_elites[variable_names[index_variable]],
+                            mean_presence_curves_elites[variable_names[index_variable]] + std_presence_curves_elites[variable_names[index_variable]],
+                            alpha=0.2, facecolor=colors[index_variable])
+        axs[1].plot(xi_interp * 100, mean_presence_curves_elites[variable_names[index_variable]], color=colors[index_variable], label=variable_names[index_variable])
+    axs[0].spines['top'].set_visible(False)
+    axs[1].spines['top'].set_visible(False)
+    axs[0].set_xlim(0, 100)
+    axs[1].set_xlim(0, 100)
+    axs[0].set_ylim(0, 1)
+    axs[1].set_ylim(0, 1)
+    axs[0].legend(bbox_to_anchor=(0.5, 1.3), loc='upper center', ncol=3)
+    axs[1].set_xlabel("Normalized time [%]")
+    axs[0].set_ylabel("Subelites", fontsize=16)
+    axs[1].set_ylabel("Elites", fontsize=16)
+    plt.subplots_adjust(top=0.8)
+    plt.suptitle(move)
+    plt.savefig(output_file_name, dpi=300)
+    # plt.show()
     return
 
 if QUALITATIVE_ANALYSIS_FLAG:
@@ -841,6 +907,9 @@ if QUALITATIVE_ANALYSIS_FLAG:
         plot_presence(presence_curves_per_athelte, move, xi_interp, 4, "Blink ",
                       home_path + '/disk/Eye-tracking/plots/' + f'blink_presence_{move}.png',
                       significant_timings_blink)
+
+        plot_presence_all_at_the_same_time(presence_curves_per_athelte, move, xi_interp,
+                          home_path + '/disk/Eye-tracking/plots/' + f'presence_all_{move}.png')
 
 
 
