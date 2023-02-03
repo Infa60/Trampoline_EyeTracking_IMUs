@@ -157,7 +157,7 @@ if PRIMARY_ANALYSIS_FLAG:
         'Expertise': [primary_data_frame['Expertise'][i]],
         'Acrobatics': [primary_data_frame['Acrobatics'][i]],
         'Fixations duration relative': [primary_data_frame['Fixations duration relative'][i]],
-        'Number of fixations': [primary_data_frame['Number of fixations'][i]],
+        'Number of fixations': [float(primary_data_frame['Number of fixations'][i])],
         'Quiet eye duration relative': [primary_data_frame['Quiet eye duration relative'][i]],
         'Eye amplitude': [primary_data_frame['Eye amplitude'][i]],
         'Neck amplitude': [primary_data_frame['Neck amplitude'][i]],
@@ -196,25 +196,25 @@ if PRIMARY_ANALYSIS_FLAG:
 
 
     print("pairwise t-test for Fixations duration relative")
-    out = pg.pairwise_tukey(data=primary_data_frame, dv='Fixations duration relative', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Fixations duration relative', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Number of fixations")
-    out = pg.pairwise_tukey(data=primary_data_frame, dv='Number of fixations', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Number of fixations', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Quiet eye duration relative")
-    out = pg.pairwise_tukey(data=primary_data_frame, dv='Quiet eye duration relative', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Quiet eye duration relative', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Eye amplitude")
-    out = pg.pairwise_tukey(data=primary_data_frame, dv='Eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Neck amplitude")
-    out = pg.pairwise_tukey(data=primary_data_frame, dv='Neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Maximum eye amplitude")
-    out = pg.pairwise_tukey(data=primary_data_frame, dv='Maximum eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Maximum eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Maximum neck amplitude")
-    out = pg.pairwise_tukey(data=primary_data_frame, dv='Maximum neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Maximum neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
 
 
@@ -593,25 +593,25 @@ if AOI_ANALYSIS_FLAG:
     print(f'{out}\n\n')
 
     print("pairwise t-test for Trampoline bed")
-    out = pg.pairwise_tukey(data=AOI_proportions_data_frame, dv='Trampoline bed', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Trampoline bed', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Trampoline")
-    out = pg.pairwise_tukey(data=AOI_proportions_data_frame, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Wall back front")
-    out = pg.pairwise_tukey(data=AOI_proportions_data_frame, dv='Wall back front', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Wall back front', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Ceiling")
-    out = pg.pairwise_tukey(data=AOI_proportions_data_frame, dv='Ceiling', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Ceiling', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Wall sides")
-    out = pg.pairwise_tukey(data=AOI_proportions_data_frame, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Athlete himself")
-    out = pg.pairwise_tukey(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Blink")
-    out = pg.pairwise_tukey(data=AOI_proportions_data_frame, dv='Blink', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Blink', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
 
 
@@ -654,19 +654,19 @@ if NECK_EYE_ANALYSIS_FLAG:
     print(f'{out}\n\n')
 
     print("pairwise t-test for Anticipatory movements")
-    out = pg.pairwise_tukey(data=neck_eye_movements_data_frame, dv='Anticipatory movements', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Anticipatory movements', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Compensatory movements")
-    out = pg.pairwise_tukey(data=neck_eye_movements_data_frame, dv='Compensatory movements', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Compensatory movements', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Spotting movements")
-    out = pg.pairwise_tukey(data=neck_eye_movements_data_frame, dv='Spotting movements', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Spotting movements', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Movement detection")
-    out = pg.pairwise_tukey(data=neck_eye_movements_data_frame, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
     print("pairwise t-test for Blinks")
-    out = pg.pairwise_tukey(data=neck_eye_movements_data_frame, dv='Blinks', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Blinks', within='Acrobatics', between='Expertise', subject='Name')
     print(f'{out}\n\n')
 
 
@@ -695,7 +695,7 @@ if SPREADING_HEATMAP_FLAG:
     print(f'{out}\n\n')
 
     print("pairwise t-test for Heat map 90th percentile")
-    out = pg.pairwise_tukey(data=heatmaps_spreading_data_frame, dv='Heat map 90th percentile', within='Acrobatics',
+    out = pg.pairwise_tests(data=heatmaps_spreading_data_frame, dv='Heat map 90th percentile', within='Acrobatics',
                             between='Expertise', subject='Name')
     print(f'{out}\n\n')
 
