@@ -364,7 +364,7 @@ def __main__():
          time_stamps_eye_tracking_index_on_pupil,
          SCENE_CAMERA_SERIAL_NUMBER, ) = load_pupil(gaze_position_labels, eye_tracking_data_path)
 
-        blink_duration_threshold = 0.0001
+        blink_duration_threshold = 0.2
         csv_eye_tracking_confident = remove_data_during_blinks(csv_eye_tracking, csv_blinks, blink_duration_threshold)
 
         run_create_heatmaps(subject_name, subject_expertise, move_names, move_orientation, repetition_number, movie_name,

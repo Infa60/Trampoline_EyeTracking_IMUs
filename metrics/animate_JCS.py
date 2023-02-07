@@ -124,37 +124,38 @@ def compute_eye_related_positions(
     return Xsens_head_position_calculated, eye_position, gaze_orientation, gaze_position_temporal_evolution_projected, wall_index, EulAngles_head_global, EulAngles_neck, Xsens_orthogonal_thorax_position, Xsens_orthogonal_head_position
 
 
-def idientify_fixations(time_vector_pupil, gaze_position_temporal_evolution_projected, eye_position, wall_index, folder_name):
+def identify_fixations(time_vector_pupil, gaze_position_temporal_evolution_projected, eye_position, wall_index, folder_name):
     """
     This function identifies the fixations based on an angle threshold of 5 degrees which is projected on the gymnasium
     to be converted in a distance threshold.
     We consider that if all the points in a window of 40 ms are within the threshold, then it is a fixation.
     """
-    treshold_block = 10 * np.pi / 180
-    treshold_detection = 2.5 * np.pi / 180
+    treshold_block = 10 * np.pi / 180  # Only for plotting the gliding fixations
+    treshold_detection = 2.5 * np.pi / 180  # Real fixation threshold
     duration_threshold = 0.04
+    
     fixation_timing_candidates = np.array([])
     fixation_timing_candidates_start = np.array([])
     fixation_timing_candidates_end = np.array([])
     last_index = np.argmin(np.abs((time_vector_pupil[-1] - duration_threshold) - time_vector_pupil))
     for i in range(last_index):
-        ms_100_idx = np.argmin(np.abs((time_vector_pupil[i] + duration_threshold) - time_vector_pupil))
-        if time_vector_pupil[ms_100_idx] - duration_threshold < 0:
-            ms_100_idx += 1
-        current_time = np.mean(time_vector_pupil[i: ms_100_idx + 1])
-        mean_gaze_position_temporal_evolution_projected = np.mean(gaze_position_temporal_evolution_projected[i: ms_100_idx + 1, :], axis=0)
-        mean_eye_position = np.mean(eye_position[i: ms_100_idx + 1, :], axis=0)
+        ms_40_idx = np.argmin(np.abs((time_vector_pupil[i] + duration_threshold) - time_vector_pupil))
+        if time_vector_pupil[ms_40_idx] - duration_threshold < 0:
+            ms_40_idx += 1
+        current_time = np.mean(time_vector_pupil[i: ms_40_idx + 1])
+        mean_gaze_position_temporal_evolution_projected = np.mean(gaze_position_temporal_evolution_projected[i: ms_40_idx + 1, :], axis=0)
+        mean_eye_position = np.mean(eye_position[i: ms_40_idx + 1, :], axis=0)
         position_threshold = np.tan(treshold_detection) * np.linalg.norm(mean_eye_position - mean_gaze_position_temporal_evolution_projected)
 
-        if np.all(np.abs(gaze_position_temporal_evolution_projected[i: ms_100_idx + 1, :] - mean_gaze_position_temporal_evolution_projected) < position_threshold):
+        if np.all(np.abs(gaze_position_temporal_evolution_projected[i: ms_40_idx + 1, :] - mean_gaze_position_temporal_evolution_projected) < position_threshold):
             if len(fixation_timing_candidates) == 0:
                 fixation_timing_candidates = np.array([current_time])
                 fixation_timing_candidates_start = np.array([i])
-                fixation_timing_candidates_end = np.array([ms_100_idx])
+                fixation_timing_candidates_end = np.array([ms_40_idx])
             else:
                 fixation_timing_candidates = np.vstack((fixation_timing_candidates, current_time))
                 fixation_timing_candidates_start = np.vstack((fixation_timing_candidates_start, i))
-                fixation_timing_candidates_end = np.vstack((fixation_timing_candidates_end, ms_100_idx))
+                fixation_timing_candidates_end = np.vstack((fixation_timing_candidates_end, ms_40_idx))
     fixation_idx_candidates = np.zeros((len(time_vector_pupil),))
     for i in range(len(fixation_timing_candidates_start)):
         fixation_idx_candidates[int(fixation_timing_candidates_start[i]): int(fixation_timing_candidates_end[i])] = 1
@@ -284,10 +285,11 @@ def identify_head_eye_movements(elevation, azimuth, EulAngles_head_global, EulAn
     This function identifies the head and eye movements being: anticipatory, compensatory, spotting, movement detection,
     blinks, and fixations.
     """
-    threhold_angle = 20 * np.pi / 180
+    threshold_angle = 20 * np.pi / 180  # anticipatory / compensatory
     head_velocity_threshold = 120 * np.pi / 180  # 120deg/s Dalvin (2004)
     duration_threshold = 0.04
-    position_threshold = 0.5 * np.pi / 180
+    # position_threshold = 0.5 * np.pi / 180  # movement detection
+    position_threshold = 100 * np.pi / 180  # 100deg/sec movement detection
 
     b, a = signal.butter(4, 0.15)
     azimuth_filtered = np.zeros((len(azimuth)))
@@ -435,9 +437,9 @@ def identify_head_eye_movements(elevation, azimuth, EulAngles_head_global, EulAn
         else:
             angles_diff_move_orientation = np.vstack((angles_diff_move_orientation, angle))
 
-        if angle > (np.pi - threhold_angle):
+        if np.abs(angle) > (np.pi - threshold_angle) and np.abs(angle) < (np.pi + threshold_angle):
             compensatory_candidates[i] = 1
-        elif np.abs(angle) < threhold_angle:
+        elif np.abs(angle) < threshold_angle:
             anticipatory_candidates[i] = 1
         elif angle < 0:
             print("Angle négatif !")
@@ -473,9 +475,9 @@ def identify_head_eye_movements(elevation, azimuth, EulAngles_head_global, EulAn
              '.m')
     ax.plot(time_vector_pupil[compensatory_index], np.vstack((0, angles_diff_move_orientation, 0))[compensatory_index],
              '.g')
-    ax.plot(np.array([time_vector_pupil[0], time_vector_pupil[-1]]), np.array([threhold_angle, threhold_angle]), '--k')
+    ax.plot(np.array([time_vector_pupil[0], time_vector_pupil[-1]]), np.array([threshold_angle, threshold_angle]), '--k')
     ax.plot(np.array([time_vector_pupil[0], time_vector_pupil[-1]]),
-             np.array([np.pi - threhold_angle, np.pi - threhold_angle]), '--k')
+             np.array([np.pi - threshold_angle, np.pi - threshold_angle]), '--k')
     plt.title("angle between head and eye orientations for anticipatory, compensatory movements")
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.7, box.height])
@@ -485,7 +487,8 @@ def identify_head_eye_movements(elevation, azimuth, EulAngles_head_global, EulAn
 
     eye_displacement_norm = np.sqrt(eye_displacement_diff_finie[0, :] ** 2 + eye_displacement_diff_finie[1, :] ** 2)
     movement_detection_candidates = np.zeros((len(eye_displacement_norm) + 2))
-    movement_detection_candidates[1:-1] = (np.abs(eye_displacement_norm) < position_threshold).astype(int)
+    diff_time_vector_pupil = (time_vector_pupil[2:] - time_vector_pupil[:-2]) / 2
+    movement_detection_candidates[1:-1] = (np.abs(eye_displacement_norm) < (position_threshold * diff_time_vector_pupil)).astype(int)
 
     diff_index_movement_detection_candidates = movement_detection_candidates[1:] - movement_detection_candidates[:-1]
     movement_detection_blocks_start = np.where(diff_index_movement_detection_candidates == 1)[0] + 1
@@ -930,7 +933,7 @@ def animate(
      quiet_eye_duration_absolute,
      quiet_eye_duration_relative,
      number_of_fixation,
-     ) = idientify_fixations(
+     ) = identify_fixations(
     time_vector_pupil,
     gaze_position_temporal_evolution_projected,
     eye_position,
