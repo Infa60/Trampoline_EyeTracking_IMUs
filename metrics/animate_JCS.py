@@ -1030,6 +1030,7 @@ def animate(
         fixation_duration_relative,
         fixation_positions,
         fixation_timing,
+        fixation_index,
         quiet_eye_duration_absolute,
         quiet_eye_duration_relative,
         gaze_position_temporal_evolution_projected,

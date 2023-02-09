@@ -640,7 +640,7 @@ primary_table = [["Name", "Expertise", "Acrobatics",
 
 trajectories_table = [["Name", "Expertise", "Acrobatics", "Projected gaze orientation (PGO)",
                        "Projected gaze orientation facing front wall (PGOS)",
-                       "Wall index", "Wall index facing front wall", "Twist side"]]
+                       "Wall index", "Wall index facing front wall", "Twist side", "Fixations index"]]
 
 AOI_proportions_table = [["Name", "Expertise", "Acrobatics", "Trampoline bed", "Trampoline",
                     "Wall front", "Wall back",
@@ -658,7 +658,7 @@ neck_eye_movements_indices_table = [["Name", "Expertise", "Acrobatics", "Anticip
 heatmaps_spreading_table = [["Name", "Expertise", "Acrobatics", "Distance from the center of each point of the heatmap", "Heat map 90th percentile"]]
 
 qualitative_table = [["Name", "Expertise", "Acrobatics", "Fixation target", "anticipatory_index", "compensatory_index",
-                "spotting_index", "movement_detection_index", "blinks_index"]]
+                "spotting_index", "movement_detection_index", "blinks_index", "fixation_index"]]
 
 if GENRATE_DATA_FRAME_FLAG:
     for folder_subject in os.listdir(results_path):
@@ -704,13 +704,14 @@ if GENRATE_DATA_FRAME_FLAG:
                             gaze_position_temporal_evolution_projected_facing_front_wall = eye_tracking_metrics["gaze_position_temporal_evolution_projected_facing_front_wall"]
                             wall_index = eye_tracking_metrics["wall_index"]
                             wall_index_facing_front_wall = eye_tracking_metrics["wall_index_facing_front_wall"]
+                            fixations_index = eye_tracking_metrics["fixations_index"]
                             trajectories_table += [[subject_name, expertise, acrobatics,
                                                     gaze_position_temporal_evolution_projected,
                                                     gaze_position_temporal_evolution_projected_facing_front_wall,
                                                     wall_index,
                                                     wall_index_facing_front_wall,
-                                                    twist_side]]
-
+                                                    twist_side,
+                                                    fixations_index]]
 
                             # Secondary analysis - Movements
                             pourcentage_anticipatory = eye_tracking_metrics["pourcentage_anticipatory"]
@@ -760,7 +761,7 @@ if GENRATE_DATA_FRAME_FLAG:
 
                             qualitative_table += [[subject_name, expertise, acrobatics, fixation_positions,
                                              anticipatory_index, compensatory_index, spotting_index,
-                                             movement_detection_index, blinks_index]]
+                                             movement_detection_index, blinks_index, fixation_index]]
 
 
     savemat(f'{plot_path}/primary_table.mat', {'primary_table': primary_table})

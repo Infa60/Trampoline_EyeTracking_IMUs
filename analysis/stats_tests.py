@@ -9,6 +9,7 @@ import matplotlib.cm as cm
 from matplotlib.patches import Rectangle
 import spm1d
 from scipy.interpolate import interp1d
+from scipy.stats import multivariate_normal
 import csv
 from IPython import embed
 
@@ -96,6 +97,18 @@ with open(home_path + '/disk/Eye-tracking/plots/nb_trial_per_athlete.csv', 'w') 
                              len(trial_per_athlete_per_move_index[name]['42']),
                              len(trial_per_athlete_per_move_index[name]['43'])])
     f.close()
+
+subelites_nb_athlete_per_move = {'4-': 0, '41': 0, '42': 0, '43': 0}
+elites_nb_athlete_per_move = {'4-': 0, '41': 0, '42': 0, '43': 0}
+for name in subelite_names:
+    for move in subelites_nb_athlete_per_move.keys():
+        if len(trial_per_athlete_per_move_index[name][move]) > 0:
+            subelites_nb_athlete_per_move[move] += 1
+for name in elite_names:
+    for move in elites_nb_athlete_per_move.keys():
+        if len(trial_per_athlete_per_move_index[name][move]) > 0:
+            elites_nb_athlete_per_move[move] += 1
+
 
 # Give the mean value to the athelte who did not want to do one move in particular for ANOVAs
 primary_table_array = np.array(primary_table)
@@ -387,7 +400,7 @@ def plot_mean_PGOS_per_athlete(name, move, interpolated_unwrapped_trajectory, ho
         plt.title(f"{name} {move}")
         plt.legend()
         plt.savefig(home_path + f"/disk/Eye-tracking/plots/PGOS/multiple_trials_{name}_{move}.png", dpi=300)
-        plt.show()
+        # plt.show()
 
     # fig, axs = plt.subplots(2, 1)
     # for i in range(interpolated_unwrapped_trajectory.shape[2]):
@@ -413,7 +426,7 @@ def plot_projection_of_PGOS(name, move, original_trajectory, projected_interpola
     # plt.show()
     return
 
-def unwrap_and_plot_gaze_position(gaze_position, wall_index, bound_side):
+def unwrap_gaze_positions(gaze_position, wall_index, bound_side):
 
     gaze_position_x_y = np.zeros((2, np.shape(wall_index)[0]))
     gaze_position_x_y[:, :] = np.nan
@@ -430,8 +443,6 @@ def unwrap_and_plot_gaze_position(gaze_position, wall_index, bound_side):
             gaze_position_x_y[:, i] = [gaze_position[i][0], -bound_side - gaze_position[i][2]]
         elif wall_index[i] == 5:  # bound left
             gaze_position_x_y[:, i] = [gaze_position[i][0], bound_side + gaze_position[i][2]]
-
-
     return gaze_position_x_y
 
 
@@ -474,7 +485,7 @@ if TRAJECTORIES_ANALYSIS_FLAG:
 
                 wall_index_closest = nearest_interp(xi_interp, x_index_this_time, wall_index_facing_front_wall)
                 trajectory_this_time_3d = np.hstack((trajectory_this_time_x, trajectory_this_time_y, trajectory_this_time_z))
-                unwrapped_trajectory_this_time = unwrap_and_plot_gaze_position(
+                unwrapped_trajectory_this_time = unwrap_gaze_positions(
                     trajectory_this_time_3d,
                     wall_index_closest,
                     bound_side)
@@ -529,6 +540,176 @@ if TRAJECTORIES_ANALYSIS_FLAG:
     significant_timings = np.logical_or(significant_timings_x, significant_timings_y)
     if significant_timings[move] is not None:
         print("Significant timings found for SPM1D on PGOS: ", significant_timings[move])
+
+
+if TRAJECTORIES_HEATMAPS_FLAG:
+    def put_lines_on_fig(ax):
+        ax.plot(np.array([0, 0]), np.array([82, 173]), '-k', linewidth=1)
+        ax.plot(np.array([144, 144]), np.array([82, 173]), '-k', linewidth=1)
+        ax.plot(np.array([226, 226]), np.array([0, 255]), '-k', linewidth=1)
+        ax.plot(np.array([370, 370]), np.array([0, 255]), '-k', linewidth=1)
+        ax.plot(np.array([453, 453]), np.array([82, 173]), '-k', linewidth=1)
+
+        ax.plot(np.array([226, 370]), np.array([0, 0]), '-k', linewidth=1)
+        ax.plot(np.array([0, 453]), np.array([82, 82]), '-k', linewidth=1)
+        ax.plot(np.array([0, 453]), np.array([173, 173]), '-k', linewidth=1)
+        ax.plot(np.array([226, 370]), np.array([255, 255]), '-k', linewidth=1)
+
+        ax.plot(np.array([277, 277]), np.array([117, 138]), '-k', linewidth=1)
+        ax.plot(np.array([320, 320]), np.array([117, 138]), '-k', linewidth=1)
+        ax.plot(np.array([277, 320]), np.array([117, 117]), '-k', linewidth=1)
+        ax.plot(np.array([277, 320]), np.array([138, 138]), '-k', linewidth=1)
+
+        ax.text((-7.2 - (9.4620 - 1.2192) - 2 * 7.2 + 7.2 / 2 + 1) * 10 + 298.428, (4.5367 + 0.1)*10 + 27.295 + 5, "Ceiling", fontsize=10)
+        ax.text((-7.2 - (9.4620 - 1.2192) + 1)*10 + 298.428, (4.5367 + 0.1)*10 + 27.295 + 5, "Wall back", fontsize=10)
+        ax.text((7.2 + 1)*10 + 298.428, (4.5367 + 0.1)*10 + 27.295 + 5, "Wall front", fontsize=10)
+        ax.text((-7.2 + 7.2 / 2 + 1)*10 + 298.428, (4.5367 + 9.4620 - 1.2192 + 1)*10 + 127.295 + 5, "Wall left", fontsize=10)
+        ax.text((-7.2 + 7.2 / 2 + 0.5)*10 + 298.428, (-4.5367 - (9.4620 - 1.2192))*10 + 127.295 - 5, "Wall right", fontsize=10)
+        return
+
+    def transform_gaze_unwrapped_to_heatmap(gaze_position_unwrapped, width, height):
+        centers = gaze_position_unwrapped * 10
+        centers[0, :] += 298.428
+        centers[1, :] += 127.295
+
+        scale = 5
+        gaussians = []
+        for i in range(np.shape(centers)[1]):
+            if (not np.isnan(centers[0, i]) and not np.isnan(centers[1, i])):
+                s = np.eye(2) * scale
+                g = multivariate_normal(mean=(centers[0, i], centers[1, i]), cov=s)
+                gaussians.append(g)
+
+        # create a grid of (x,y) coordinates at which to evaluate the kernels
+        x = np.arange(0, width)
+        y = np.arange(0, height)
+        xx, yy = np.meshgrid(x, y)
+        xxyy = np.stack([xx.ravel(), yy.ravel()]).T
+
+        # evaluate kernels at grid points
+        heatmap_this_time = np.zeros((height, width))
+        for g in gaussians:
+            heatmap_this_time += g.pdf(xxyy).reshape((height, width))
+
+        return heatmap_this_time
+
+    def plot_heatmaps_unwraped(subelites_heatmaps, elites_heatmaps, output_filename, move):
+        fig, axs = plt.subplots(1, 2, figsize=(18, 6))
+        put_lines_on_fig(axs[0])
+        put_lines_on_fig(axs[1])
+        f = axs[0].imshow(subelites_heatmaps, cmap=plt.get_cmap('plasma'))  # 'hot_r'
+        axs[1].imshow(elites_heatmaps, cmap=plt.get_cmap('plasma'))
+        plt.subplots_adjust(right=0.8)
+        plt.suptitle(move)
+        cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
+        fig.colorbar(f, cax=cbar_ax)
+        plt.savefig(output_filename, dpi=300)
+        # plt.show()
+        return
+
+    bound_side = 3 + 121 * 0.0254 / 2
+    width_heatmap = 453
+    height_heatmap = 255
+
+    heatmap_unwraped_per_athelte_per_move = {}
+    heatmap_unwraped_fixations_per_athelte_per_move = {}
+    for j, name in enumerate(trial_per_athlete_per_move_index.keys()):
+        heatmap_unwraped_per_athelte_per_move[name] = {}
+        heatmap_unwraped_fixations_per_athelte_per_move[name] = {}
+        for i, move in enumerate(trial_per_athlete_per_move_index[name].keys()):
+            heatmap_unwraped_per_athelte_per_move[name][move] = []
+            heatmap_unwraped_fixations_per_athelte_per_move[name][move] = []
+            index_this_time = trial_per_athlete_per_move_index[name][move]
+            heatmap_unwraped = np.zeros((height_heatmap, width_heatmap))
+            heatmap_unwraped_fixations = np.zeros((height_heatmap, width_heatmap))
+            for k in index_this_time:
+                # Mimic that all athletes twisted on the right side
+                wall_index_facing_front_wall = trajectories_table[k][6][:, 0]
+                SPGO = trajectories_table[k][4]
+                if trajectories_table[k][7] == 'G':
+                    SPGO[:, 1] = -SPGO[:, 1]
+                    index_4 = np.where(wall_index_facing_front_wall == 4)[0]
+                    index_5 = np.where(wall_index_facing_front_wall == 5)[0]
+                    if len(index_4) > 0:
+                        wall_index_facing_front_wall[index_4] = 5
+                    if len(index_5) > 0:
+                        wall_index_facing_front_wall[index_5] = 4
+                gaze_position_unwrapped = unwrap_gaze_positions(SPGO, wall_index_facing_front_wall, bound_side)
+                heatmap_unwraped += transform_gaze_unwrapped_to_heatmap(gaze_position_unwrapped, width_heatmap, height_heatmap)
+                fixations_index = trajectories_table[k][7]
+                heatmap_unwraped_fixations += transform_gaze_unwrapped_to_heatmap(gaze_position_unwrapped[fixations_index, :], width_heatmap, height_heatmap)
+
+            heatmap_unwraped[0:82+1, 0:226+1] = np.nan
+            heatmap_unwraped[0:82+1, 370:453+1] = np.nan
+            heatmap_unwraped[173:255, 226:370+1] = np.nan
+            heatmap_unwraped[173:255, 370:453+1] = np.nan
+            heatmap_unwraped /= len(index_this_time)
+
+            heatmap_unwraped_fixations[0:82+1, 0:226+1] = np.nan
+            heatmap_unwraped_fixations[0:82+1, 370:453+1] = np.nan
+            heatmap_unwraped_fixations[173:255, 226:370+1] = np.nan
+            heatmap_unwraped_fixations[173:255, 370:453+1] = np.nan
+            heatmap_unwraped_fixations /= len(index_this_time)
+
+            if move == "41":
+                embed()
+                fig, ax = plt.subplots(1, 1)
+                put_lines_on_fig(ax)
+                ax.imshow(heatmap_unwraped, cmap=plt.get_cmap('hot_r'))
+                ax.axis('equal')
+                ax.set_xlim(-5, 458)
+                plt.show()
+
+            if len(index_this_time) > 0:
+                heatmap_unwraped_per_athelte_per_move[name][move] = heatmap_unwraped
+                heatmap_unwraped_fixations_per_athelte_per_move[name][move] = heatmap_unwraped_fixations
+                # plt.figure()
+                # put_lines_on_fig()
+                # plt.imshow(heatmap_unwraped, cmap=plt.get_cmap('hot_r'))
+                # plt.savefig(home_path + '/disk/Eye-tracking/plots/' + f'PGOS_{move}.png')
+                # plt.show()
+                # plt.close('all')
+            else:
+                heatmap_unwraped_per_athelte_per_move[name][move] = None
+                heatmap_unwraped_fixations_per_athelte_per_move[name][move] = None
+
+    subelites_heatmaps_trajectory = {'4-': np.zeros((height_heatmap, width_heatmap)), '41': np.zeros((height_heatmap, width_heatmap)),
+                            '42': np.zeros((height_heatmap, width_heatmap)), '43': np.zeros((height_heatmap, width_heatmap))}
+    elites_heatmaps_trajectory = {'4-': np.zeros((height_heatmap, width_heatmap)), '41': np.zeros((height_heatmap, width_heatmap)),
+                            '42': np.zeros((height_heatmap, width_heatmap)), '43': np.zeros((height_heatmap, width_heatmap))}
+    subelites_heatmaps_fixations = {'4-': np.zeros((height_heatmap, width_heatmap)), '41': np.zeros((height_heatmap, width_heatmap)),
+                         '42': np.zeros((height_heatmap, width_heatmap)), '43': np.zeros((height_heatmap, width_heatmap))}
+    elites_heatmaps_fixations = {'4-': np.zeros((height_heatmap, width_heatmap)), '41': np.zeros((height_heatmap, width_heatmap)),
+                         '42': np.zeros((height_heatmap, width_heatmap)), '43': np.zeros((height_heatmap, width_heatmap))}
+    for name in heatmap_unwraped_per_athelte_per_move.keys():
+        for move in heatmap_unwraped_per_athelte_per_move[name].keys():
+            if name in subelite_names:
+                if heatmap_unwraped_per_athelte_per_move[name][move] is not None:
+                    subelites_heatmaps_trajectory[move] += heatmap_unwraped_per_athelte_per_move[name][move]
+                if heatmap_unwraped_fixations_per_athelte_per_move[name][move] is not None:
+                    subelites_heatmaps_fixations[move] += heatmap_unwraped_fixations_per_athelte_per_move[name][move]
+            elif name in elite_names:
+                if heatmap_unwraped_per_athelte_per_move[name][move] is not None:
+                    elites_heatmaps_trajectory[move] += heatmap_unwraped_per_athelte_per_move[name][move]
+                if heatmap_unwraped_fixations_per_athelte_per_move[name][move] is not None:
+                    elites_heatmaps_fixations[move] += heatmap_unwraped_fixations_per_athelte_per_move[name][move]
+            else:
+                print(f"Probleme de nom: {name} not recognised")
+
+    for i, move in enumerate(['4-', '41', '42', '43']):
+        subelites_heatmaps_trajectory[move] /= subelites_nb_athlete_per_move[move]
+        elites_heatmaps_trajectory[move] /= elites_nb_athlete_per_move[move]
+        subelites_heatmaps_fixations[move] /= subelites_nb_athlete_per_move[move]
+        elites_heatmaps_fixations[move] /= elites_nb_athlete_per_move[move]
+
+        plot_heatmaps_unwraped(subelites_heatmaps_trajectory, elites_heatmaps_trajectory,
+                               home_path + '/disk/Eye-tracking/plots/' + f'heatmaps_trajectory_{move}.png',
+                               move)
+
+        plot_heatmaps_unwraped(subelites_heatmaps_fixations, elites_heatmaps_fixations,
+                               home_path + '/disk/Eye-tracking/plots/' + f'heatmaps_fixations_{move}.png',
+                               move)
+        plt.close('all')
 
 # ----------------------------------------- AOI data frame = Mixed ANOVA --------------------------------------------- #
 
@@ -806,6 +987,7 @@ if QUALITATIVE_ANALYSIS_FLAG:
             spotting_curve = np.zeros((nb_interp_points, ))
             movement_detection_curve = np.zeros((nb_interp_points, ))
             blink_curve = np.zeros((nb_interp_points, ))
+            fixation_curve = np.zeros((nb_interp_points, ))
             for k in index_this_time:
                 x_index_this_time = np.linspace(0, 1, len(qualitative_table[k][4]))
                 anticipatory_presence_this_time = qualitative_table[k][4].astype(int)
@@ -813,19 +995,22 @@ if QUALITATIVE_ANALYSIS_FLAG:
                 spotting_presence_this_time = qualitative_table[k][6].astype(int)
                 movement_detection_presence_this_time = qualitative_table[k][7].astype(int)
                 blink_presence_this_time = qualitative_table[k][8].astype(int)
+                fixation_presence_this_time = qualitative_table[k][9].astype(int)
 
                 anticipatory_curve += nearest_interp(xi_interp, x_index_this_time, anticipatory_presence_this_time)
                 compensatory_curve += nearest_interp(xi_interp, x_index_this_time, compensatory_presence_this_time)
                 spotting_curve += nearest_interp(xi_interp, x_index_this_time, spotting_presence_this_time)
                 movement_detection_curve += nearest_interp(xi_interp, x_index_this_time, movement_detection_presence_this_time)
                 blink_curve += nearest_interp(xi_interp, x_index_this_time, blink_presence_this_time)
+                fixation_curve += nearest_interp(xi_interp, x_index_this_time, fixation_presence_this_time)
 
             if len(index_this_time) > 0:
                 presence_curves_per_athelte[name][move] = [anticipatory_curve/len(index_this_time),
                                                  compensatory_curve/len(index_this_time),
                                                  spotting_curve/len(index_this_time),
                                                  movement_detection_curve/len(index_this_time),
-                                                 blink_curve/len(index_this_time)]
+                                                 blink_curve/len(index_this_time),
+                                                 fixation_curve/len(index_this_time)]
 
     colors_subelites = [cm.get_cmap('plasma')(k) for k in np.linspace(0, 0.4, len(subelite_names))]
     colors_elites = [cm.get_cmap('plasma')(k) for k in np.linspace(0.6, 1, len(elite_names))]
@@ -838,7 +1023,9 @@ if QUALITATIVE_ANALYSIS_FLAG:
     subelites_movement_detection = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
     elites_movement_detection = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
     subelites_blink = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
+    subelites_fixation = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
     elites_blink = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
+    elites_fixation = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
     for name in presence_curves_per_athelte.keys():
         for move in presence_curves_per_athelte[name].keys():
             if name in subelite_names:
@@ -848,6 +1035,7 @@ if QUALITATIVE_ANALYSIS_FLAG:
                     subelites_spotting[move] = np.vstack((subelites_spotting[move], presence_curves_per_athelte[name][move][2]))
                     subelites_movement_detection[move] = np.vstack((subelites_movement_detection[move], presence_curves_per_athelte[name][move][3]))
                     subelites_blink[move] = np.vstack((subelites_blink[move], presence_curves_per_athelte[name][move][4]))
+                    subelites_fixation[move] = np.vstack((subelites_fixation[move], presence_curves_per_athelte[name][move][5]))
             elif name in elite_names:
                 if presence_curves_per_athelte[name][move] != []:
                     elites_anticipatory[move] = np.vstack((elites_anticipatory[move], presence_curves_per_athelte[name][move][0]))
@@ -855,6 +1043,7 @@ if QUALITATIVE_ANALYSIS_FLAG:
                     elites_spotting[move] = np.vstack((elites_spotting[move], presence_curves_per_athelte[name][move][2]))
                     elites_movement_detection[move] = np.vstack((elites_movement_detection[move] , presence_curves_per_athelte[name][move][3]))
                     elites_blink[move] = np.vstack((elites_blink[move], presence_curves_per_athelte[name][move][4]))
+                    elites_fixation[move] = np.vstack((elites_fixation[move], presence_curves_per_athelte[name][move][5]))
             else:
                 print(f"Probleme de nom: {name} not recognised")
 
@@ -864,17 +1053,20 @@ if QUALITATIVE_ANALYSIS_FLAG:
         subelites_spotting[move] = subelites_spotting[move][1:]
         subelites_movement_detection[move] = subelites_movement_detection[move][1:]
         subelites_blink[move] = subelites_blink[move][1:]
+        subelites_fixation[move] = subelites_fixation[move][1:]
         elites_anticipatory[move] = elites_anticipatory[move][1:]
         elites_compensatory[move] = elites_compensatory[move][1:]
         elites_spotting[move] = elites_spotting[move][1:]
         elites_movement_detection[move] = elites_movement_detection[move][1:]
         elites_blink[move] = elites_blink[move][1:]
+        elites_fixation[move] = elites_fixation[move][1:]
 
     admissible_timings_anticipatory, significant_timings_anticipatory = find_significant_timings(xi_interp, subelites_anticipatory, elites_anticipatory)
     admissible_timings_compensatory, significant_timings_compensatory = find_significant_timings(xi_interp, subelites_compensatory, elites_compensatory)
     admissible_timings_spotting, significant_timings_spotting = find_significant_timings(xi_interp, subelites_spotting, elites_spotting)
     admissible_timings_movement_detection, significant_timings_movement_detection = find_significant_timings(xi_interp, subelites_movement_detection, elites_movement_detection)
     admissible_timings_blink, significant_timings_blink = find_significant_timings(xi_interp, subelites_blink, elites_blink)
+    admissible_timings_fixation, significant_timings_fixation = find_significant_timings(xi_interp, subelites_fixation, elites_fixation)
 
     for i, move in enumerate(trial_per_athlete_per_move_index[name].keys()):
         plot_presence(presence_curves_per_athelte, move, xi_interp, 0, "Anticipatory movements ",
@@ -892,6 +1084,9 @@ if QUALITATIVE_ANALYSIS_FLAG:
         plot_presence(presence_curves_per_athelte, move, xi_interp, 4, "Blink ",
                       home_path + '/disk/Eye-tracking/plots/' + f'blink_presence_{move}.png',
                       significant_timings_blink)
+        plot_presence(presence_curves_per_athelte, move, xi_interp, 4, "Fixation ",
+                      home_path + '/disk/Eye-tracking/plots/' + f'fixation_presence_{move}.png',
+                      significant_timings_fixation)
 
         plot_presence_all_at_the_same_time(presence_curves_per_athelte, move, xi_interp,
                           home_path + '/disk/Eye-tracking/plots/' + f'presence_all_{move}.png')
