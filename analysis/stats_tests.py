@@ -259,34 +259,8 @@ def find_significant_timings(xi_interp, subelites_data, elites_data):
     return admissible_timings, significant_timings
 
 def plot_gymnasium_unwrapped(axs, j, FLAG_3D=False):
-    # # Plot trampo bed
-    # if FLAG_3D:
-    #     X, Y = np.meshgrid([-3.5 * 0.3048, 3.5 * 0.3048], [-7 * 0.3048, 7 * 0.3048])
-    #     Z = np.zeros(X.shape)
-    #     axs[j].plot_surface(X, Y, Z, color="k", alpha=0.4)
-    # else:
-    #     axs[j].add_patch(Rectangle((-3.5 * 0.3048, -7 * 0.3048), 7 * 0.3048, 14 * 0.3048, facecolor='k', alpha=0.2))
-    # # Plot horizontal lines of the symmetrized gymnasium
-    # axs[j].plot(np.array([-bound_side, bound_side]), np.array([-7.2, -7.2]), '-k')
-    # axs[j].plot(np.array([-bound_side, bound_side]), np.array([7.2, 7.2]), '-k')
-    # axs[j].plot(np.array([-bound_side, bound_side]), np.array([-7.2 - (9.4620-1.2192), -7.2 - (9.4620-1.2192)]), '-k')
-    # axs[j].plot(np.array([-bound_side, bound_side]), np.array([7.2 + 9.4620-1.2192, 7.2 + 9.4620-1.2192]), '-k')
-    # axs[j].plot(np.array([-bound_side, bound_side]), np.array([-7.2 - (9.4620-1.2192) - 7.2, -7.2 - (9.4620-1.2192) - 7.2]), '-k')
-    # axs[j].plot(np.array([-bound_side - (9.4620-1.2192), bound_side]), np.array([-7.2, -7.2]), '-k')
-    # axs[j].plot(np.array([-bound_side - (9.4620-1.2192), bound_side]), np.array([7.2, 7.2]), '-k')
-    # axs[j].plot(np.array([bound_side, bound_side + 9.4620 - 1.2192]), np.array([-7.2, -7.2]), '-k')
-    # axs[j].plot(np.array([bound_side, bound_side + 9.4620 - 1.2192]), np.array([7.2, 7.2]), '-k')
-    # # Plot vertical lines of the symmetrized gymnasium
-    # axs[j].plot(np.array([-bound_side, -bound_side]), np.array([-7.2, 7.2]), '-k')
-    # axs[j].plot(np.array([bound_side, bound_side]), np.array([-7.2, 7.2]), '-k')
-    # axs[j].plot(np.array([-bound_side - (9.4620-1.2192), -bound_side - (9.4620-1.2192)]), np.array([-7.2, 7.2]), '-k')
-    # axs[j].plot(np.array([bound_side + 9.4620-1.2192, bound_side + 9.4620-1.2192]), np.array([-7.2, 7.2]), '-k')
-    # axs[j].plot(np.array([-bound_side, -bound_side]), np.array([7.2, 7.2 + 9.4620-1.2192]), '-k')
-    # axs[j].plot(np.array([bound_side, bound_side]), np.array([7.2, 7.2 + 9.4620-1.2192]), '-k')
-    # axs[j].plot(np.array([-bound_side, -bound_side]), np.array([-7.2 - (9.4620-1.2192), 7.2]), '-k')
-    # axs[j].plot(np.array([bound_side, bound_side]), np.array([-7.2 - (9.4620-1.2192), 7.2]), '-k')
-    # axs[j].plot(np.array([-bound_side, -bound_side]), np.array([-7.2 - (9.4620-1.2192) - 7.2, -7.2 - (9.4620-1.2192)]), '-k')
-    # axs[j].plot(np.array([bound_side, bound_side]), np.array([-7.2 - (9.4620-1.2192) - 7.2, -7.2 - (9.4620-1.2192)]), '-k')
+
+    bound_side = 3 + 121 * 0.0254 / 2
 
     # Plot trampo bed
     if FLAG_3D:
@@ -413,7 +387,7 @@ def plot_mean_PGOS_per_athlete(name, move, interpolated_unwrapped_trajectory, ho
         plt.title(f"{name} {move}")
         plt.legend()
         plt.savefig(home_path + f"/disk/Eye-tracking/plots/PGOS/multiple_trials_{name}_{move}.png", dpi=300)
-        # plt.show()
+        plt.show()
 
     # fig, axs = plt.subplots(2, 1)
     # for i in range(interpolated_unwrapped_trajectory.shape[2]):
@@ -487,7 +461,18 @@ if TRAJECTORIES_ANALYSIS_FLAG:
                 trajectory_this_time_x = np.reshape(interp1d(x_index_this_time, trajectories_table[k][4][:, 0])(xi_interp), (nb_interp_points, 1))
                 trajectory_this_time_y = np.reshape(interp1d(x_index_this_time, trajectories_table[k][4][:, 1])(xi_interp), (nb_interp_points, 1))
                 trajectory_this_time_z = np.reshape(interp1d(x_index_this_time, trajectories_table[k][4][:, 2])(xi_interp), (nb_interp_points, 1))
-                wall_index_closest = nearest_interp(xi_interp, x_index_this_time, trajectories_table[k][6][:, 0])
+                # Mimic that all athletes twisted on the right side
+                wall_index_facing_front_wall = trajectories_table[k][6][:, 0]
+                if trajectories_table[k][7] == 'G':
+                    trajectory_this_time_y = -trajectory_this_time_y
+                    index_4 = np.where(wall_index_facing_front_wall == 4)[0]
+                    index_5 = np.where(wall_index_facing_front_wall == 5)[0]
+                    if len(index_4) > 0:
+                        wall_index_facing_front_wall[index_4] = 5
+                    if len(index_5) > 0:
+                        wall_index_facing_front_wall[index_5] = 4
+
+                wall_index_closest = nearest_interp(xi_interp, x_index_this_time, wall_index_facing_front_wall)
                 trajectory_this_time_3d = np.hstack((trajectory_this_time_x, trajectory_this_time_y, trajectory_this_time_z))
                 unwrapped_trajectory_this_time = unwrap_and_plot_gaze_position(
                     trajectory_this_time_3d,

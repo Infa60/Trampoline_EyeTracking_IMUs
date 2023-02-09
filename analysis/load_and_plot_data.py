@@ -9,6 +9,9 @@ import pandas as pd
 import os
 from scipy.io import savemat, loadmat
 import mpl_toolkits.mplot3d.axes3d as p3
+import sys
+sys.path.append("../metrics/")
+from animate_JCS import plot_gymnasium_symmetrized
 
 
 def load_eye_tracking_metrics(path, file):
@@ -92,72 +95,6 @@ def primary_plots(df, move_list, subelite_names, elite_names, plot_path):
 
 def trajectory_plots(df, move_list, subelite_names, elite_names):
 
-    def plot_gymnasium(ax):
-        bound_side = 3 + 121 * 0.0254 / 2
-        ax.set_box_aspect([1, 1, 1])
-        ax.view_init(elev=10.0, azim=-90)
-
-        ax.set_xlim3d([-8.0, 8.0])
-        ax.set_ylim3d([-8.0, 8.0])
-        ax.set_zlim3d([-3.0, 13.0])
-        ax.set_xlabel("X")
-        ax.set_ylabel("Y")
-        ax.set_zlabel("Z")
-
-        # Front right, to front left (bottom)
-        plt.plot(np.array([7.193, 7.360]), np.array([-bound_side, bound_side]), np.array([0, 0]), "-k")
-        # Front right, to back right (bottom)
-        plt.plot(np.array([-8.881, 7.193]), np.array([-bound_side, -bound_side]), np.array([0, 0]), "-k")
-        # Front left, to back left (bottom)
-        plt.plot(np.array([-8.881, 7.360]), np.array([bound_side, bound_side]), np.array([0, 0]), "-k")
-        # Back right, to back left (bottom)
-        plt.plot(np.array([-8.881, -8.881]), np.array([-bound_side, bound_side]), np.array([0, 0]), "-k")
-
-        # Front right, to front left (ceiling)
-        plt.plot(
-            np.array([7.193, 7.360]),
-            np.array([-bound_side, bound_side]),
-            np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
-            "-k",
-        )
-        # Front right, to back right (ceiling)
-        plt.plot(
-            np.array([-8.881, 7.193]),
-            np.array([-bound_side, -bound_side]),
-            np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
-            "-k",
-        )
-        # Front left, to back left (ceiling)
-        plt.plot(
-            np.array([-8.881, 7.360]),
-            np.array([bound_side, bound_side]),
-            np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
-            "-k",
-        )
-        # Back right, to back left (ceiling)
-        plt.plot(
-            np.array([-8.881, -8.881]),
-            np.array([-bound_side, bound_side]),
-            np.array([9.4620 - 1.2192, 9.4620 - 1.2192]),
-            "-k",
-        )
-
-        # Front right bottom, to front right ceiling
-        plt.plot(np.array([7.193, 7.193]), np.array([-bound_side, -bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
-        # Front left bottom, to front left ceiling
-        plt.plot(np.array([7.360, 7.360]), np.array([bound_side, bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
-        # Back right bottom, to back right ceiling
-        plt.plot(np.array([-8.881, -8.881]), np.array([-bound_side, -bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
-        # Back left bottom, to back left ceiling
-        plt.plot(np.array([-8.881, -8.881]), np.array([bound_side, bound_side]), np.array([0, 9.4620 - 1.2192]), "-k")
-
-        # Trampoline
-        X, Y = np.meshgrid([-7 * 0.3048, 7 * 0.3048], [-3.5 * 0.3048, 3.5 * 0.3048])
-        Z = np.zeros(X.shape)
-        ax.plot_surface(X, Y, Z, color="k", alpha=0.4)
-        return
-
-
     def plot_gaze_trajectory(ax,
                             gaze_position_temporal_evolution_projected,
                             color,
@@ -174,33 +111,27 @@ def trajectory_plots(df, move_list, subelite_names, elite_names):
 
         return
 
-    def plot_mean_trajectory_unfolded():
-        # normalized_time
-        # interpolated_data
-        # mean and std data
-        # save trajectories ?
-        # plot unfolded trajectories
-        return
+    bound_side = 3 + 121 * 0.0254 / 2
 
     fig1 = plt.figure(0)
     ax1 = p3.Axes3D(fig1)
     ax1.set_box_aspect([1, 1, 1])
-    plot_gymnasium(ax1)
+    plot_gymnasium_symmetrized(bound_side, ax1)
 
     fig2 = plt.figure(1)
     ax2 = p3.Axes3D(fig2)
     ax2.set_box_aspect([1, 1, 1])
-    plot_gymnasium(ax2)
+    plot_gymnasium_symmetrized(bound_side, ax2)
 
     fig3 = plt.figure(2)
     ax3 = p3.Axes3D(fig3)
     ax3.set_box_aspect([1, 1, 1])
-    plot_gymnasium(ax3)
+    plot_gymnasium_symmetrized(bound_side, ax3)
 
     fig4 = plt.figure(3)
     ax4 = p3.Axes3D(fig4)
     ax4.set_box_aspect([1, 1, 1])
-    plot_gymnasium(ax4)
+    plot_gymnasium_symmetrized(bound_side, ax4)
 
     ax_list = [ax1, ax2, ax3, ax4]
 
@@ -210,7 +141,7 @@ def trajectory_plots(df, move_list, subelite_names, elite_names):
         print(df['Name'][i])
         print(df['Acrobatics'][i])
 
-        gaze_position_temporal_evolution_projected = np.array(df['Projected gaze orientation (PGO)'][i])
+        gaze_position_temporal_evolution_projected_symmetrized = np.array(df['Projected gaze orientation facing front wall (PGOS)'][i])
         if df['Name'][i] in subelite_names:
             index = subelite_names.index(df['Name'][i])
             color = cmap(index * 0.35 / len(subelite_names))
@@ -221,15 +152,16 @@ def trajectory_plots(df, move_list, subelite_names, elite_names):
         index_move = move_list.index(df['Acrobatics'][i])
         print(index_move)
         plt.figure(index_move)
-        plot_gaze_trajectory(ax_list[index_move], gaze_position_temporal_evolution_projected, color)
+        plot_gaze_trajectory(ax_list[index_move], gaze_position_temporal_evolution_projected_symmetrized, color)
 
     for i in range(4):
         ax_list[i].view_init(elev=15, azim=-120)
-    plt.savefig(f"{plot_path}/gaze_trajectories_3D.png", dpi=300)
+    fig1.savefig(f"{plot_path}/gaze_trajectories_3D_4-.png", dpi=300)
+    fig2.savefig(f"{plot_path}/gaze_trajectories_3D_41.png", dpi=300)
+    fig3.savefig(f"{plot_path}/gaze_trajectories_3D_42.png", dpi=300)
+    fig4.savefig(f"{plot_path}/gaze_trajectories_3D_43.png", dpi=300)
     # plt.show()
 
-
-    plot_mean_trajectory_unfolded()
 
 # def bar_plots_elites_and_subelites_diff_color(df, type_names, subelite_names, elite_names):
 #
@@ -696,7 +628,8 @@ else:
     results_path = f"{home_path}/disk/Eye-tracking/Results"
     plot_path = home_path + f"/disk/Eye-tracking/plots"
 
-
+csv_name = home_path + "/disk/Eye-tracking/Trials_name_mapping.csv"
+trial_table = np.char.split(pd.read_csv(csv_name, sep="\t").values.astype("str"), sep=",")
 
 primary_table = [["Name", "Expertise", "Acrobatics",
                   "Fixations duration absolute", "Fixations duration relative", "Number of fixations",
@@ -705,7 +638,9 @@ primary_table = [["Name", "Expertise", "Acrobatics",
                   # "Eye amplitude 90th percentile", "Neck amplitude 90th percentile"
                   ]]
 
-trajectories_table = [["Name", "Expertise", "Acrobatics", "Projected gaze orientation (PGO)", "Projected gaze orientation facing front wall (PGOS)", "Wall index", "Wall index facing front wall"]]
+trajectories_table = [["Name", "Expertise", "Acrobatics", "Projected gaze orientation (PGO)",
+                       "Projected gaze orientation facing front wall (PGOS)",
+                       "Wall index", "Wall index facing front wall", "Twist side"]]
 
 AOI_proportions_table = [["Name", "Expertise", "Acrobatics", "Trampoline bed", "Trampoline",
                     "Wall front", "Wall back",
@@ -732,12 +667,18 @@ if GENRATE_DATA_FRAME_FLAG:
                 for file in os.listdir(results_path + '/' + folder_subject + '/' + folder_move):
                     if len(file) > 23:
                         if file[-23:] == "eyetracking_metrics.pkl":
+
                             path = results_path + '/' + folder_subject + '/' + folder_move + '/'
                             move_number, eye_tracking_metrics = load_eye_tracking_metrics(path, file)
 
                             # Primary analysis
                             expertise = eye_tracking_metrics["subject_expertise"]
                             subject_name = eye_tracking_metrics["subject_name"]
+
+                            for i_trial in range(len(trial_table)):
+                                if trial_table[i_trial][0][0] == subject_name:
+                                    twist_side = trial_table[i_trial][0][25]
+
                             acrobatics = folder_move
                             fixation_duration_absolute = np.mean(eye_tracking_metrics["fixation_duration_absolute"])
                             fixation_duration_relative = np.mean(eye_tracking_metrics["fixation_duration_relative"])
@@ -767,7 +708,8 @@ if GENRATE_DATA_FRAME_FLAG:
                                                     gaze_position_temporal_evolution_projected,
                                                     gaze_position_temporal_evolution_projected_facing_front_wall,
                                                     wall_index,
-                                                    wall_index_facing_front_wall]]
+                                                    wall_index_facing_front_wall,
+                                                    twist_side]]
 
 
                             # Secondary analysis - Movements
