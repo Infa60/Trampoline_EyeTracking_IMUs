@@ -113,6 +113,8 @@ def trajectory_plots(df, move_list, subelite_names, elite_names):
 
     bound_side = 3 + 121 * 0.0254 / 2
 
+    plt.close('all')
+
     fig1 = plt.figure(0)
     ax1 = p3.Axes3D(fig1)
     ax1.set_box_aspect([1, 1, 1])
@@ -287,22 +289,22 @@ def bar_plots_error_bar_translated(df, type_names, subelite_names, elite_names, 
         for j, key in enumerate(type_names):
             mean = np.nanmean(means_subelite[key][i])
             std = np.nanstd(means_subelite[key][i])
-            ax.bar(i*2 - 0.4, mean, bottom=total_subelite, color=colors[j], width=0.4, label=(key if i == 0 else None), alpha=0.8)
-            ax.plot(np.array([0.1 + i*2 - 0.6 + 0.2/len(type_names)*j, 0.1 + i*2 - 0.6 + 0.2/len(type_names)*j]),
+            ax.bar(i*2 - 0.4, mean, bottom=total_subelite, color=colors[j], width=0.6, label=(key if i == 0 else None), alpha=0.8)
+            ax.plot(np.array([0.1 + i*2 - 0.7 + 0.5/len(type_names)*j, 0.1 + i*2 - 0.7 + 0.5/len(type_names)*j]),
                     np.array([total_subelite + mean - std, total_subelite + mean + std]), color=colors[j])
             total_subelite += mean
         total_elite = 0
         for j, key in enumerate(type_names):
             mean = np.nanmean(means_elite[key][i])
             std = np.nanstd(means_elite[key][i])
-            ax.bar(i * 2 + 0.4, mean, bottom=total_elite, color=colors[j], width=0.4, alpha=0.8)
-            ax.plot(np.array([0.1 + i*2 + 0.2 + 0.2/len(type_names)*j, 0.1 + i*2 + 0.2 + 0.2/len(type_names)*j]),
+            ax.bar(i * 2 + 0.4, mean, bottom=total_elite, color=colors[j], width=0.6, alpha=0.8)
+            ax.plot(np.array([0.1 + i*2 + 0.1 + 0.5/len(type_names)*j, 0.1 + i*2 + 0.1 + 0.5/len(type_names)*j]),
                     np.array([total_elite + mean - std, total_elite + mean + std]), color=colors[j])
             total_elite += mean
 
         if other:
-            ax.bar(i * 2 - 0.4, 100-total_subelite, bottom=total_subelite, color='k', width=0.4, label=('Other' if i == 0 else None), alpha=0.1)
-            ax.bar(i * 2 + 0.4, 100-total_elite, bottom=total_elite, color='k', width=0.4, alpha=0.1)
+            ax.bar(i * 2 - 0.4, 100-total_subelite, bottom=total_subelite, color='k', width=0.6, label=('Other' if i == 0 else None), alpha=0.1)
+            ax.bar(i * 2 + 0.4, 100-total_elite, bottom=total_elite, color='k', width=0.6, alpha=0.1)
     return ax
 
 def bar_plots(df, type_names, subelite_names, elite_names, pourcentage=True, other=False):
@@ -476,6 +478,8 @@ def heatmap_spreading_plots(df, move_list, subelite_names, elite_names, plot_pat
         for j in range(len(elite_names)):
             index_this_time = np.where(np.logical_and(df['Name'] == elite_names[j], df['Acrobatics'] == move_list[i]))
             means_elite_90.append(np.nanmean(list(df["Heat map 90th percentile"][index_this_time[0]])))
+            nan_index = np.where(np.isnan(df["Heat map 90th percentile"][index_this_time[0]]))
+            index_this_time = [np.delete(index_this_time[0], nan_index)]
             distance_this_athlete = np.zeros((256,))
             for k in index_this_time[0]:
                 distance_this_athlete += np.histogram(df["Distance from the center of each point of the heatmap"][k], bins=np.linspace(0, max_spreading, 257), density=True)[0] / len(index_this_time[0])
@@ -553,40 +557,40 @@ def heatmap_percetiel_plot(df, move_list, elite_names, subelite_names, plot_path
 
 def timing_plots(df, move_list, subelite_names, elite_names, plot_path):
 
-    move_type_list = ["anticipatory_index", "compensatory_index", "spotting_index", "movement_detection_index", "blinks_index"]
-    move_type_labels = ["Anticipatory movement", "Compensatorymovement", "Spotting", "Movement detection", "Blink"]
-    colors = [cm.get_cmap('plasma')(k) for k in [0., 0.4, 0.6, 0.75, 0.95]]
+    move_type_list = ["anticipatory_index", "compensatory_index", "spotting_index", "movement_detection_index", "blinks_index", "fixation_index"]
+    move_type_labels = ["Anticipatory movement", "Compensatorymovement", "Spotting", "Movement detection", "Blink", "Fixation"]
+    colors = [cm.get_cmap('plasma')(k) for k in [0., 0.35, 0.45, 0.65, 0.75, 0.95]]
 
     fig, axs = plt.subplots(2, 4)
     fig.set_figheight(15)
     for i in range(4):
         for j in range(len(subelite_names)):
             index_this_time = np.where(np.logical_and(df['Name'] == subelite_names[j], df['Acrobatics'] == move_list[i]))
-            for m in index_this_time[0]:
-                total_time_move = len(df["anticipatory_index"][m])
+            for m, idx_this_move in enumerate(index_this_time[0]):
+                total_time_move = len(df["anticipatory_index"][idx_this_move])
                 dt = 100 / total_time_move
                 for k, key in enumerate(move_type_list):
-                    int_index = np.where(np.array(df[key][m], dtype=np.int64))[0]
+                    int_index = np.where(np.array(df[key][idx_this_move], dtype=np.int64))[0]
                     consecutive = np.split(int_index, np.where(np.diff(int_index) != 1)[0]+1)
                     for l, cons_index in enumerate(consecutive):
-                        axs[0, i].plot(dt * cons_index, np.ones((len(df[key][m][cons_index]), )) *
+                        axs[0, i].plot(dt * cons_index, np.ones((len(df[key][idx_this_move][cons_index]), )) *
                                        (10*j + 1*k + 0.05*m), color=colors[k])
 
             for j in range(len(elite_names)):
                 index_this_time = np.where(
                     np.logical_and(df['Name'] == elite_names[j], df['Acrobatics'] == move_list[i]))
-                for m in index_this_time[0]:
-                    total_time_move = len(df["anticipatory_index"][m])
+                for m, idx_this_move in enumerate(index_this_time[0]):
+                    total_time_move = len(df["anticipatory_index"][idx_this_move])
                     dt = 100 / total_time_move
                     for k, key in enumerate(move_type_list):
-                        int_index = np.where(np.array(df[key][m], dtype=np.int64))[0]
+                        int_index = np.where(np.array(df[key][idx_this_move], dtype=np.int64))[0]
                         consecutive = np.split(int_index, np.where(np.diff(int_index) != 1)[0] + 1)
                         for l, cons_index in enumerate(consecutive):
-                            axs[1, i].plot(dt * cons_index, np.ones((len(df[key][m][cons_index]),)) *
-                                           (10 * j + 1 * k + 0.05 * m), color=colors[k])
+                            axs[1, i].plot(dt * cons_index, np.ones((len(df[key][idx_this_move][cons_index]),)) *
+                                           (10*j + 1*k + 0.05*m), color=colors[k])
 
-        axs[0, i].set_ylim(0, 100)
-        axs[1, i].set_ylim(0, 100)
+        axs[0, i].set_ylim(-5, 10*len(subelite_names) + 1*len(move_type_list) + 0.05*20)
+        axs[1, i].set_ylim(-5, 10*len(elite_names) + 1*len(move_type_list) + 0.05*20)
         axs[1, i].set_xlabel(move_list[i] + '/', fontsize=12)
         axs[0, i].axes.get_yaxis().set_visible(False)
         axs[1, i].axes.get_yaxis().set_visible(False)
@@ -601,9 +605,8 @@ def timing_plots(df, move_list, subelite_names, elite_names, plot_path):
     axs[1, 3].text(-425, 153, 'Subelite', fontsize=12, rotation=90)
     axs[1, 3].text(-425, 50, 'Elite', fontsize=12, rotation=90)
     plt.subplots_adjust(hspace=0.1, top=0.9, bottom=0.1)
-    # plt.show()
     plt.savefig(f"{plot_path}/timing_movements.png", dpi=300)
-
+    # plt.show()
 
     return
 
@@ -653,7 +656,7 @@ neck_eye_movements_table = [["Name", "Expertise", "Acrobatics", "Anticipatory mo
 
 neck_eye_movements_indices_table = [["Name", "Expertise", "Acrobatics", "Anticipatory movements index",
                        "Compensatory movements index", "Spotting movements index",
-                       "Movement detection index", "Blinks index"]]
+                       "Movement detection index", "Blinks index", 'Fixations index']]
 
 heatmaps_spreading_table = [["Name", "Expertise", "Acrobatics", "Distance from the center of each point of the heatmap", "Heat map 90th percentile"]]
 
@@ -704,14 +707,14 @@ if GENRATE_DATA_FRAME_FLAG:
                             gaze_position_temporal_evolution_projected_facing_front_wall = eye_tracking_metrics["gaze_position_temporal_evolution_projected_facing_front_wall"]
                             wall_index = eye_tracking_metrics["wall_index"]
                             wall_index_facing_front_wall = eye_tracking_metrics["wall_index_facing_front_wall"]
-                            fixations_index = eye_tracking_metrics["fixations_index"]
+                            fixation_index = eye_tracking_metrics["fixation_index"]
                             trajectories_table += [[subject_name, expertise, acrobatics,
                                                     gaze_position_temporal_evolution_projected,
                                                     gaze_position_temporal_evolution_projected_facing_front_wall,
                                                     wall_index,
                                                     wall_index_facing_front_wall,
                                                     twist_side,
-                                                    fixations_index]]
+                                                    fixation_index]]
 
                             # Secondary analysis - Movements
                             pourcentage_anticipatory = eye_tracking_metrics["pourcentage_anticipatory"]
@@ -730,7 +733,7 @@ if GENRATE_DATA_FRAME_FLAG:
                             blinks_index = eye_tracking_metrics["blinks_index"]
                             neck_eye_movements_indices_table += [[subject_name, expertise, acrobatics,
                                               anticipatory_index, compensatory_index, spotting_index,
-                                              movement_detection_index, blinks_index]]
+                                              movement_detection_index, blinks_index, fixation_index]]
 
                             # Secondary analysis - AOI proportions
                             trampoline_bed_proportions = eye_tracking_metrics["trampoline_bed_proportions"]
@@ -825,10 +828,10 @@ for i in range(len(primary_data_frame)):
         if primary_data_frame['Name'][i] not in elite_names:
             elite_names.append(primary_data_frame['Name'][i])
 
-primary_plots(primary_data_frame, move_list, subelite_names, elite_names, plot_path)
-
-trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
-trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
+# primary_plots(primary_data_frame, move_list, subelite_names, elite_names, plot_path)
+#
+# trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
+# trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
 
 movement_pourcentage_data_frame = pd.DataFrame(neck_eye_movements_table[1:], columns=neck_eye_movements_table[0])
 movement_pourcentage_plots(movement_pourcentage_data_frame, move_list, subelite_names, elite_names, plot_path)
@@ -843,12 +846,12 @@ for i in range(1, len(AOI_proportions_table)):
                             AOI_proportions_table[i][10]]]
 AOI_pourcentage_data_frame_tempo = pd.DataFrame(AOI_table_tempo[1:], columns=AOI_table_tempo[0])
 AOI_pourcentage_plots(AOI_pourcentage_data_frame_tempo, move_list, subelite_names, elite_names, plot_path)
-
-heatmap_spreading_data_frame = pd.DataFrame(heatmaps_spreading_table[1:], columns=heatmaps_spreading_table[0])
-heatmap_spreading_plots(heatmap_spreading_data_frame, move_list, subelite_names, elite_names, plot_path)
-
-qualitative_data_frame = pd.DataFrame(qualitative_table[1:], columns=qualitative_table[0])
-timing_plots(qualitative_data_frame, move_list, subelite_names, elite_names, plot_path)
+#
+# heatmap_spreading_data_frame = pd.DataFrame(heatmaps_spreading_table[1:], columns=heatmaps_spreading_table[0])
+# heatmap_spreading_plots(heatmap_spreading_data_frame, move_list, subelite_names, elite_names, plot_path)
+#
+# qualitative_data_frame = pd.DataFrame(qualitative_table[1:], columns=qualitative_table[0])
+# timing_plots(qualitative_data_frame, move_list, subelite_names, elite_names, plot_path)
 
 
 
