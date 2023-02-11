@@ -21,6 +21,7 @@ from IPython import embed
 
 PRIMARY_ANALYSIS_FLAG = True
 TRAJECTORIES_ANALYSIS_FLAG = True
+TRAJECTORIES_HEATMAPS_FLAG = True
 GENERATE_EACH_ATHLETE_PGOS_GRAPH = True
 AOI_ANALYSIS_FLAG = True
 NECK_EYE_ANALYSIS_FLAG = True
@@ -560,6 +561,12 @@ if TRAJECTORIES_HEATMAPS_FLAG:
         ax.plot(np.array([277, 320]), np.array([117, 117]), '-k', linewidth=1)
         ax.plot(np.array([277, 320]), np.array([138, 138]), '-k', linewidth=1)
 
+        # ax.text((-7.2 - (9.4620 - 1.2192) - 2 * 7.2 + 7.2 / 2 + 1) * 10 + 298.428, (4.5367 + 0.1)*10 + 27.295 + 5, "Ceiling", fontsize=10)
+        # ax.text((-7.2 - (9.4620 - 1.2192) + 1)*10 + 298.428, (4.5367 + 0.1)*10 + 27.295 + 5, "Wall back", fontsize=10)
+        # ax.text((7.2 + 1)*10 + 298.428, (4.5367 + 0.1)*10 + 27.295 + 5, "Wall front", fontsize=10)
+        # ax.text((-7.2 + 7.2 / 2 + 1)*10 + 298.428, (4.5367 + 9.4620 - 1.2192 + 1)*10 + 127.295 + 5, "Wall left", fontsize=10)
+        # ax.text((-7.2 + 7.2 / 2 + 0.5)*10 + 298.428, (-4.5367 - (9.4620 - 1.2192))*10 + 127.295 - 5, "Wall right", fontsize=10)
+
         ax.text((-7.2 - (9.4620 - 1.2192) - 2 * 7.2 + 7.2 / 2 + 1) * 10 + 298.428, (4.5367 + 0.1)*10 + 27.295 + 5, "Ceiling", fontsize=10)
         ax.text((-7.2 - (9.4620 - 1.2192) + 1)*10 + 298.428, (4.5367 + 0.1)*10 + 27.295 + 5, "Wall back", fontsize=10)
         ax.text((7.2 + 1)*10 + 298.428, (4.5367 + 0.1)*10 + 27.295 + 5, "Wall front", fontsize=10)
@@ -597,11 +604,13 @@ if TRAJECTORIES_HEATMAPS_FLAG:
         fig, axs = plt.subplots(1, 2, figsize=(18, 6))
         put_lines_on_fig(axs[0])
         put_lines_on_fig(axs[1])
-        f = axs[0].imshow(subelites_heatmaps, cmap=plt.get_cmap('plasma'))  # 'hot_r'
-        axs[1].imshow(elites_heatmaps, cmap=plt.get_cmap('plasma'))
+        f = axs[0].imshow(subelites_heatmaps, cmap=plt.get_cmap('hot_r'))  # 'hot_r'
+        axs[1].imshow(elites_heatmaps, cmap=plt.get_cmap('hot_r'))
+        axs[0].axis('off')
+        axs[1].axis('off')
         plt.subplots_adjust(right=0.8)
         plt.suptitle(move)
-        cbar_ax = fig.add_axes([0.85, 0.15, 0.05, 0.7])
+        cbar_ax = fig.add_axes([0.85, 0.2, 0.02, 0.6])
         fig.colorbar(f, cax=cbar_ax)
         plt.savefig(output_filename, dpi=300)
         # plt.show()
@@ -636,29 +645,20 @@ if TRAJECTORIES_HEATMAPS_FLAG:
                         wall_index_facing_front_wall[index_5] = 4
                 gaze_position_unwrapped = unwrap_gaze_positions(SPGO, wall_index_facing_front_wall, bound_side)
                 heatmap_unwraped += transform_gaze_unwrapped_to_heatmap(gaze_position_unwrapped, width_heatmap, height_heatmap)
-                fixations_index = trajectories_table[k][7]
-                heatmap_unwraped_fixations += transform_gaze_unwrapped_to_heatmap(gaze_position_unwrapped[fixations_index, :], width_heatmap, height_heatmap)
+                fixation_index = trajectories_table[k][8].astype(bool)
+                heatmap_unwraped_fixations += transform_gaze_unwrapped_to_heatmap(gaze_position_unwrapped[:, fixation_index], width_heatmap, height_heatmap)
 
             heatmap_unwraped[0:82+1, 0:226+1] = np.nan
             heatmap_unwraped[0:82+1, 370:453+1] = np.nan
-            heatmap_unwraped[173:255, 226:370+1] = np.nan
+            heatmap_unwraped[173:255, 0:226+1] = np.nan
             heatmap_unwraped[173:255, 370:453+1] = np.nan
             heatmap_unwraped /= len(index_this_time)
 
             heatmap_unwraped_fixations[0:82+1, 0:226+1] = np.nan
             heatmap_unwraped_fixations[0:82+1, 370:453+1] = np.nan
-            heatmap_unwraped_fixations[173:255, 226:370+1] = np.nan
+            heatmap_unwraped_fixations[173:255, 0:226+1] = np.nan
             heatmap_unwraped_fixations[173:255, 370:453+1] = np.nan
             heatmap_unwraped_fixations /= len(index_this_time)
-
-            if move == "41":
-                embed()
-                fig, ax = plt.subplots(1, 1)
-                put_lines_on_fig(ax)
-                ax.imshow(heatmap_unwraped, cmap=plt.get_cmap('hot_r'))
-                ax.axis('equal')
-                ax.set_xlim(-5, 458)
-                plt.show()
 
             if len(index_this_time) > 0:
                 heatmap_unwraped_per_athelte_per_move[name][move] = heatmap_unwraped
@@ -702,12 +702,12 @@ if TRAJECTORIES_HEATMAPS_FLAG:
         subelites_heatmaps_fixations[move] /= subelites_nb_athlete_per_move[move]
         elites_heatmaps_fixations[move] /= elites_nb_athlete_per_move[move]
 
-        plot_heatmaps_unwraped(subelites_heatmaps_trajectory, elites_heatmaps_trajectory,
-                               home_path + '/disk/Eye-tracking/plots/' + f'heatmaps_trajectory_{move}.png',
+        plot_heatmaps_unwraped(subelites_heatmaps_trajectory[move], elites_heatmaps_trajectory[move],
+                               home_path + '/disk/Eye-tracking/plots/' + f'heatmaps_trajectory_{move}.svg',
                                move)
 
-        plot_heatmaps_unwraped(subelites_heatmaps_fixations, elites_heatmaps_fixations,
-                               home_path + '/disk/Eye-tracking/plots/' + f'heatmaps_fixations_{move}.png',
+        plot_heatmaps_unwraped(subelites_heatmaps_fixations[move], elites_heatmaps_fixations[move],
+                               home_path + '/disk/Eye-tracking/plots/' + f'heatmaps_fixations_{move}.svg',
                                move)
         plt.close('all')
 
@@ -908,9 +908,9 @@ def plot_presence(presence_curves_per_athelte, move, xi_interp, index_variable, 
 
 def plot_presence_all_at_the_same_time(presence_curves_per_athelte, move, xi_interp, output_file_name):
 
-    colors = [cm.get_cmap('plasma')(k) for k in np.linspace(0, 1, 5)]
+    colors = [cm.get_cmap('plasma')(k) for k in np.linspace(0, 1, 6)]
 
-    variable_names = ["Anticipatory movements", "Compensatory movements", "Spotting", "Movement detection", "Blink"]
+    variable_names = ["Anticipatory movements", "Compensatory movements", "Spotting", "Movement detection", "Blink", "Fixation"]
 
     presence_curves_subelites = {variable_names[index_variable]: np.zeros((len(xi_interp, ))) for index_variable in range(len(variable_names))}
     presence_curves_elites = {variable_names[index_variable]: np.zeros((len(xi_interp, ))) for index_variable in range(len(variable_names))}
@@ -1084,7 +1084,7 @@ if QUALITATIVE_ANALYSIS_FLAG:
         plot_presence(presence_curves_per_athelte, move, xi_interp, 4, "Blink ",
                       home_path + '/disk/Eye-tracking/plots/' + f'blink_presence_{move}.png',
                       significant_timings_blink)
-        plot_presence(presence_curves_per_athelte, move, xi_interp, 4, "Fixation ",
+        plot_presence(presence_curves_per_athelte, move, xi_interp, 5, "Fixation ",
                       home_path + '/disk/Eye-tracking/plots/' + f'fixation_presence_{move}.png',
                       significant_timings_fixation)
 
