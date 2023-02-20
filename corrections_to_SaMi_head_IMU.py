@@ -95,7 +95,10 @@ def Xsens_quat_to_orientation(
     RotMat_thorax = biorbd.Quaternion.toMatrix(Quat_thorax).to_array()
 
     # -----------------------------------------------------------------------------------------------------------------
-    RotMat_head = RotMat_head @ np.linalg.inv(RotMat_head_orientation_zero)
+    if RotMat_head_orientation_zero is not None:
+        RotMat_head = RotMat_head @ np.linalg.inv(RotMat_head_orientation_zero)
+    else:
+        RotMat_head = np.eye(3)
     # -----------------------------------------------------------------------------------------------------------------
 
     Xsens_head_position_calculated[:3] = Xsens_position[18:21]
@@ -239,41 +242,44 @@ def cart2sph(x, y, z):
     az = math.atan2(y, x)  # phi
     return r, elev, az
 
+FIND_FRAMES_CLAP_FLAG = False
 
 xsens_file_dir = "/home/charbie/disk/Eye-tracking/XsensData/SaMi/exports_shoulder_height/"
-xsens_file_name = "SaMi_03"
+xsens_file_name = "SaMi_02"  # = 870  # "SaMi_03" = 1150
 Xsens_position, Xsens_orientation, links, num_joints = load_xsens(xsens_file_dir, xsens_file_name)
 
-rotation_nothing = biorbd.Rotation.fromEulerAngles(np.array([0, 0, 0]), "xyz").to_array()
-rotation_nothing_points = rotation_nothing @ np.array([1, 0, 0])
+if not FIND_FRAMES_CLAP_FLAG:
+    rotation_nothing = biorbd.Rotation.fromEulerAngles(np.array([0, 0, 0]), "xyz").to_array()
+    rotation_nothing_points = rotation_nothing @ np.array([1, 0, 0])
 
-# Head orientation during the clap, where the athelte is looking in front of her
-head_orientation_zero_frame = 1150
-head_orientation_zero = Xsens_orientation[head_orientation_zero_frame, 24:28] / np.linalg.norm(Xsens_orientation[head_orientation_zero_frame, 24:28])
-quaternion_head_orientation_zero = biorbd.Quaternion(head_orientation_zero[0], head_orientation_zero[1], head_orientation_zero[2], head_orientation_zero[3])
-RotMat_head_orientation_zero = biorbd.Quaternion.toMatrix(quaternion_head_orientation_zero).to_array()
+    # Head orientation during the clap, where the athelte is looking in front of her
+    head_orientation_zero_frame = 870
+    head_orientation_zero = Xsens_orientation[head_orientation_zero_frame, 24:28] / np.linalg.norm(Xsens_orientation[head_orientation_zero_frame, 24:28])
+    quaternion_head_orientation_zero = biorbd.Quaternion(head_orientation_zero[0], head_orientation_zero[1], head_orientation_zero[2], head_orientation_zero[3])
+    RotMat_head_orientation_zero = biorbd.Quaternion.toMatrix(quaternion_head_orientation_zero).to_array()
 
-Rotation_head_techniquement = RotMat_head_orientation_zero @ np.array([1, 0, 0])
+    Rotation_head_techniquement = RotMat_head_orientation_zero @ np.array([1, 0, 0])
 
-new_Xsens_orientation = {"orientation": np.zeros(np.shape(Xsens_orientation))}
-new_Xsens_orientation["orientation"][:, :] = Xsens_orientation[:, :]
-for i in range(len(Xsens_orientation)):
+    new_Xsens_orientation = {"orientation": np.zeros(np.shape(Xsens_orientation))}
+    new_Xsens_orientation["orientation"][:, :] = Xsens_orientation[:, :]
+    for i in range(len(Xsens_orientation)):
 
-    Quat_normalized_head = Xsens_orientation[i, 24:28] / np.linalg.norm(
-        Xsens_orientation[i, 24:28]
-    )
-    Quat_head = biorbd.Quaternion(Quat_normalized_head[0], Quat_normalized_head[1], Quat_normalized_head[2],
-                                  Quat_normalized_head[3])
-    RotMat_head = biorbd.Quaternion.toMatrix(Quat_head).to_array()
+        Quat_normalized_head = Xsens_orientation[i, 24:28] / np.linalg.norm(
+            Xsens_orientation[i, 24:28]
+        )
+        Quat_head = biorbd.Quaternion(Quat_normalized_head[0], Quat_normalized_head[1], Quat_normalized_head[2],
+                                      Quat_normalized_head[3])
+        RotMat_head = biorbd.Quaternion.toMatrix(Quat_head).to_array()
 
-    RotMat_head = RotMat_head @ np.linalg.inv(RotMat_head_orientation_zero)
-    New_quaternion_head = biorbd.Quaternion.fromMatrix(biorbd.Rotation(RotMat_head[0, 0], RotMat_head[0, 1], RotMat_head[0, 2],
-                                                                       RotMat_head[1, 0], RotMat_head[1, 1], RotMat_head[1, 2],
-                                                                       RotMat_head[2, 0], RotMat_head[2, 1], RotMat_head[2, 2])).to_array()
-    new_Xsens_orientation["orientation"][i, 24:28] = New_quaternion_head
+        RotMat_head = RotMat_head @ np.linalg.inv(RotMat_head_orientation_zero)
+        New_quaternion_head = biorbd.Quaternion.fromMatrix(biorbd.Rotation(RotMat_head[0, 0], RotMat_head[0, 1], RotMat_head[0, 2],
+                                                                           RotMat_head[1, 0], RotMat_head[1, 1], RotMat_head[1, 2],
+                                                                           RotMat_head[2, 0], RotMat_head[2, 1], RotMat_head[2, 2])).to_array()
+        new_Xsens_orientation["orientation"][i, 24:28] = New_quaternion_head
 
-sio.savemat("/home/charbie/disk/Eye-tracking/XsensData/SaMi/exports_shoulder_height/SaMi_03/orientation.mat", new_Xsens_orientation)
-
+    sio.savemat(f"/home/charbie/disk/Eye-tracking/XsensData/SaMi/exports_shoulder_height/{xsens_file_name}/orientation.mat", new_Xsens_orientation)
+else:
+    RotMat_head_orientation_zero = None
 
 fig = plt.figure()
 ax = p3.Axes3D(fig)
@@ -290,12 +296,14 @@ head_orthogonal = [ax.plot(np.array([0, 0]), np.array([0, 0]), np.array([0, 0]),
 line_gaze_orientation = [ax.plot(np.array([0, 0]), np.array([0, 0]), np.array([0, 0]), "-b")]
 line_perp_thorax = [ax.plot(np.array([0, 0]), np.array([0, 0]), np.array([0, 0]), "-m")]
 # line_perp_thorax_rotated = [ax.plot(np.array([0, 0]), np.array([0, 0]), np.array([0, 0]), "--c")]
-ax.plot(np.array([0, rotation_nothing_points[0]]),
-        np.array([0, rotation_nothing_points[1]]),
-        np.array([0, rotation_nothing_points[2]]), '--c')
-ax.plot(np.array([0, Rotation_head_techniquement[0]]),
-        np.array([0, Rotation_head_techniquement[1]]),
-        np.array([0, Rotation_head_techniquement[2]]), '--k')
+
+if not FIND_FRAMES_CLAP_FLAG:
+    ax.plot(np.array([0, rotation_nothing_points[0]]),
+            np.array([0, rotation_nothing_points[1]]),
+            np.array([0, rotation_nothing_points[2]]), '--c')
+    ax.plot(np.array([0, Rotation_head_techniquement[0]]),
+            np.array([0, Rotation_head_techniquement[1]]),
+            np.array([0, Rotation_head_techniquement[2]]), '--k')
 
 text = [ax.text(-1, -1, 2, "0")]
 
@@ -306,7 +314,7 @@ if max_frame == 0:
 else:
     frame_range = range(max_frame)
 
-# frame_range = range(1148, 1152)  # Synchro clap Xsens frames
+# frame_range = range(0, 1000)  # Synchro clap Xsens frames
 
 
 (
@@ -347,7 +355,8 @@ anim = animation.FuncAnimation(
     blit=False,
 )
 
-anim.save("Rotated_head_SaMi_03_rotated.mp4", fps=60, extra_args=["-vcodec", "libx264"], dpi=300)
+anim.save(f"Rotated_head_{xsens_file_name}_rotated.mp4", fps=60, extra_args=["-vcodec", "libx264"], dpi=300)
+# anim.save(f"Rotated_head_{xsens_file_name}_clap.mp4", fps=60, extra_args=["-vcodec", "libx264"], dpi=300)
 plt.show()
 
 

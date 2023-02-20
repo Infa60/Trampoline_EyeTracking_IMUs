@@ -133,3 +133,7 @@ dmypy.json
 analysis/stats_output.txt
 
 *.mp4
+
+analysis/stats_output_without_43.txt
+
+*.png
