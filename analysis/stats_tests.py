@@ -365,8 +365,8 @@ def plot_trajectories_data_frame(
     plt.suptitle(title_variable + move)
     axs[0].legend(bbox_to_anchor=(2.3, 1), loc='upper left', borderaxespad=0.)
     axs[1].legend(bbox_to_anchor=(1.1, 0.5), loc='upper left', borderaxespad=0.)
-    # plt.savefig(output_filename, dpi=300)
-    plt.show()
+    plt.savefig(output_filename, dpi=300)
+    # plt.show()
     return
 
 def plot_mean_PGOS_per_athlete(name, move, interpolated_unwrapped_trajectory, home_path):
@@ -397,8 +397,8 @@ def plot_mean_PGOS_per_athlete(name, move, interpolated_unwrapped_trajectory, ho
         plt.plot(interpolated_unwrapped_trajectory[0, :, i_min], interpolated_unwrapped_trajectory[1, :, i_min], '-k', alpha=0.8, label='Representative\ntrajectory')
         plt.title(f"{name} {move}")
         plt.legend()
-        # plt.savefig(home_path + f"/disk/Eye-tracking/plots/PGOS/multiple_trials_{name}_{move}.png", dpi=300)
-        plt.show()
+        plt.savefig(home_path + f"/disk/Eye-tracking/plots/PGOS/multiple_trials_{name}_{move}.png", dpi=300)
+        # plt.show()
 
     # fig, axs = plt.subplots(2, 1)
     # for i in range(interpolated_unwrapped_trajectory.shape[2]):
@@ -420,8 +420,8 @@ def plot_projection_of_PGOS(name, move, original_trajectory, projected_interpola
     plt.plot(original_trajectory[:, 0], original_trajectory[:, 1], original_trajectory[:, 2], '.r')
     plt.plot(projected_interpolated_trajectory_curve[0, :], projected_interpolated_trajectory_curve[1, :], np.zeros((500, )), '.b')
     plt.title(f"{name} {move}")
-    # plt.savefig(home_path + f"/disk/Eye-tracking/plots/PGOS//plots/PGOS/projection_{name}_{move}.png", dpi=300)
-    plt.show()
+    plt.savefig(home_path + f"/disk/Eye-tracking/plots/PGOS//plots/PGOS/projection_{name}_{move}.png", dpi=300)
+    # plt.show()
     return
 
 def unwrap_gaze_positions(gaze_position, wall_index, bound_side):
@@ -605,8 +605,8 @@ if TRAJECTORIES_HEATMAPS_FLAG:
         plt.suptitle(move)
         cbar_ax = fig.add_axes([0.85, 0.2, 0.02, 0.6])
         fig.colorbar(f, cax=cbar_ax)
-        # plt.savefig(output_filename, dpi=300)
-        plt.show()
+        plt.savefig(output_filename, dpi=300)
+        # plt.show()
         return
 
     bound_side = 3 + 121 * 0.0254 / 2
@@ -892,8 +892,8 @@ def plot_presence(presence_curves_per_athelte, move, xi_interp, index_variable, 
     axs[1].set_xlabel("Normalized time [%]")
     plt.subplots_adjust(right=0.8)
     plt.suptitle(title_variable + move)
-    # plt.savefig(output_file_name, dpi=300)
-    plt.show()
+    plt.savefig(output_file_name, dpi=300)
+    # plt.show()
     return
 
 def plot_presence_all_at_the_same_time(presence_curves_per_athelte, move, xi_interp, output_file_name):
@@ -958,8 +958,8 @@ def plot_presence_all_at_the_same_time(presence_curves_per_athelte, move, xi_int
     axs[1].set_ylabel("Elites", fontsize=16)
     plt.subplots_adjust(top=0.8)
     plt.suptitle(move)
-    # plt.savefig(output_file_name, dpi=300)
-    plt.show()
+    plt.savefig(output_file_name, dpi=300)
+    # plt.show()
     return
 
 if QUALITATIVE_ANALYSIS_FLAG:

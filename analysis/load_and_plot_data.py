@@ -417,7 +417,7 @@ def AOI_pourcentage_plots(df, move_list, subelite_names, elite_names, plot_path)
 
     ax = bar_plots_error_bar_translated(df, type_names, subelite_names, elite_names, True, False)
 
-    ax.set_ylabel('Proportion of the acrobatics [%]')
+    ax.set_ylabel('Dwell time [%]')
     ax.set_xticks(ticks=[0, 2, 4, 6])
     ax.set_xticklabels([i + '/' for i in move_list], fontweight='bold')
     ax.tick_params(axis='x', pad=15)
