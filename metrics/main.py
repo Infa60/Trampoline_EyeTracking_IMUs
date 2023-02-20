@@ -17,6 +17,8 @@ from remove_data_during_blinks import remove_data_during_blinks, home_made_blink
 from set_initial_orientation import rotate_pelvis_to_initial_orientation, get_initial_gaze_orientation
 sys.path.append('../trampoline_bed_labeling/')
 from create_gaussian_heatMap import run_create_heatmaps, load_pupil
+sys.path.append('../stick_figure_for_figures/')
+from generate_stick_figure import generate_stick_figure
 
 
 def load_anthropo(anthropo_name):
@@ -113,6 +115,7 @@ def run_analysis(
     FLAG_GAZE_TRAJECTORY,
     FLAG_GENERATE_STATS_METRICS,
     FLAG_ANALYSIS,
+    GENERATE_STICK_FIGURE_FOR_GRAPHS,
     API_KEY,
 ):
     """
@@ -254,6 +257,15 @@ def run_analysis(
                     f"{out_path}/{subject_name}/{move_surname}/{movie_name}__{move_surname}__{repetition_number[j]}.mp4"
             )
 
+            if GENERATE_STICK_FIGURE_FOR_GRAPHS:
+                generate_stick_figure(
+                    Xsens_orientation_per_move[j],
+                    Xsens_position_no_level_CoM_corrected_rotated_per_move[j],
+                    links,
+                    move_surname,
+                    repetition_number[j],
+                )
+
             (number_of_fixation,
             fixation_duration_absolute,
             fixation_duration_relative,
@@ -385,6 +397,7 @@ FLAG_GAZE_TRAJECTORY = True  # False  #
 FLAG_GENERATE_STATS_METRICS = True  # False #
 FLAG_ANALYSIS = True  # False #
 FLAG_TURN_ATHLETES_FOR_PGO = True
+GENERATE_STICK_FIGURE_FOR_GRAPHS = True
 
 
 parser = argparse.ArgumentParser("Enter Pupils API_KEY")
@@ -469,6 +482,7 @@ for i_trial in range(len(trial_table)):
         FLAG_GAZE_TRAJECTORY,
         FLAG_GENERATE_STATS_METRICS,
         FLAG_ANALYSIS,
+        GENERATE_STICK_FIGURE_FOR_GRAPHS,
         API_KEY,
     )
 
