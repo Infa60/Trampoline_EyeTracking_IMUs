@@ -28,6 +28,8 @@ NECK_EYE_ANALYSIS_FLAG = True
 SPREADING_HEATMAP_FLAG = True
 QUALITATIVE_ANALYSIS_FLAG = True
 
+move_list = ['4-', '41', '42', '43']
+
 pd.set_option('display.max_rows', 500)
 pd.set_option('display.max_columns', 500)
 pd.set_option('display.width', 150)
@@ -72,35 +74,32 @@ for i in range(len(primary_table)):
 trial_per_athlete_per_move_index = {}
 for i in range(1, len(trajectories_table)):
     if trajectories_table[i][0] not in trial_per_athlete_per_move_index.keys():
-        basic_dict = {'4-': [], '41': [], '42': [], '43': [], }
-        trial_per_athlete_per_move_index[trajectories_table[i][0]] = {'4-': [], '41': [], '42': [], '43': [], }
-        trial_per_athlete_per_move_index[trajectories_table[i][0]][trajectories_table[i][2]] += [i]
+        basic_dict = {move: [] for move in move_list}
+        trial_per_athlete_per_move_index[trajectories_table[i][0]] = {move: [] for move in move_list}
+        if trajectories_table[i][2] in move_list:
+            trial_per_athlete_per_move_index[trajectories_table[i][0]][trajectories_table[i][2]] += [i]
     else:
-        trial_per_athlete_per_move_index[trajectories_table[i][0]][trajectories_table[i][2]] += [i]
+        if trajectories_table[i][2] in move_list:
+            trial_per_athlete_per_move_index[trajectories_table[i][0]][trajectories_table[i][2]] += [i]
 
 
 with open(home_path + '/disk/Eye-tracking/plots/nb_trial_per_athlete.csv', 'w') as f:
     writer = csv.writer(f)
-    writer.writerow(['Athlete', '4-/', '41/', '42/', '43/'])
+    head_title = ['Athlete'] + [move + '/' for move in move_list]
+    writer.writerow(head_title)
     for i, name in  enumerate(trial_per_athlete_per_move_index):
         if name in subelite_names:
-            writer.writerow([name,
-                             len(trial_per_athlete_per_move_index[name]['4-']),
-                             len(trial_per_athlete_per_move_index[name]['41']),
-                             len(trial_per_athlete_per_move_index[name]['42']),
-                             len(trial_per_athlete_per_move_index[name]['43'])])
+            line_list = [name] + [trial_per_athlete_per_move_index[name][move] for move in move_list]
+            writer.writerow(line_list)
     writer.writerow(['-', '-', '-', '-', '-'])
     for i, name in enumerate(trial_per_athlete_per_move_index):
         if name in elite_names:
-            writer.writerow([name,
-                             len(trial_per_athlete_per_move_index[name]['4-']),
-                             len(trial_per_athlete_per_move_index[name]['41']),
-                             len(trial_per_athlete_per_move_index[name]['42']),
-                             len(trial_per_athlete_per_move_index[name]['43'])])
+            line_list = [name] + [trial_per_athlete_per_move_index[name][move] for move in move_list]
+            writer.writerow(line_list)
     f.close()
 
-subelites_nb_athlete_per_move = {'4-': 0, '41': 0, '42': 0, '43': 0}
-elites_nb_athlete_per_move = {'4-': 0, '41': 0, '42': 0, '43': 0}
+subelites_nb_athlete_per_move = {move: 0 for move in move_list}
+elites_nb_athlete_per_move = {move: 0 for move in move_list}
 for name in subelite_names:
     for move in subelites_nb_athlete_per_move.keys():
         if len(trial_per_athlete_per_move_index[name][move]) > 0:
@@ -236,12 +235,10 @@ if PRIMARY_ANALYSIS_FLAG:
 
 def find_significant_timings(xi_interp, subelites_data, elites_data):
 
-    admissible_timings = {'4-': np.zeros((len(xi_interp),)), '41': np.zeros((len(xi_interp),)),
-                           '42': np.zeros((len(xi_interp),)), '43': np.zeros((len(xi_interp),))}
-    significant_timings = {'4-': np.zeros((2,)), '41': np.zeros((2,)),
-                           '42': np.zeros((2,)), '43': np.zeros((2,))}
+    admissible_timings = {move: np.zeros((len(xi_interp),)) for move in move_list}
+    significant_timings = {move: np.zeros((2,)) for move in move_list}
 
-    for j, move in enumerate(['4-', '41', '42', '43']):
+    for j, move in enumerate(move_list):
         for i in range(len(xi_interp)):
             if np.std(subelites_data[move][:, i]) > 0 and np.std(elites_data[move][:, i]) > 0:
                 admissible_timings[move][i] = 1
@@ -368,8 +365,8 @@ def plot_trajectories_data_frame(
     plt.suptitle(title_variable + move)
     axs[0].legend(bbox_to_anchor=(2.3, 1), loc='upper left', borderaxespad=0.)
     axs[1].legend(bbox_to_anchor=(1.1, 0.5), loc='upper left', borderaxespad=0.)
-    plt.savefig(output_filename, dpi=300)
-    # plt.show()
+    # plt.savefig(output_filename, dpi=300)
+    plt.show()
     return
 
 def plot_mean_PGOS_per_athlete(name, move, interpolated_unwrapped_trajectory, home_path):
@@ -400,8 +397,8 @@ def plot_mean_PGOS_per_athlete(name, move, interpolated_unwrapped_trajectory, ho
         plt.plot(interpolated_unwrapped_trajectory[0, :, i_min], interpolated_unwrapped_trajectory[1, :, i_min], '-k', alpha=0.8, label='Representative\ntrajectory')
         plt.title(f"{name} {move}")
         plt.legend()
-        plt.savefig(home_path + f"/disk/Eye-tracking/plots/PGOS/multiple_trials_{name}_{move}.png", dpi=300)
-        # plt.show()
+        # plt.savefig(home_path + f"/disk/Eye-tracking/plots/PGOS/multiple_trials_{name}_{move}.png", dpi=300)
+        plt.show()
 
     # fig, axs = plt.subplots(2, 1)
     # for i in range(interpolated_unwrapped_trajectory.shape[2]):
@@ -423,8 +420,8 @@ def plot_projection_of_PGOS(name, move, original_trajectory, projected_interpola
     plt.plot(original_trajectory[:, 0], original_trajectory[:, 1], original_trajectory[:, 2], '.r')
     plt.plot(projected_interpolated_trajectory_curve[0, :], projected_interpolated_trajectory_curve[1, :], np.zeros((500, )), '.b')
     plt.title(f"{name} {move}")
-    plt.savefig(home_path + f"/disk/Eye-tracking/plots/PGOS//plots/PGOS/projection_{name}_{move}.png", dpi=300)
-    # plt.show()
+    # plt.savefig(home_path + f"/disk/Eye-tracking/plots/PGOS//plots/PGOS/projection_{name}_{move}.png", dpi=300)
+    plt.show()
     return
 
 def unwrap_gaze_positions(gaze_position, wall_index, bound_side):
@@ -504,14 +501,10 @@ if TRAJECTORIES_ANALYSIS_FLAG:
 
     colors_subelites = [cm.get_cmap('plasma')(k) for k in np.linspace(0, 0.4, len(subelite_names))]
     colors_elites = [cm.get_cmap('plasma')(k) for k in np.linspace(0.6, 1, len(elite_names))]
-    subelites_trajectory_x = {'4-': np.zeros((len(xi_interp), )), '41': np.zeros((len(xi_interp), )),
-                            '42': np.zeros((len(xi_interp), )), '43': np.zeros((len(xi_interp), ))}
-    subelites_trajectory_y = {'4-': np.zeros((len(xi_interp), )), '41': np.zeros((len(xi_interp), )),
-                            '42': np.zeros((len(xi_interp), )), '43': np.zeros((len(xi_interp), ))}
-    elites_trajectory_x = {'4-': np.zeros((len(xi_interp), )), '41': np.zeros((len(xi_interp), )),
-                         '42': np.zeros((len(xi_interp), )), '43': np.zeros((len(xi_interp), ))}
-    elites_trajectory_y = {'4-': np.zeros((len(xi_interp), )), '41': np.zeros((len(xi_interp), )),
-                         '42': np.zeros((len(xi_interp), )), '43': np.zeros((len(xi_interp), ))}
+    subelites_trajectory_x = {move: np.zeros((len(xi_interp), )) for move in move_list}
+    subelites_trajectory_y = {move: np.zeros((len(xi_interp), )) for move in move_list}
+    elites_trajectory_x = {move: np.zeros((len(xi_interp), )) for move in move_list}
+    elites_trajectory_y = {move: np.zeros((len(xi_interp), )) for move in move_list}
     for name in trajectory_curves_per_athelte_per_move.keys():
         for move in trajectory_curves_per_athelte_per_move[name].keys():
             if name in subelite_names:
@@ -525,7 +518,7 @@ if TRAJECTORIES_ANALYSIS_FLAG:
             else:
                 print(f"Probleme de nom: {name} not recognised")
 
-    for i, move in enumerate(['4-', '41', '42', '43']):
+    for i, move in enumerate(move_list):
         subelites_trajectory_x[move] = subelites_trajectory_x[move][1:, :]
         subelites_trajectory_y[move] = subelites_trajectory_y[move][1:, :]
         elites_trajectory_x[move] = elites_trajectory_x[move][1:, :]
@@ -612,8 +605,8 @@ if TRAJECTORIES_HEATMAPS_FLAG:
         plt.suptitle(move)
         cbar_ax = fig.add_axes([0.85, 0.2, 0.02, 0.6])
         fig.colorbar(f, cax=cbar_ax)
-        plt.savefig(output_filename, dpi=300)
-        # plt.show()
+        # plt.savefig(output_filename, dpi=300)
+        plt.show()
         return
 
     bound_side = 3 + 121 * 0.0254 / 2
@@ -673,14 +666,10 @@ if TRAJECTORIES_HEATMAPS_FLAG:
                 heatmap_unwraped_per_athelte_per_move[name][move] = None
                 heatmap_unwraped_fixations_per_athelte_per_move[name][move] = None
 
-    subelites_heatmaps_trajectory = {'4-': np.zeros((height_heatmap, width_heatmap)), '41': np.zeros((height_heatmap, width_heatmap)),
-                            '42': np.zeros((height_heatmap, width_heatmap)), '43': np.zeros((height_heatmap, width_heatmap))}
-    elites_heatmaps_trajectory = {'4-': np.zeros((height_heatmap, width_heatmap)), '41': np.zeros((height_heatmap, width_heatmap)),
-                            '42': np.zeros((height_heatmap, width_heatmap)), '43': np.zeros((height_heatmap, width_heatmap))}
-    subelites_heatmaps_fixations = {'4-': np.zeros((height_heatmap, width_heatmap)), '41': np.zeros((height_heatmap, width_heatmap)),
-                         '42': np.zeros((height_heatmap, width_heatmap)), '43': np.zeros((height_heatmap, width_heatmap))}
-    elites_heatmaps_fixations = {'4-': np.zeros((height_heatmap, width_heatmap)), '41': np.zeros((height_heatmap, width_heatmap)),
-                         '42': np.zeros((height_heatmap, width_heatmap)), '43': np.zeros((height_heatmap, width_heatmap))}
+    subelites_heatmaps_trajectory = {move: np.zeros((height_heatmap, width_heatmap)) for move in move_list}
+    elites_heatmaps_trajectory = {move: np.zeros((height_heatmap, width_heatmap)) for move in move_list}
+    subelites_heatmaps_fixations = {move: np.zeros((height_heatmap, width_heatmap)) for move in move_list}
+    elites_heatmaps_fixations = {move: np.zeros((height_heatmap, width_heatmap)) for move in move_list}
     for name in heatmap_unwraped_per_athelte_per_move.keys():
         for move in heatmap_unwraped_per_athelte_per_move[name].keys():
             if name in subelite_names:
@@ -696,7 +685,7 @@ if TRAJECTORIES_HEATMAPS_FLAG:
             else:
                 print(f"Probleme de nom: {name} not recognised")
 
-    for i, move in enumerate(['4-', '41', '42', '43']):
+    for i, move in enumerate(move_list):
         subelites_heatmaps_trajectory[move] /= subelites_nb_athlete_per_move[move]
         elites_heatmaps_trajectory[move] /= elites_nb_athlete_per_move[move]
         subelites_heatmaps_fixations[move] /= subelites_nb_athlete_per_move[move]
@@ -903,7 +892,8 @@ def plot_presence(presence_curves_per_athelte, move, xi_interp, index_variable, 
     axs[1].set_xlabel("Normalized time [%]")
     plt.subplots_adjust(right=0.8)
     plt.suptitle(title_variable + move)
-    plt.savefig(output_file_name, dpi=300)
+    # plt.savefig(output_file_name, dpi=300)
+    plt.show()
     return
 
 def plot_presence_all_at_the_same_time(presence_curves_per_athelte, move, xi_interp, output_file_name):
@@ -968,8 +958,8 @@ def plot_presence_all_at_the_same_time(presence_curves_per_athelte, move, xi_int
     axs[1].set_ylabel("Elites", fontsize=16)
     plt.subplots_adjust(top=0.8)
     plt.suptitle(move)
-    plt.savefig(output_file_name, dpi=300)
-    # plt.show()
+    # plt.savefig(output_file_name, dpi=300)
+    plt.show()
     return
 
 if QUALITATIVE_ANALYSIS_FLAG:
@@ -1014,18 +1004,18 @@ if QUALITATIVE_ANALYSIS_FLAG:
 
     colors_subelites = [cm.get_cmap('plasma')(k) for k in np.linspace(0, 0.4, len(subelite_names))]
     colors_elites = [cm.get_cmap('plasma')(k) for k in np.linspace(0.6, 1, len(elite_names))]
-    subelites_anticipatory = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
-    elites_anticipatory = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
-    subelites_compensatory = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
-    elites_compensatory = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
-    subelites_spotting = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
-    elites_spotting = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
-    subelites_movement_detection = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
-    elites_movement_detection = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
-    subelites_blink = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
-    subelites_fixation = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
-    elites_blink = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
-    elites_fixation = {'4-': np.zeros((len(xi_interp))), '41': np.zeros((len(xi_interp))), '42': np.zeros((len(xi_interp))), '43': np.zeros((len(xi_interp)))}
+    subelites_anticipatory = {move: np.zeros((len(xi_interp))) for move in move_list}
+    elites_anticipatory = {move: np.zeros((len(xi_interp))) for move in move_list}
+    subelites_compensatory = {move: np.zeros((len(xi_interp))) for move in move_list}
+    elites_compensatory = {move: np.zeros((len(xi_interp))) for move in move_list}
+    subelites_spotting = {move: np.zeros((len(xi_interp))) for move in move_list}
+    elites_spotting = {move: np.zeros((len(xi_interp))) for move in move_list}
+    subelites_movement_detection = {move: np.zeros((len(xi_interp))) for move in move_list}
+    elites_movement_detection = {move: np.zeros((len(xi_interp))) for move in move_list}
+    subelites_blink = {move: np.zeros((len(xi_interp))) for move in move_list}
+    subelites_fixation = {move: np.zeros((len(xi_interp))) for move in move_list}
+    elites_blink = {move: np.zeros((len(xi_interp))) for move in move_list}
+    elites_fixation = {move: np.zeros((len(xi_interp))) for move in move_list}
     for name in presence_curves_per_athelte.keys():
         for move in presence_curves_per_athelte[name].keys():
             if name in subelite_names:
@@ -1047,7 +1037,7 @@ if QUALITATIVE_ANALYSIS_FLAG:
             else:
                 print(f"Probleme de nom: {name} not recognised")
 
-    for i, move in enumerate(['4-', '41', '42', '43']):
+    for i, move in enumerate(move_list):
         subelites_anticipatory[move] = subelites_anticipatory[move][1:]
         subelites_compensatory[move] = subelites_compensatory[move][1:]
         subelites_spotting[move] = subelites_spotting[move][1:]
