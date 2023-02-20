@@ -9,7 +9,7 @@ import pandas as pd
 from IPython import embed
 import sys
 sys.path.append("../metrics")
-from remove_data_during_blinks import remove_data_during_blinks
+from remove_data_during_blinks import remove_data_during_blinks, home_made_blink_confidence_threshold
 
 
 def load_pupil(gaze_position_labels, eye_tracking_data_path):
@@ -366,6 +366,7 @@ def __main__():
 
         blink_duration_threshold = 0.2
         csv_eye_tracking_confident = remove_data_during_blinks(csv_eye_tracking, csv_blinks, blink_duration_threshold)
+        # csv_eye_tracking_confident = home_made_blink_confidence_threshold(csv_eye_tracking, csv_blinks, blink_duration_threshold)
 
         run_create_heatmaps(subject_name, subject_expertise, move_names, move_orientation, repetition_number, movie_name,
                         out_path, start_of_move_index_image, end_of_move_index_image, curent_AOI_label,

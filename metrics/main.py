@@ -13,7 +13,7 @@ from sync_jump import sync_jump
 from CoM_transfo import CoM_transfo
 from get_data_at_same_timestamps import get_data_at_same_timestamps
 from animate_JCS import animate
-from remove_data_during_blinks import remove_data_during_blinks
+from remove_data_during_blinks import remove_data_during_blinks, home_made_blink_confidence_threshold
 from set_initial_orientation import rotate_pelvis_to_initial_orientation, get_initial_gaze_orientation
 sys.path.append('../trampoline_bed_labeling/')
 from create_gaussian_heatMap import run_create_heatmaps, load_pupil
@@ -142,6 +142,7 @@ def run_analysis(
 
     blink_duration_threshold = 0.2
     csv_eye_tracking_confident = remove_data_during_blinks(csv_eye_tracking, csv_blinks, blink_duration_threshold)
+    # csv_eye_tracking_confident = home_made_blink_confidence_threshold(csv_eye_tracking, csv_blinks, blink_duration_threshold)
 
     if GENERATE_HEATMAPS:
         move_summary_heatmaps = run_create_heatmaps(
