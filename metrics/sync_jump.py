@@ -345,7 +345,6 @@ def sync_jump(
     FLAG_SYNCHRO_PLOTS,
     output_file_name,
     csv_eye_tracking,
-    csv_blinks,
     Xsens_ms,
     max_threshold,
     air_time_threshold,
@@ -519,10 +518,6 @@ def sync_jump(
             output_file_name,
         )
 
-    # Apply the same time offset to the blinks time stamps too
-    csv_blinks[:, 0] = (csv_blinks[:, 0] - csv_eye_tracking[0, 0]) / 1e9 - time_offset  # Start
-    csv_blinks[:, 1] = (csv_blinks[:, 1] - csv_eye_tracking[0, 0]) / 1e9 - time_offset  # End
-
     return (
         xsens_start_of_jump_index,
         xsens_end_of_jump_index,
@@ -531,5 +526,4 @@ def sync_jump(
         time_vector_xsens,
         time_vector_pupil_offset,
         csv_eye_tracking,
-        csv_blinks,
     )

@@ -20,7 +20,7 @@ def get_data_at_same_timestamps(
     end_of_move_index,
     time_vector_pupil_offset,
     csv_eye_tracking,
-    time_stamps_eye_tracking_index_on_pupil,
+    blink_index,
     Xsens_centerOfMass,
     SCENE_CAMERA_SERIAL_NUMBER,
     API_KEY,
@@ -149,6 +149,12 @@ def get_data_at_same_timestamps(
             int(start_of_move_index[i]) : int(end_of_move_index[i]) + 1
         ]
 
+    blink_index_per_move = [np.array([]) for i in range(len(start_of_move_index))]
+    for i in range(len(start_of_move_index)):
+        blink_index_per_move[i] = blink_index[
+            int(start_of_move_index[i]) : int(end_of_move_index[i]) + 1
+        ]
+
     if FLAG_PUPIL_ANGLES_PLOT:
         plt.figure()
         plt.plot(time_vector_pupil_offset, elevation, "-r", label="elevation")
@@ -168,4 +174,5 @@ def get_data_at_same_timestamps(
         Xsens_CoM_per_move,
         elevation_per_move,
         azimuth_per_move,
+        blink_index_per_move,
     )

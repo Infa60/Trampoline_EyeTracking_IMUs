@@ -253,34 +253,8 @@ def find_neighbouring_candidates(time_vector_pupil, candidates, duration_thresho
         return index
 
 
-def identify_blinks(csv_blinks, time_vector_pupil, blink_duration_threshold):
-    """
-    Extract from the data the number of blinks and their index.
-    """
-    if np.shape(csv_blinks) != 0:
-        number_of_blinks = csv_blinks.shape[0]
-        blinks_candidates = np.zeros((len(time_vector_pupil)))
-        for i in range(len(time_vector_pupil)):
-            for j in range(number_of_blinks):
-                if time_vector_pupil[i] > csv_blinks[j, 0] and time_vector_pupil[i] < csv_blinks[j, 1]:
-                    blinks_candidates[i] = 1
-        blinks_index = find_neighbouring_candidates(time_vector_pupil, blinks_candidates, blink_duration_threshold)
-
-        blinks_list = []
-        for k, g in itertools.groupby(enumerate(np.where(blinks_index == 1)[0]), lambda ix: ix[0] - ix[1]):
-            blinks_list.append(list(map(itemgetter(1), g)))
-        number_of_blinks = len(blinks_list)
-
-    else:
-        number_of_blinks = 0
-        blinks_index = np.zeros((len(time_vector_pupil)))
-
-    return number_of_blinks, blinks_index
-
-
-def identify_head_eye_movements(elevation, azimuth, EulAngles_head_global, EulAngles_neck,
-                                fixation_index, csv_blinks, time_vector_pupil, blink_duration_threshold,
-                                output_file_name, FLAG_PUPIL_ANGLES_PLOT):
+def identify_head_eye_movements(elevation, azimuth, blink_index, EulAngles_head_global, EulAngles_neck,
+                                fixation_index, time_vector_pupil, output_file_name, FLAG_PUPIL_ANGLES_PLOT):
     """
     This function identifies the head and eye movements being: anticipatory, compensatory, spotting, movement detection,
     blinks, and fixations.
@@ -528,8 +502,6 @@ def identify_head_eye_movements(elevation, azimuth, EulAngles_head_global, EulAn
     # plt.show()
     plt.close("all")
 
-    number_of_blinks, blinks_index = identify_blinks(csv_blinks, time_vector_pupil, blink_duration_threshold)
-
     plt.figure()
     ax = plt.subplot(111)
     ax.plot(eye_angles[0, :], '-b', label="eye azimuth")
@@ -541,7 +513,7 @@ def identify_head_eye_movements(elevation, azimuth, EulAngles_head_global, EulAn
     ax.plot(compensatory_index, '-', color='tab:purple', label="compensatory movement")
     ax.plot(spotting_index, '-', color='tab:orange', label="spotting")
     ax.plot(movement_detection_index, '-', color='tab:pink', label="movement detection")
-    ax.plot(blinks_index, '-', color='k', label="blink")
+    ax.plot(blink_index, '-', color='k', label="blink")
     ax.plot(fixation_index, '-', color='tab:brown', label='fixation')
 
     ax.legend(bbox_to_anchor=(1.05, 1), loc='upper left', borderaxespad=0)
@@ -568,12 +540,12 @@ def identify_head_eye_movements(elevation, azimuth, EulAngles_head_global, EulAn
     pourcentage_compensatory = np.sum(compensatory_index) / len(compensatory_index)
     pourcentage_spotting = np.sum(spotting_index) / len(spotting_index)
     pourcentage_movement_detection = np.sum(movement_detection_index) / len(movement_detection_index)
-    pourcentage_blinks = np.sum(blinks_index) / len(blinks_index)
+    pourcentage_blinks = np.sum(blink_index) / len(blink_index)
 
     return (neck_amplitude, eye_amplitude, max_neck_amplitude, max_eye_amplitude, neck_amplitude_percentile,
            eye_amplitude_percentile, pourcentage_anticipatory, pourcentage_compensatory, pourcentage_spotting,
            pourcentage_movement_detection, pourcentage_blinks, anticipatory_index, compensatory_index, spotting_index,
-           movement_detection_index, blinks_index)
+           movement_detection_index, blink_index)
 
 
 def update(
@@ -834,15 +806,14 @@ def animate(
         CoM_trajectory,
         elevation,
         azimuth,
+        blink_index,
         eye_position_height,
         eye_position_depth,
         links,
         num_joints,
-        csv_blinks,
         output_file_name,
         folder_name,
         max_frame=0,
-        blink_duration_threshold=0.2,
         FLAG_ANIMAITON=True,
         FLAG_GAZE_TRAJECTORY=True,
         FLAG_GENERATE_STATS_METRICS=True,
@@ -942,6 +913,7 @@ def animate(
     )
 
     if FLAG_GENERATE_STATS_METRICS:
+
         (
             neck_amplitude,
             eye_amplitude,
@@ -958,16 +930,15 @@ def animate(
             compensatory_index,
             spotting_index,
             movement_detection_index,
-            blinks_index
+            blink_index,
         )= identify_head_eye_movements(
             elevation,
             azimuth,
+            blink_index,
             EulAngles_head_global,
             EulAngles_neck,
             fixation_index,
-            csv_blinks,
             time_vector_pupil,
-            blink_duration_threshold,
             output_file_name,
             FLAG_PUPIL_ANGLES_PLOT,
         )
@@ -1050,7 +1021,7 @@ def animate(
         compensatory_index,
         spotting_index,
         movement_detection_index,
-        blinks_index,
+        blink_index,
         position_threshold_block,
         wall_index_block,
         Xsens_head_position_calculated,

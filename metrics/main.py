@@ -13,7 +13,7 @@ from sync_jump import sync_jump
 from CoM_transfo import CoM_transfo
 from get_data_at_same_timestamps import get_data_at_same_timestamps
 from animate_JCS import animate
-from remove_data_during_blinks import remove_data_during_blinks, home_made_blink_confidence_threshold
+from remove_data_during_blinks import remove_data_during_blinks_pupil, home_made_blink_confidence_threshold, remove_data_during_blinks_manual_labeling
 from set_initial_orientation import rotate_pelvis_to_initial_orientation, get_initial_gaze_orientation
 sys.path.append('../trampoline_bed_labeling/')
 from create_gaussian_heatMap import run_create_heatmaps, load_pupil
@@ -130,7 +130,8 @@ def run_analysis(
     (
         curent_AOI_label,
         csv_eye_tracking,
-        csv_blinks,
+        active_blinks,
+        time_stamps_left_eye,
         start_of_move_index,
         end_of_move_index,
         start_of_jump_index,
@@ -143,9 +144,7 @@ def run_analysis(
         SCENE_CAMERA_SERIAL_NUMBER,
     ) = load_pupil(gaze_position_labels, eye_tracking_data_path)
 
-    blink_duration_threshold = 0.1
-    csv_eye_tracking_confident = remove_data_during_blinks(csv_eye_tracking, csv_blinks, blink_duration_threshold)
-    # csv_eye_tracking_confident = home_made_blink_confidence_threshold(csv_eye_tracking, csv_blinks, blink_duration_threshold)
+    csv_eye_tracking_confident, blink_index = remove_data_during_blinks_manual_labeling(csv_eye_tracking, active_blinks, time_stamps_left_eye)
 
     if GENERATE_HEATMAPS:
         move_summary_heatmaps = run_create_heatmaps(
@@ -180,7 +179,6 @@ def run_analysis(
             time_vector_xsens,
             time_vector_pupil_offset,
             csv_eye_tracking_confident_synced,
-            csv_blinks
         ) = sync_jump(
             Xsens_sensorFreeAcceleration,
             start_of_jump_index,
@@ -190,7 +188,6 @@ def run_analysis(
             FLAG_SYNCHRO_PLOTS,
             sync_output_save_name,
             csv_eye_tracking_confident,
-            csv_blinks,
             Xsens_ms,
             max_threshold,
             air_time_threshold,
@@ -211,6 +208,7 @@ def run_analysis(
             Xsens_CoM_per_move,
             elevation_per_move,
             azimuth_per_move,
+            blink_index_per_move
         ) = get_data_at_same_timestamps(
             Xsens_orientation_rotated,
             Xsens_position_rotated,
@@ -222,7 +220,7 @@ def run_analysis(
             end_of_move_index,
             time_vector_pupil_offset,
             csv_eye_tracking_confident_synced,
-            time_stamps_eye_tracking_index_on_pupil,
+            blink_index,
             Xsens_centerOfMass,
             SCENE_CAMERA_SERIAL_NUMBER,
             API_KEY,
@@ -312,15 +310,14 @@ def run_analysis(
                     CoM_trajectory_per_move[j],
                     elevation_per_move[j],
                     azimuth_per_move[j],
+                    blink_index_per_move[j],
                     eye_position_height,
                     eye_position_depth,
                     links,
                     num_joints,
-                    csv_blinks,
                     output_file_name,
                     folder_name,
                     0,
-                    blink_duration_threshold,
                     FLAG_ANIMAITON,
                     FLAG_GAZE_TRAJECTORY,
                     FLAG_GENERATE_STATS_METRICS,

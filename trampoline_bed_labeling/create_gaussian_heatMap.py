@@ -9,7 +9,7 @@ import pandas as pd
 from IPython import embed
 import sys
 sys.path.append("../metrics")
-from remove_data_during_blinks import remove_data_during_blinks, home_made_blink_confidence_threshold
+from remove_data_during_blinks import remove_data_during_blinks_pupil, home_made_blink_confidence_threshold, remove_data_during_blinks_manual_labeling
 
 
 def load_pupil(gaze_position_labels, eye_tracking_data_path):
@@ -26,11 +26,9 @@ def load_pupil(gaze_position_labels, eye_tracking_data_path):
                 if (curent_AOI_label["Not an acrobatics"][i+1] == 0 and curent_AOI_label["Trampoline"][i+1] == 0 and curent_AOI_label["Trampoline bed"][i+1] == 0 and curent_AOI_label["Wall front"][i+1] == 0 and curent_AOI_label["Wall back"][i+1] == 0 and curent_AOI_label["Wall right"][i+1] == 0 and curent_AOI_label["Wall left"][i+1] == 0 and curent_AOI_label["Self"][i+1] == 0 and curent_AOI_label["Ceiling"][i+1] == 0):
                     curent_AOI_label["Jump"][i+1] = 1
 
-    filename_blink = eye_tracking_data_path + 'blinks.csv'
     filename_timestamps = eye_tracking_data_path + 'world_timestamps.csv'
     filename_info = eye_tracking_data_path + 'info.json'
 
-    csv_blink_read = np.char.split(pd.read_csv(filename_blink, sep='\t').values.astype('str'), sep=',')
     timestamp_image_read = np.char.split(pd.read_csv(filename_timestamps, sep='\t').values.astype('str'), sep=',')
     timestamp_image = np.zeros((len(timestamp_image_read, )))
     for i in range(len(timestamp_image_read)):
@@ -47,12 +45,13 @@ def load_pupil(gaze_position_labels, eye_tracking_data_path):
                 SCENE_CAMERA_SERIAL_NUMBER = serial_number_str[pos+1:pos+6]
                 break
 
-    csv_blinks = np.zeros((len(csv_blink_read), 4))
-    for i in range(len(csv_blink_read)):
-        csv_blinks[i, 0] = float(csv_blink_read[i][0][3])  # start
-        csv_blinks[i, 1] = float(csv_blink_read[i][0][4])  # end
-        csv_blinks[i, 2] = float(csv_blink_read[i][0][5])  # duration
-        csv_blinks[i, 3] = np.argmin(np.abs(csv_blinks[i, 0] - timestamp_image))  # closest image timestemp
+    last_slash = gaze_position_labels.rfind('/')
+    trial_name = gaze_position_labels[last_slash+1:-20]
+    blinks_labeled_file_name = gaze_position_labels[:last_slash-14] + "blinks_labeled/" + trial_name + "_labeling_blinks.pkl"
+
+    with open(blinks_labeled_file_name, "rb") as handle:
+        active_blinks, time_stamps_left_eye = pickle.load(handle)
+
 
     time_stamps_eye_tracking_index_on_pupil = np.zeros((len(timestamp_image),))
     for i in range(len(timestamp_image)):
@@ -100,7 +99,7 @@ def load_pupil(gaze_position_labels, eye_tracking_data_path):
     end_of_jump_index = time_stamps_eye_tracking_index_on_pupil[end_of_jump_index_image]
     start_of_jump_index = time_stamps_eye_tracking_index_on_pupil[start_of_jump_index_image]
 
-    return curent_AOI_label, csv_eye_tracking, csv_blinks, start_of_move_index, end_of_move_index, start_of_jump_index, end_of_jump_index, start_of_move_index_image, end_of_move_index_image, start_of_jump_index_image, end_of_jump_index_image, time_stamps_eye_tracking_index_on_pupil, SCENE_CAMERA_SERIAL_NUMBER
+    return curent_AOI_label, csv_eye_tracking, active_blinks, time_stamps_left_eye, start_of_move_index, end_of_move_index, start_of_jump_index, end_of_jump_index, start_of_move_index_image, end_of_move_index_image, start_of_jump_index_image, end_of_jump_index_image, time_stamps_eye_tracking_index_on_pupil, SCENE_CAMERA_SERIAL_NUMBER
 
 
 def points_to_percentile(centers):
@@ -352,7 +351,8 @@ def __main__():
 
         (curent_AOI_label,
          csv_eye_tracking,
-         csv_blinks,
+         active_blinks,
+         time_stamps_left_eye,
          start_of_move_index,
          end_of_move_index,
          start_of_jump_index,
@@ -364,9 +364,7 @@ def __main__():
          time_stamps_eye_tracking_index_on_pupil,
          SCENE_CAMERA_SERIAL_NUMBER, ) = load_pupil(gaze_position_labels, eye_tracking_data_path)
 
-        blink_duration_threshold = 0.1
-        csv_eye_tracking_confident = remove_data_during_blinks(csv_eye_tracking, csv_blinks, blink_duration_threshold)
-        # csv_eye_tracking_confident = home_made_blink_confidence_threshold(csv_eye_tracking, csv_blinks, blink_duration_threshold)
+        csv_eye_tracking_confident = remove_data_during_blinks_manual_labeling(csv_eye_tracking, active_blinks, time_stamps_left_eye)
 
         run_create_heatmaps(subject_name, subject_expertise, move_names, move_orientation, repetition_number, movie_name,
                         out_path, start_of_move_index_image, end_of_move_index_image, curent_AOI_label,
