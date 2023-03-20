@@ -19,14 +19,14 @@ from IPython import embed
 ##########################################################################################
 
 
-PRIMARY_ANALYSIS_FLAG = True
+PRIMARY_ANALYSIS_FLAG = False # True
 TRAJECTORIES_ANALYSIS_FLAG = False # True
 TRAJECTORIES_HEATMAPS_FLAG = False # True
 GENERATE_EACH_ATHLETE_PGOS_GRAPH = False # True
-AOI_ANALYSIS_FLAG = True
-NECK_EYE_ANALYSIS_FLAG = True
-SPREADING_HEATMAP_FLAG = True
-QUALITATIVE_ANALYSIS_FLAG = False # True
+AOI_ANALYSIS_FLAG = False # True
+NECK_EYE_ANALYSIS_FLAG = False # True
+SPREADING_HEATMAP_FLAG = False # True
+QUALITATIVE_ANALYSIS_FLAG = True
 
 move_list = ['4-', '41', '42', '43']
 
@@ -961,7 +961,7 @@ def plot_presence_all_at_the_same_time(presence_curves_per_athelte, move, xi_int
     plt.savefig(output_file_name, dpi=300)
     # plt.show()
 
-    plt.figure((15, 3))
+    plt.figure(figsize=(15, 3))
     for index_variable in range(len(variable_names)):
         plt.plot(0, 0, color=colors[index_variable], label=variable_names[index_variable])
     plt.legend(ncol=len(variable_names))
