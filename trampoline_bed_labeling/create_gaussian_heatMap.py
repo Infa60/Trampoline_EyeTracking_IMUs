@@ -2,10 +2,11 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import multivariate_normal
-import cv2
+from matplotlib.patches import Ellipse
 import pickle
 import os
 import pandas as pd
+import casadi as cas
 from IPython import embed
 import sys
 sys.path.append("../metrics")
@@ -111,6 +112,86 @@ def points_to_percentile(centers):
     percentile = np.percentile(distance, 90)
     return distance, percentile
 
+def points_to_ellipse_width(centers, ellipse_fig_name):
+    """
+    Optimize the parameters of an ellipse containing 90% of the heatmap points.
+    Reports the width and height of the ellipse.
+    """
+
+    centers = np.array(centers)
+    mean_centers = np.mean(centers, axis=0)
+    distance = np.linalg.norm(centers - mean_centers, axis=1)
+    percentile = np.percentile(distance, 90)
+    indices_sorted = np.argsort(distance)
+    first_false_index = np.where(np.logical_not(distance[indices_sorted] < percentile))[0][0]
+    indices = indices_sorted[:first_false_index]
+
+    # Generate a good intial guess for the ellipse parameters
+    eigvals, eigvecs = np.linalg.eigh(np.cov(centers[:, 0], centers[:, 1]))
+    order = eigvals.argsort()[::-1]
+    eigvals, eigvecs = eigvals[order], eigvecs[:, order]
+    vx, vy = eigvecs[:,0][0], eigvecs[:,0][1]
+    theta = np.arctan2(vy, vx)
+    width_gauss, height_gauss = 2 * 2 * np.sqrt(eigvals)
+
+
+    # State the optimization problem with the following variables
+    # Angle
+    # width of the ellipse
+    # height of the ellipse
+    # x center of the ellipse
+    # y center of the ellipse
+    ellipse_param = cas.MX.sym("parameters", 5)
+    x0 = np.array([theta, width_gauss, height_gauss, mean_centers[0], mean_centers[1]])
+
+    # Objective (minimize area of the ellipse)
+    f = np.pi * ellipse_param[1] * ellipse_param[2]  # ellipse air = pi * a * b
+
+    # Constraints (all point are inside the ellipse)
+    g = []
+    lbg = []
+    ubg = []
+    for i, indices_this_time in enumerate(indices):
+
+        cos_angle = cas.cos(np.pi-ellipse_param[0])
+        sin_angle = cas.sin(np.pi-ellipse_param[0])
+
+        xc = centers[indices_this_time, 0] - ellipse_param[3]
+        yc = centers[indices_this_time, 1] - ellipse_param[4]
+
+        xct = xc * cos_angle - yc * sin_angle
+        yct = xc * sin_angle + yc * cos_angle
+
+        rad_cc = (xct ** 2 / (ellipse_param[1] / 2.) ** 2) + (yct ** 2 / (ellipse_param[2] / 2.) ** 2)
+
+        g += [rad_cc]
+
+        lbg += [-cas.inf]
+        ubg += [1]
+
+    nlp = {"x": ellipse_param, "f": f, "g": cas.vertcat(*g)}
+    opts = {"ipopt.print_level": 0}
+    solver = cas.nlpsol("solver", "ipopt", nlp, opts)
+    sol = solver(x0=x0, lbx=[-np.pi, 0, 0, 0, 0], ubx=[np.pi, 214, 428, 214, 428], lbg=lbg, ubg=ubg)
+
+    theta_opt = sol['x'][0]
+    width_opt = sol['x'][1]
+    height_opt = sol['x'][2]
+    center_x_opt = sol['x'][3]
+    center_y_opt = sol['x'][4]
+
+    # Plotting the original points and the fitted ellipse
+    fig, ax = plt.subplots(1, 1)
+    ax.plot(centers[:, 0], centers[:, 1], '.k')
+    ax.plot(centers[indices, 0], centers[indices, 1], '.r')
+    ellipse_1 = Ellipse(xy=(mean_centers[0], mean_centers[1]), width=width_gauss, height=height_gauss, angle=theta*180/np.pi, facecolor='blue', alpha=0.5)
+    ellipse_2 = Ellipse(xy=(float(center_x_opt[0]), float(center_y_opt)), width=float(width_opt), height=float(height_opt), angle=float(theta_opt*180/np.pi), facecolor='green', alpha=0.5)
+    ax.add_patch(ellipse_1)
+    ax.add_patch(ellipse_2)
+    ax.set_aspect('equal')
+    plt.savefig(ellipse_fig_name, pdi=300)
+    # plt.show()
+    return distance, width_opt, height_opt
 
 def points_to_gaussian_heatmap(centers, height, width, scale):
     """
@@ -184,6 +265,8 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
     centers_gaze_bed = [[] for i in range(len(move_names))]
     percetile_heatmaps = []
     distance_heatmaps = []
+    width_ellipse_heatmaps = []
+    height_ellipse_heatmaps = []
     for i in range(len(move_names)):
         start = start_of_move_index_image[i]
         end = end_of_move_index_image[i]
@@ -252,13 +335,17 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
             # plt.show()
 
             distance, pertentile = points_to_percentile(centers_gaze_bed[i])
+            ellipse_fig_name = f"{out_path}/{subject_name}/{move_names[i]}/{movie_name}_ellipse_{repetition_number[i]}.png"
+            distance, width_ellipse, height_ellipse = points_to_ellipse_width(centers_gaze_bed[i], ellipse_fig_name)
+            distance_heatmaps += [distance]
             percetile_heatmaps += [pertentile]
-            distance_heatmaps += [distance]
+            width_ellipse_heatmaps += [width_ellipse]
+            height_ellipse_heatmaps += [height_ellipse]
         else:
-            distance = np.nan
-            percentile = np.nan
-            distance_heatmaps += [distance]
-            percetile_heatmaps += [percentile]
+            distance_heatmaps += [np.nan]
+            percetile_heatmaps += [np.nan]
+            width_ellipse_heatmaps += [np.nan]
+            height_ellipse_heatmaps += [np.nan]
 
         trampoline_bed_proportions = number_of_trampoline_bed / gaze_total_move
         trampoline_proportions = number_of_trampoline / gaze_total_move
