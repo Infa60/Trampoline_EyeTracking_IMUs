@@ -463,6 +463,7 @@ def identify_head_eye_movements(elevation, azimuth, blink_index, EulAngles_head_
     movement_detection_candidates = np.zeros((len(eye_displacement_norm) + 2))
     diff_time_vector_pupil = (time_vector_pupil[2:] - time_vector_pupil[:-2]) / 2
     movement_detection_candidates[1:-1] = (np.abs(eye_displacement_norm) < (position_threshold * diff_time_vector_pupil)).astype(int)
+    movement_detection_candidates = np.logical_and(movement_detection_candidates, np.logical_not(spotting_candidates)).astype(int)
 
     diff_index_movement_detection_candidates = movement_detection_candidates[1:] - movement_detection_candidates[:-1]
     movement_detection_blocks_start = np.where(diff_index_movement_detection_candidates == 1)[0] + 1
@@ -472,19 +473,13 @@ def identify_head_eye_movements(elevation, azimuth, blink_index, EulAngles_head_
     movement_detection_timing = [np.array([]) for _ in range(len(movement_detection_blocks_start))]
     movement_detection_index = np.zeros((len(time_vector_pupil)))
     for i in range(len(movement_detection_blocks_start)):
-        if time_vector_pupil[movement_detection_blocks_end[i]] - time_vector_pupil[
-            movement_detection_blocks_start[i]] > duration_threshold:
-            mean_eye_angles = np.nanmean(
-                eye_angles[:, movement_detection_blocks_start[i]: movement_detection_blocks_end[i]], axis=1)
+        if time_vector_pupil[movement_detection_blocks_end[i]] - time_vector_pupil[movement_detection_blocks_start[i]] > duration_threshold:
+            mean_eye_angles = np.nanmean(eye_angles[:, movement_detection_blocks_start[i]: movement_detection_blocks_end[i]], axis=1)
             if len(movement_detection_positions) == 0:
                 movement_detection_positions = mean_eye_angles
             else:
                 movement_detection_positions = np.vstack((movement_detection_positions, mean_eye_angles))
-            movement_detection_timing[i] = time_vector_pupil[
-                                           movement_detection_blocks_start[i]: movement_detection_blocks_end[i]]
-            for j in range(movement_detection_blocks_start[i], movement_detection_blocks_end[i]):
-                if spotting_index[j] == 0:
-                    movement_detection_index[j] = 1
+            movement_detection_timing[i] = time_vector_pupil[movement_detection_blocks_start[i]: movement_detection_blocks_end[i]]
     movement_detection_index = movement_detection_index.astype(bool)
 
     plt.figure()
