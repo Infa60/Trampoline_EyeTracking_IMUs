@@ -374,7 +374,9 @@ def run_analysis(
             "self_proportions" : move_summary_heatmaps[j]["self_proportions"],
             "blink_proportions": move_summary_heatmaps[j]["blink_proportions"],
             "percetile_heatmaps" : move_summary_heatmaps[j]["percetile_heatmaps"],
-            "distance_heatmaps" : move_summary_heatmaps[j]["distance_heatmaps"],}
+            "distance_heatmaps" : move_summary_heatmaps[j]["distance_heatmaps"],
+            "width_ellipse_heatmaps": move_summary_heatmaps[j]["width_ellipse_heatmaps"],
+            "height_ellipse_heatmaps": move_summary_heatmaps[j]["height_ellipse_heatmaps"]}
 
             with open(output_file_name[:-4] + "__eyetracking_metrics.pkl", 'wb') as handle:
                 pickle.dump(move_summary, handle)

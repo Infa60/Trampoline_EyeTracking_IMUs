@@ -131,60 +131,69 @@ def points_to_ellipse_width(centers, ellipse_fig_name):
     order = eigvals.argsort()[::-1]
     eigvals, eigvecs = eigvals[order], eigvecs[:, order]
     vx, vy = eigvecs[:,0][0], eigvecs[:,0][1]
-    theta = np.arctan2(vy, vx)
+    theta_gauss = np.arctan2(vy, vx)
     width_gauss, height_gauss = 2 * 2 * np.sqrt(eigvals)
+    success_out = False
 
+    while success_out == False:
+        # State the optimization problem with the following variables
+        # Angle
+        # width of the ellipse
+        # height of the ellipse
+        # x center of the ellipse
+        # y center of the ellipse
+        ellipse_param = cas.MX.sym("parameters", 5)
+        x0 = np.array([theta_gauss, width_gauss, height_gauss, mean_centers[0], mean_centers[1]])
 
-    # State the optimization problem with the following variables
-    # Angle
-    # width of the ellipse
-    # height of the ellipse
-    # x center of the ellipse
-    # y center of the ellipse
-    ellipse_param = cas.MX.sym("parameters", 5)
-    x0 = np.array([theta, width_gauss, height_gauss, mean_centers[0], mean_centers[1]])
+        # Objective (minimize area of the ellipse)
+        f = np.pi * ellipse_param[1] * ellipse_param[2]  # ellipse air = pi * a * b
 
-    # Objective (minimize area of the ellipse)
-    f = np.pi * ellipse_param[1] * ellipse_param[2]  # ellipse air = pi * a * b
+        # Constraints (all point are inside the ellipse)
+        g = []
+        lbg = []
+        ubg = []
+        for i, indices_this_time in enumerate(indices):
 
-    # Constraints (all point are inside the ellipse)
-    g = []
-    lbg = []
-    ubg = []
-    for i, indices_this_time in enumerate(indices):
+            cos_angle = cas.cos(np.pi-ellipse_param[0])
+            sin_angle = cas.sin(np.pi-ellipse_param[0])
 
-        cos_angle = cas.cos(np.pi-ellipse_param[0])
-        sin_angle = cas.sin(np.pi-ellipse_param[0])
+            xc = centers[indices_this_time, 0] - ellipse_param[3]
+            yc = centers[indices_this_time, 1] - ellipse_param[4]
 
-        xc = centers[indices_this_time, 0] - ellipse_param[3]
-        yc = centers[indices_this_time, 1] - ellipse_param[4]
+            xct = xc * cos_angle - yc * sin_angle
+            yct = xc * sin_angle + yc * cos_angle
 
-        xct = xc * cos_angle - yc * sin_angle
-        yct = xc * sin_angle + yc * cos_angle
+            rad_cc = (xct ** 2 / (ellipse_param[1] / 2.) ** 2) + (yct ** 2 / (ellipse_param[2] / 2.) ** 2)
 
-        rad_cc = (xct ** 2 / (ellipse_param[1] / 2.) ** 2) + (yct ** 2 / (ellipse_param[2] / 2.) ** 2)
+            g += [rad_cc]
 
-        g += [rad_cc]
+            lbg += [-cas.inf]
+            ubg += [1]
 
-        lbg += [-cas.inf]
-        ubg += [1]
+        nlp = {"x": ellipse_param, "f": f, "g": cas.vertcat(*g)}
+        opts = {"ipopt.print_level": 0}
+        solver = cas.nlpsol("solver", "ipopt", nlp, opts)
+        sol = solver(x0=x0, lbx=[-np.pi, 0, 0, 0, 0], ubx=[np.pi, 214, 428, 214, 428], lbg=lbg, ubg=ubg)
 
-    nlp = {"x": ellipse_param, "f": f, "g": cas.vertcat(*g)}
-    opts = {"ipopt.print_level": 0}
-    solver = cas.nlpsol("solver", "ipopt", nlp, opts)
-    sol = solver(x0=x0, lbx=[-np.pi, 0, 0, 0, 0], ubx=[np.pi, 214, 428, 214, 428], lbg=lbg, ubg=ubg)
+        if solver.stats()['success']:
+            success_out = True
+            theta_opt = sol['x'][0]
+            width_opt = sol['x'][1]
+            height_opt = sol['x'][2]
+            center_x_opt = sol['x'][3]
+            center_y_opt = sol['x'][4]
+        else:
+            theta_gauss = theta_gauss * np.random.uniform(0.5, 1.5)
+            width_gauss = width_gauss * np.random.uniform(0.5, 1.5)
+            height_gauss = height_gauss * np.random.uniform(0.5, 1.5)
+            print('Ellipse did not converse, trying again')
 
-    theta_opt = sol['x'][0]
-    width_opt = sol['x'][1]
-    height_opt = sol['x'][2]
-    center_x_opt = sol['x'][3]
-    center_y_opt = sol['x'][4]
 
     # Plotting the original points and the fitted ellipse
     fig, ax = plt.subplots(1, 1)
     ax.plot(centers[:, 0], centers[:, 1], '.k')
     ax.plot(centers[indices, 0], centers[indices, 1], '.r')
-    ellipse_1 = Ellipse(xy=(mean_centers[0], mean_centers[1]), width=width_gauss, height=height_gauss, angle=theta*180/np.pi, facecolor='blue', alpha=0.5)
+    ellipse_1 = Ellipse(xy=(mean_centers[0], mean_centers[1]), width=width_gauss, height=height_gauss, angle=theta_gauss*180/np.pi, facecolor='blue', alpha=0.5)
     ellipse_2 = Ellipse(xy=(float(center_x_opt[0]), float(center_y_opt)), width=float(width_opt), height=float(height_opt), angle=float(theta_opt*180/np.pi), facecolor='green', alpha=0.5)
     ax.add_patch(ellipse_1)
     ax.add_patch(ellipse_2)
@@ -241,6 +250,9 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
     """
     Plots the heatmap and saves the data for later use.
     """
+    if not os.path.exists(f'{out_path}/{subject_name}'):
+        os.makedirs(f'{out_path}/{subject_name}')
+
     image_width = 214
     image_height = 428
     gaussian_width = 50
@@ -268,6 +280,8 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
     width_ellipse_heatmaps = []
     height_ellipse_heatmaps = []
     for i in range(len(move_names)):
+        if not os.path.exists(f'{out_path}/{subject_name}/{move_names[i]}'):
+            os.makedirs(f'{out_path}/{subject_name}/{move_names[i]}')
         start = start_of_move_index_image[i]
         end = end_of_move_index_image[i]
         centers_gaze_bed_i = []
@@ -370,7 +384,9 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
                            "self_proportions" : self_proportions,
                            "blink_proportions" : blink_proportions,
                            "percetile_heatmaps": percetile_heatmaps[i],
-                           "distance_heatmaps": distance_heatmaps[i]}
+                           "distance_heatmaps": distance_heatmaps[i],
+                           "width_ellipse_heatmaps": width_ellipse_heatmaps[i],
+                           "height_ellipse_heatmaps": height_ellipse_heatmaps[i]}
 
         move_summary_light[i] = {"movement_name": move_names[i],
                            "subject_name": subject_name,
@@ -385,12 +401,9 @@ def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orient
                            "self_proportions" : self_proportions,
                            "blink_proportions": blink_proportions,
                            "percetile_heatmaps": percetile_heatmaps[i],
-                           "distance_heatmaps": distance_heatmaps[i]}
-
-        if not os.path.exists(f'{out_path}/{subject_name}'):
-            os.makedirs(f'{out_path}/{subject_name}')
-        if not os.path.exists(f'{out_path}/{subject_name}/{move_names[i]}'):
-            os.makedirs(f'{out_path}/{subject_name}/{move_names[i]}')
+                           "distance_heatmaps": distance_heatmaps[i],
+                           "width_ellipse_heatmaps": width_ellipse_heatmaps[i],
+                           "height_ellipse_heatmaps": height_ellipse_heatmaps[i]}
 
         with open(f'{out_path}/{subject_name}/{move_names[i]}/{movie_name}_heat_map_{repetition_number[i]}.pkl', 'wb') as handle:
             pickle.dump(move_summary[i], handle)

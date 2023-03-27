@@ -225,10 +225,11 @@ def remove_data_during_blinks_manual_labeling(csv_eye_tracking, active_blinks, t
     blink_index = np.zeros((len(time_vector)))
     for i in range(len(time_vector)):
         index_closest = np.argmin(np.abs(time_stamps_left_eye - time_vector[i]))
-        if active_blinks["Eyes closed"][index_closest] == 1:
-            csv_eye_tracking[i, 1] = np.nan
-            csv_eye_tracking[i, 2] = np.nan
-            csv_eye_tracking[i, 3] = 0
-            blink_index[i] = 1
+        if len(active_blinks["Eyes closed"]) > index_closest:
+            if active_blinks["Eyes closed"][index_closest] == 1:
+                csv_eye_tracking[i, 1] = np.nan
+                csv_eye_tracking[i, 2] = np.nan
+                csv_eye_tracking[i, 3] = 0
+                blink_index[i] = 1
 
     return csv_eye_tracking, blink_index
