@@ -522,8 +522,9 @@ def identify_head_eye_movements(elevation, azimuth, blink_index, EulAngles_head_
     neck_position_norm = np.sqrt(EulAngles_neck[:-1, 1] ** 2 + EulAngles_neck[:-1, 0] ** 2)
     eye_position_norm = np.sqrt(eye_angles[1, :-1] ** 2 + eye_angles[0, :-1] ** 2)
     dt = time_vector_pupil[1:] - time_vector_pupil[:-1]
-    neck_amplitude = np.nansum(neck_position_norm * dt)
-    eye_amplitude = np.nansum(eye_position_norm * dt)
+    normalized_dt = dt / (time_vector_pupil[-2] - time_vector_pupil[1])
+    neck_amplitude = np.nansum(neck_position_norm * normalized_dt)
+    eye_amplitude = np.nansum(eye_position_norm * normalized_dt)
 
     neck_amplitude_percentile = np.percentile(neck_position_norm, 90)
     eye_amplitude_percentile = np.percentile(eye_position_norm, 90)
