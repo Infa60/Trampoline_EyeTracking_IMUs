@@ -447,6 +447,8 @@ if TRAJECTORIES_ANALYSIS_FLAG:
     nb_interp_points = 500
     xi_interp = np.linspace(0, 1, nb_interp_points)
     trajectory_curves_per_athelte_per_move = {}
+    mean_RMSD_per_athlete_per_move_subelites = {move: [] for move in move_list}
+    mean_RMSD_per_athlete_per_move_elites = {move: [] for move in move_list}
     for j, name in enumerate(trial_per_athlete_per_move_index.keys()):
         trajectory_curves_per_athelte_per_move[name] = {}
         for i, move in enumerate(trial_per_athlete_per_move_index[name].keys()):
@@ -488,6 +490,14 @@ if TRAJECTORIES_ANALYSIS_FLAG:
                 trajectory_curves_per_athelte_per_move[name][move] = representative_trajectory
                 plt.close('all')
 
+            # Compute RMSD
+            std_each_node = np.nanstd(trajectory_curves, axis=2)
+            mean_std = np.nanmean(std_each_node, axis=1)
+            if name in subelite_names:
+                mean_RMSD_per_athlete_per_move_subelites[move] += [mean_std]
+            elif name in elite_names:
+                mean_RMSD_per_athlete_per_move_elites[move] += [mean_std]
+
     colors_subelites = [cm.get_cmap('plasma')(k) for k in np.linspace(0, 0.4, len(subelite_names))]
     colors_elites = [cm.get_cmap('plasma')(k) for k in np.linspace(0.6, 1, len(elite_names))]
     subelites_trajectory_x = {move: np.zeros((len(xi_interp), )) for move in move_list}
@@ -524,6 +534,15 @@ if TRAJECTORIES_ANALYSIS_FLAG:
     if significant_timings[move] is not None:
         print("Significant timings found for SPM1D on PGOS: ", significant_timings[move])
 
+    print()
+    print("Mean RMSD per move for subelites: ")
+    for move in move_list:
+        print(f"{move}: {np.nanmean(mean_RMSD_per_athlete_per_move_subelites[move])}")
+    print()
+    print("Mean RMSD per move for elites: ")
+    for move in move_list:
+        print(f"{move}: {np.nanmean(mean_RMSD_per_athlete_per_move_elites[move])}")
+    print()
 
 if TRAJECTORIES_HEATMAPS_FLAG:
     def put_lines_on_fig(ax):
