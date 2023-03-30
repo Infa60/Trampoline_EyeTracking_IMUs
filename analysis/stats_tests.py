@@ -13,13 +13,15 @@ from scipy.stats import multivariate_normal
 import csv
 from IPython import embed
 
+from Non_parametric_verifications_mixedANOVA import test_non_normality_impact_on_results
+
 
 ##########################################################################################
 # run --- python stats_tests.py > stats_output.txt ---  to save the output to a file
 ##########################################################################################
 
 
-PRIMARY_ANALYSIS_FLAG = False # True
+PRIMARY_ANALYSIS_FLAG = True
 TRAJECTORIES_ANALYSIS_FLAG = False # True
 TRAJECTORIES_HEATMAPS_FLAG = False # True
 GENERATE_EACH_ATHLETE_PGOS_GRAPH = False # True
@@ -164,6 +166,9 @@ if PRIMARY_ANALYSIS_FLAG:
     primary_data_frame = pd.DataFrame(primary_table[1:], columns=primary_table[0])
     primary_data_frame.to_csv(home_path + "/disk/Eye-tracking/plots/primary_data_frame.csv")
 
+    with open(home_path + "/disk/Eye-tracking/plots/primary_data_frame.pkl", 'wb') as f:
+        pickle.dump(primary_table, f)
+
     primary_data_frame_temporary = pd.DataFrame(columns=primary_table[0])
     for i in range(len(primary_data_frame)):
         df = {'Name': [primary_data_frame['Name'][i]],
@@ -180,31 +185,22 @@ if PRIMARY_ANALYSIS_FLAG:
 
     primary_data_frame = primary_data_frame_temporary
 
-    # Eta squared measures the proportion of the total variance in a dependent variable that is associated with the
-    # membership of different groups defined by an independent variable. Partial eta squared is a similar measure in which
-    # the effects of other independent variables and interactions are partialled out.
-    # from : https://eric.ed.gov/?id=EJ927266#:~:text=Eta%20squared%20measures%20the%20proportion,and%20interactions%20are%20partialled%20out.
+    test_non_normality_impact_on_results(primary_data_frame, move_list)
 
     print("Mixed ANOVA for Fixations duration relative")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Fixations duration relative', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=primary_data_frame, dv='Fixations duration relative', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Number of fixations")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Number of fixations', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=primary_data_frame, dv='Number of fixations', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Quiet eye duration relative")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Quiet eye duration relative', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=primary_data_frame, dv='Quiet eye duration relative', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Eye amplitude")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=primary_data_frame, dv='Eye amplitude', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Neck amplitude")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
-    print(f'{out}\n\n')
-    print("Mixed ANOVA for Maximum eye amplitude")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Maximum eye amplitude', within='Acrobatics', between='Expertise', subject='Name')
-    print(f'{out}\n\n')
-    print("Mixed ANOVA for Maximum neck amplitude")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Maximum neck amplitude', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=primary_data_frame, dv='Neck amplitude', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
 
 
@@ -222,12 +218,6 @@ if PRIMARY_ANALYSIS_FLAG:
     print(f'{out}\n\n')
     print("pairwise t-test for Neck amplitude")
     out = pg.pairwise_tests(data=primary_data_frame, dv='Neck amplitude', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
-    print(f'{out}\n\n')
-    print("pairwise t-test for Maximum eye amplitude")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Maximum eye amplitude', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
-    print(f'{out}\n\n')
-    print("pairwise t-test for Maximum neck amplitude")
-    out = pg.pairwise_tests(data=primary_data_frame, dv='Maximum neck amplitude', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
 
 
@@ -381,7 +371,6 @@ def plot_mean_PGOS_per_athlete(name, move, interpolated_unwrapped_trajectory, ho
                 nb_nan_elements = max(np.sum(np.isnan(interpolated_unwrapped_trajectory[0, :, i])),
                                         np.sum(np.isnan(interpolated_unwrapped_trajectory[0, :, j])))
                 nb_non_nan_elements = 500 - nb_nan_elements
-                # RMSE += np.sqrt(np.mean((interpolated_unwrapped_trajectory[0, :, i] - interpolated_unwrapped_trajectory[0, :, j]) ** 2)) / nb_non_nan_elements
                 RMSE += np.nansum(np.abs(interpolated_unwrapped_trajectory[0, :, i] - interpolated_unwrapped_trajectory[0, :, j])) / nb_non_nan_elements
         if RMSE < min_RMSE:
             min_RMSE = RMSE
@@ -726,25 +715,25 @@ if AOI_ANALYSIS_FLAG:
     AOI_proportions_data_frame = AOI_proportions_table_temporary
 
     print("Mixed ANOVA for Trampoline bed")
-    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Trampoline bed', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Trampoline bed', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Trampoline")
-    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Wall back front")
-    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Wall back front', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Wall back front', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Ceiling")
-    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Ceiling', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Ceiling', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Wall sides")
-    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Athlete himself")
-    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Blink")
-    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Blink', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Blink', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
 
     print("pairwise t-test for Trampoline bed")
@@ -793,20 +782,20 @@ if NECK_EYE_ANALYSIS_FLAG:
 
 
     print("Mixed ANOVA for Anticipatory movements")
-    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Anticipatory movements', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Anticipatory movements', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Compensatory movements")
-    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Compensatory movements', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Compensatory movements', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Spotting movements")
-    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Spotting movements', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Spotting movements', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Movement detection")
-    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name')
+    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
-    print("Mixed ANOVA for Blinks")
-    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Blinks', within='Acrobatics', between='Expertise', subject='Name')
-    print(f'{out}\n\n')
+    # print("Mixed ANOVA for Blinks")
+    # out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Blinks', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    # print(f'{out}\n\n')
 
     print("pairwise t-test for Anticipatory movements")
     out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Anticipatory movements', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
@@ -820,9 +809,9 @@ if NECK_EYE_ANALYSIS_FLAG:
     print("pairwise t-test for Movement detection")
     out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
-    print("pairwise t-test for Blinks")
-    out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Blinks', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
-    print(f'{out}\n\n')
+    # print("pairwise t-test for Blinks")
+    # out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Blinks', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
+    # print(f'{out}\n\n')
 
 
 # ----------------------------------- Heatmap spreading data frame = Mixed ANOVA -------------------------------------- #
