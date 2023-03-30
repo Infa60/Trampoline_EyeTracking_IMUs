@@ -222,11 +222,13 @@ def identify_fixations(time_vector_pupil, gaze_position_temporal_evolution_proje
     if len(fixation_duration_absolute) > 0:
         quiet_eye_duration_absolute = fixation_duration_absolute[-1]
         quiet_eye_duration_relative = fixation_duration_relative[-1]
+        quiet_eye_onset_relative = (fixation_timing[-1][0] - time_vector_pupil[0]) / jump_duration
     else:
         quiet_eye_duration_absolute = np.nan
         quiet_eye_duration_relative = np.nan
+        quiet_eye_onset_relative = np.nan
 
-    return fixation_positions, fixation_timing, position_threshold_block, wall_index_block, fixation_index, fixation_duration_absolute, fixation_duration_relative, quiet_eye_duration_absolute, quiet_eye_duration_relative, number_of_fixation
+    return fixation_positions, fixation_timing, position_threshold_block, wall_index_block, fixation_index, fixation_duration_absolute, fixation_duration_relative, quiet_eye_duration_absolute, quiet_eye_duration_relative, number_of_fixation, quiet_eye_onset_relative
 
 
 def find_neighbouring_candidates(time_vector_pupil, candidates, duration_threshold):
@@ -900,6 +902,7 @@ def animate(
      quiet_eye_duration_absolute,
      quiet_eye_duration_relative,
      number_of_fixation,
+     quiet_eye_onset_relative,
      ) = identify_fixations(
     time_vector_pupil,
     gaze_position_temporal_evolution_projected,
@@ -1000,6 +1003,7 @@ def animate(
         fixation_index,
         quiet_eye_duration_absolute,
         quiet_eye_duration_relative,
+        quiet_eye_onset_relative,
         gaze_position_temporal_evolution_projected,
         gaze_position_temporal_evolution_projected_facing_front_wall,
         neck_amplitude,

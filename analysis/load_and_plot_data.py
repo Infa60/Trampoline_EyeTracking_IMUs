@@ -86,15 +86,12 @@ def plot_primary_metrics(df, move_list, subelite_names, elite_names, metric, met
 
 def primary_plots(df, move_list, subelite_names, elite_names, plot_path):
 
-    # plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Fixations duration absolute', 'Fixations duration absolute', 's', 'fixation_duration_absolute', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Fixations duration relative', 'Fixations relative duration', None, 'fixation_duration_relative', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Number of fixations', 'Number of fixations', None, 'fixation_number', f'{plot_path}/')
-    # plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye duration absolute', 'Quiet eye duration absolute', 's', 'quiet_eye_duration_absolute', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye duration relative', 'Quiet eye relative duration', None, 'quiet_eye_duration_relative', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye onset relative', 'Quiet eye onset duration', None, 'quiet_eye_onset_relative', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Eye amplitude', 'Eye movement amplitude', 'rad', 'eye_amplitude', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Neck amplitude', 'Neck movement amplitude', 'rad', 'neck_amplitude', f'{plot_path}/')
-    # plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Maximum eye amplitude', 'Maximum eye amplitude', 'rad', 'max_eye_amplitude', f'{plot_path}/')
-    # plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Maximum neck amplitude', 'Maximum neck amplitude', 'rad', 'max_neck_amplitude', f'{plot_path}/')
     # see what we want to do with the zero from Pupil
     return
 
@@ -595,9 +592,8 @@ trial_table = np.char.split(pd.read_csv(csv_name, sep="\t").values.astype("str")
 
 primary_table = [["Name", "Expertise", "Acrobatics",
                   "Fixations duration absolute", "Fixations duration relative", "Number of fixations",
-                  "Quiet eye duration absolute", "Quiet eye duration relative", "Eye amplitude", "Neck amplitude",
-                  "Maximum eye amplitude", "Maximum neck amplitude",
-                  # "Eye amplitude 90th percentile", "Neck amplitude 90th percentile"
+                  "Quiet eye duration absolute", "Quiet eye duration relative", "Quiet eye onset relative",
+                  "Eye amplitude", "Neck amplitude", "Maximum eye amplitude", "Maximum neck amplitude",
                   ]]
 
 trajectories_table = [["Name", "Expertise", "Acrobatics", "Projected gaze orientation (PGO)",
@@ -647,18 +643,17 @@ if GENRATE_DATA_FRAME_FLAG:
                             number_of_fixation = eye_tracking_metrics["number_of_fixation"]
                             quiet_eye_duration_absolute = eye_tracking_metrics["quiet_eye_duration_absolute"]
                             quiet_eye_duration_relative = eye_tracking_metrics["quiet_eye_duration_relative"]
+                            quiet_eye_onset_relative = eye_tracking_metrics["quiet_eye_onset_relative"]
                             eye_amplitude = eye_tracking_metrics["eye_amplitude"]
                             neck_amplitude = eye_tracking_metrics["neck_amplitude"]
                             max_eye_amplitude = eye_tracking_metrics["max_eye_amplitude"]
                             max_neck_amplitude = eye_tracking_metrics["max_neck_amplitude"]
-                            # eye_amplitude_percentile = eye_tracking_metrics["eye_amplitude_percentile"]
-                            # neck_amplitude_percentile = eye_tracking_metrics["neck_amplitude_percentile"]
 
                             primary_table += [[subject_name, expertise, acrobatics,
                                                fixation_duration_absolute, fixation_duration_relative,
                                                number_of_fixation, quiet_eye_duration_absolute,
-                                               quiet_eye_duration_relative, eye_amplitude, neck_amplitude,
-                                               max_eye_amplitude, max_neck_amplitude]]
+                                               quiet_eye_duration_relative, quiet_eye_onset_relative, eye_amplitude,
+                                               neck_amplitude, max_eye_amplitude, max_neck_amplitude]]
 
 
                             # Secondary analysis - Trajectory
