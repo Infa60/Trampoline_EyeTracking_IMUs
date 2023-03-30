@@ -840,25 +840,45 @@ if SPREADING_HEATMAP_FLAG:
     heatmaps_spreading_data_frame.to_csv(home_path + "/disk/Eye-tracking/plots/heatmaps_spreading_data_frame.csv")
     heatmaps_spreading_table_temporary = pd.DataFrame(columns=['Name', 'Expertise', 'Acrobatics',
                                                                'Distance from the center of each point of the heatmap',
-                                                               'Heat map 90th percentile'])
+                                                               'Heat map 90th percentile', 
+                                                               'Width of the ellipse comprising 90 percentiles', 
+                                                               'Height of the ellipse comprising 90 percentiles'])
     for i in range(len(heatmaps_spreading_data_frame)):
         # if i in list_move_ok_for_now:
         df = {'Name': [heatmaps_spreading_data_frame['Name'][i]],
               'Expertise': [heatmaps_spreading_data_frame['Expertise'][i]],
               'Acrobatics': [heatmaps_spreading_data_frame['Acrobatics'][i]],
               'Distance from the center of each point of the heatmap': [heatmaps_spreading_data_frame['Distance from the center of each point of the heatmap'][i]],
-              'Heat map 90th percentile': [heatmaps_spreading_data_frame['Heat map 90th percentile'][i]]}
+              'Heat map 90th percentile': [heatmaps_spreading_data_frame['Heat map 90th percentile'][i]],
+              'Width of the ellipse comprising 90 percentiles': [heatmaps_spreading_data_frame['Width of the ellipse comprising 90 percentiles'][i]],
+              'Height of the ellipse comprising 90 percentiles': [heatmaps_spreading_data_frame['Height of the ellipse comprising 90 percentiles'][i]]}
         heatmaps_spreading_table_temporary = pd.concat([heatmaps_spreading_table_temporary, pd.DataFrame(df)])
 
     heatmaps_spreading_data_frame = heatmaps_spreading_table_temporary
 
-    print("Mixed ANOVA for Heat map 90th percentile")
-    out = pg.mixed_anova(data=heatmaps_spreading_data_frame, dv='Heat map 90th percentile', within='Acrobatics',
-                         between='Expertise', subject='Name')
+    # print("Mixed ANOVA for Heat map 90th percentile")
+    # out = pg.mixed_anova(data=heatmaps_spreading_data_frame, dv='Heat map 90th percentile', within='Acrobatics',
+    #                      between='Expertise', subject='Name')
+    # print(f'{out}\n\n')
+    # print("pairwise t-test for Heat map 90th percentile")
+    # out = pg.pairwise_tests(data=heatmaps_spreading_data_frame, dv='Heat map 90th percentile', within='Acrobatics',
+    #                         between='Expertise', subject='Name', parametric=False)
+    # print(f'{out}\n\n')
+    
+    print("Mixed ANOVA for heatmap 90 percentile ellipse width")
+    out = pg.mixed_anova(data=heatmaps_spreading_data_frame, dv='Width of the ellipse comprising 90 percentiles', within='Acrobatics',
+                         between='Expertise', subject='Name', eff_size='n2')
     print(f'{out}\n\n')
+    print("pairwise t-test for heatmap 90 percentile ellipse width")
+    out = pg.pairwise_tests(data=heatmaps_spreading_data_frame, dv='Width of the ellipse comprising 90 percentiles', within='Acrobatics',
+                            between='Expertise', subject='Name', parametric=False)
 
-    print("pairwise t-test for Heat map 90th percentile")
-    out = pg.pairwise_tests(data=heatmaps_spreading_data_frame, dv='Heat map 90th percentile', within='Acrobatics',
+    print("Mixed ANOVA for heatmap 90 percentile ellipse height")
+    out = pg.mixed_anova(data=heatmaps_spreading_data_frame, dv='Height of the ellipse comprising 90 percentiles', within='Acrobatics',
+                            between='Expertise', subject='Name', eff_size='n2')
+    print(f'{out}\n\n')
+    print("pairwise t-test for heatmap 90 percentile ellipse height")
+    out = pg.pairwise_tests(data=heatmaps_spreading_data_frame, dv='Height of the ellipse comprising 90 percentiles', within='Acrobatics',
                             between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
 

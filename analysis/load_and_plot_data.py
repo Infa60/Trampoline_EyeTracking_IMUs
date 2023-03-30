@@ -91,8 +91,8 @@ def primary_plots(df, move_list, subelite_names, elite_names, plot_path):
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Number of fixations', 'Number of fixations', None, 'fixation_number', f'{plot_path}/')
     # plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye duration absolute', 'Quiet eye duration absolute', 's', 'quiet_eye_duration_absolute', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye duration relative', 'Quiet eye relative duration', None, 'quiet_eye_duration_relative', f'{plot_path}/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Eye amplitude', 'Eye movement amplitude', r'rad $\cdot$ s', 'eye_amplitude', f'{plot_path}/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Neck amplitude', 'Neck movement amplitude', r'rad $\cdot$ s', 'neck_amplitude', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Eye amplitude', 'Eye movement amplitude', 'rad', 'eye_amplitude', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Neck amplitude', 'Neck movement amplitude', 'rad', 'neck_amplitude', f'{plot_path}/')
     # plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Maximum eye amplitude', 'Maximum eye amplitude', 'rad', 'max_eye_amplitude', f'{plot_path}/')
     # plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Maximum neck amplitude', 'Maximum neck amplitude', 'rad', 'max_neck_amplitude', f'{plot_path}/')
     # see what we want to do with the zero from Pupil
@@ -617,7 +617,7 @@ neck_eye_movements_indices_table = [["Name", "Expertise", "Acrobatics", "Anticip
                        "Compensatory movements index", "Spotting movements index",
                        "Movement detection index", "Blinks index", 'Fixations index']]
 
-heatmaps_spreading_table = [["Name", "Expertise", "Acrobatics", "Distance from the center of each point of the heatmap", "Heat map 90th percentile"]]
+heatmaps_spreading_table = [["Name", "Expertise", "Acrobatics", "Distance from the center of each point of the heatmap", "Heat map 90th percentile", "Heatmap width", "Heatmap height"]]
 
 qualitative_table = [["Name", "Expertise", "Acrobatics", "Fixation target", "anticipatory_index", "compensatory_index",
                 "spotting_index", "movement_detection_index", "blinks_index", "fixation_index"]]
@@ -711,7 +711,9 @@ if GENRATE_DATA_FRAME_FLAG:
                             # Secondary analysis - percetile heatmaps
                             percetile_heatmaps = eye_tracking_metrics["percetile_heatmaps"]
                             distance_heatmaps = eye_tracking_metrics["distance_heatmaps"]
-                            heatmaps_spreading_table += [[subject_name, expertise, acrobatics, distance_heatmaps, percetile_heatmaps]]
+                            width_ellipse_heatmaps = eye_tracking_metrics["width_ellipse_heatmaps"]
+                            height_ellipse_heatmaps = eye_tracking_metrics["height_ellipse_heatmaps"]
+                            heatmaps_spreading_table += [[subject_name, expertise, acrobatics, distance_heatmaps, percetile_heatmaps, width_ellipse_heatmaps, height_ellipse_heatmaps]]
 
                             # Qualitative analysis
                             fixation_positions = eye_tracking_metrics["fixation_positions"]
