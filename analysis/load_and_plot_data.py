@@ -246,11 +246,11 @@ def bar_plots_error_bar_translated(df, type_names, subelite_names, elite_names, 
             std = np.nanstd(means_subelite[key][i])
             ax.bar(i*2 - 0.4, mean, bottom=total_subelite, color=colors[j], width=0.6, label=(key if i == 0 else None), alpha=0.7)
             ax.plot(np.array([0.1 + i*2 - 0.7 + 0.5/len(type_names)*j, 0.1 + i*2 - 0.7 + 0.5/len(type_names)*j]),
-                    np.array([total_subelite + mean - std, total_subelite + mean + std]), color=colors[j])
-            ax.plot(np.array([0.1 + i*2 - 0.7 + 0.5/len(type_names)*j - 0.05, 0.1 + i*2 - 0.7 + 0.5/len(type_names)*j + 0.05]),
-                    np.array([total_subelite + mean - std, total_subelite + mean - std]), color=colors[j])
-            ax.plot(np.array([0.1 + i*2 - 0.7 + 0.5/len(type_names)*j - 0.05, 0.1 + i*2 - 0.7 + 0.5/len(type_names)*j + 0.05]),
-                    np.array([total_subelite + mean + std, total_subelite + mean + std]), color=colors[j])
+                    np.array([total_subelite + mean - std, total_subelite + mean + std]), color=colors[j], linewidth=0.8)
+            ax.plot(np.array([0.1 + i*2 - 0.7 + 0.5/len(type_names)*j - 0.025, 0.1 + i*2 - 0.7 + 0.5/len(type_names)*j + 0.025]),
+                    np.array([total_subelite + mean - std, total_subelite + mean - std]), color=colors[j], linewidth=0.8)
+            ax.plot(np.array([0.1 + i*2 - 0.7 + 0.5/len(type_names)*j - 0.025, 0.1 + i*2 - 0.7 + 0.5/len(type_names)*j + 0.025]),
+                    np.array([total_subelite + mean + std, total_subelite + mean + std]), color=colors[j], linewidth=0.8)
             total_subelite += mean
         total_elite = 0
         for j, key in enumerate(type_names):
@@ -258,11 +258,11 @@ def bar_plots_error_bar_translated(df, type_names, subelite_names, elite_names, 
             std = np.nanstd(means_elite[key][i])
             ax.bar(i * 2 + 0.4, mean, bottom=total_elite, color=colors[j], width=0.6, alpha=0.7)
             ax.plot(np.array([0.1 + i*2 + 0.1 + 0.5/len(type_names)*j, 0.1 + i*2 + 0.1 + 0.5/len(type_names)*j]),
-                    np.array([total_elite + mean - std, total_elite + mean + std]), color=colors[j])
-            ax.plot(np.array([0.1 + i*2 + 0.1 + 0.5/len(type_names)*j - 0.05, 0.1 + i*2 + 0.1 + 0.5/len(type_names)*j + 0.05]),
-                    np.array([total_elite + mean - std, total_elite + mean - std]), color=colors[j])
-            ax.plot(np.array([0.1 + i*2 + 0.1 + 0.5/len(type_names)*j - 0.05, 0.1 + i*2 + 0.1 + 0.5/len(type_names)*j + 0.05]),
-                    np.array([total_elite + mean + std, total_elite + mean + std]), color=colors[j])
+                    np.array([total_elite + mean - std, total_elite + mean + std]), color=colors[j], linewidth=0.8)
+            ax.plot(np.array([0.1 + i*2 + 0.1 + 0.5/len(type_names)*j - 0.025, 0.1 + i*2 + 0.1 + 0.5/len(type_names)*j + 0.025]),
+                    np.array([total_elite + mean - std, total_elite + mean - std]), color=colors[j], linewidth=0.8)
+            ax.plot(np.array([0.1 + i*2 + 0.1 + 0.5/len(type_names)*j - 0.025, 0.1 + i*2 + 0.1 + 0.5/len(type_names)*j + 0.025]),
+                    np.array([total_elite + mean + std, total_elite + mean + std]), color=colors[j], linewidth=0.8)
             total_elite += mean
 
         if other:
