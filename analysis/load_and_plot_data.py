@@ -89,10 +89,9 @@ def primary_plots(df, move_list, subelite_names, elite_names, plot_path):
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Fixations duration relative', 'Fixations relative duration', None, 'fixation_duration_relative', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Number of fixations', 'Number of fixations', None, 'fixation_number', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye duration relative', 'Quiet eye relative duration', None, 'quiet_eye_duration_relative', f'{plot_path}/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye onset relative', 'Quiet eye onset duration', None, 'quiet_eye_onset_relative', f'{plot_path}/')
+    # plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye onset relative', 'Quiet eye onset duration', None, 'quiet_eye_onset_relative', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Eye amplitude', 'Eye movement amplitude', 'rad', 'eye_amplitude', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Neck amplitude', 'Neck movement amplitude', 'rad', 'neck_amplitude', f'{plot_path}/')
-    # see what we want to do with the zero from Pupil
     return
 
 def trajectory_plots(df, move_list, subelite_names, elite_names):
@@ -245,17 +244,25 @@ def bar_plots_error_bar_translated(df, type_names, subelite_names, elite_names, 
         for j, key in enumerate(type_names):
             mean = np.nanmean(means_subelite[key][i])
             std = np.nanstd(means_subelite[key][i])
-            ax.bar(i*2 - 0.4, mean, bottom=total_subelite, color=colors[j], width=0.6, label=(key if i == 0 else None), alpha=0.8)
+            ax.bar(i*2 - 0.4, mean, bottom=total_subelite, color=colors[j], width=0.6, label=(key if i == 0 else None), alpha=0.7)
             ax.plot(np.array([0.1 + i*2 - 0.7 + 0.5/len(type_names)*j, 0.1 + i*2 - 0.7 + 0.5/len(type_names)*j]),
                     np.array([total_subelite + mean - std, total_subelite + mean + std]), color=colors[j])
+            ax.plot(np.array([0.1 + i*2 - 0.7 + 0.5/len(type_names)*j - 0.05, 0.1 + i*2 - 0.7 + 0.5/len(type_names)*j + 0.05]),
+                    np.array([total_subelite + mean - std, total_subelite + mean - std]), color=colors[j])
+            ax.plot(np.array([0.1 + i*2 - 0.7 + 0.5/len(type_names)*j - 0.05, 0.1 + i*2 - 0.7 + 0.5/len(type_names)*j + 0.05]),
+                    np.array([total_subelite + mean + std, total_subelite + mean + std]), color=colors[j])
             total_subelite += mean
         total_elite = 0
         for j, key in enumerate(type_names):
             mean = np.nanmean(means_elite[key][i])
             std = np.nanstd(means_elite[key][i])
-            ax.bar(i * 2 + 0.4, mean, bottom=total_elite, color=colors[j], width=0.6, alpha=0.8)
+            ax.bar(i * 2 + 0.4, mean, bottom=total_elite, color=colors[j], width=0.6, alpha=0.7)
             ax.plot(np.array([0.1 + i*2 + 0.1 + 0.5/len(type_names)*j, 0.1 + i*2 + 0.1 + 0.5/len(type_names)*j]),
                     np.array([total_elite + mean - std, total_elite + mean + std]), color=colors[j])
+            ax.plot(np.array([0.1 + i*2 + 0.1 + 0.5/len(type_names)*j - 0.05, 0.1 + i*2 + 0.1 + 0.5/len(type_names)*j + 0.05]),
+                    np.array([total_elite + mean - std, total_elite + mean - std]), color=colors[j])
+            ax.plot(np.array([0.1 + i*2 + 0.1 + 0.5/len(type_names)*j - 0.05, 0.1 + i*2 + 0.1 + 0.5/len(type_names)*j + 0.05]),
+                    np.array([total_elite + mean + std, total_elite + mean + std]), color=colors[j])
             total_elite += mean
 
         if other:
@@ -592,7 +599,7 @@ trial_table = np.char.split(pd.read_csv(csv_name, sep="\t").values.astype("str")
 
 primary_table = [["Name", "Expertise", "Acrobatics",
                   "Fixations duration absolute", "Fixations duration relative", "Number of fixations",
-                  "Quiet eye duration absolute", "Quiet eye duration relative", "Quiet eye onset relative",
+                  "Quiet eye duration absolute", "Quiet eye duration relative", #"Quiet eye onset relative",
                   "Eye amplitude", "Neck amplitude", "Maximum eye amplitude", "Maximum neck amplitude",
                   ]]
 
@@ -613,7 +620,7 @@ neck_eye_movements_indices_table = [["Name", "Expertise", "Acrobatics", "Anticip
                        "Compensatory movements index", "Spotting movements index",
                        "Movement detection index", "Blinks index", 'Fixations index']]
 
-heatmaps_spreading_table = [["Name", "Expertise", "Acrobatics", "Distance from the center of each point of the heatmap", "Heat map 90th percentile", "Heatmap width", "Heatmap height"]]
+heatmaps_spreading_table = [["Name", "Expertise", "Acrobatics", "Distance from the center of each point of the heatmap", "Heat map 90th percentile"]] # , "Heatmap width", "Heatmap height"]]
 
 qualitative_table = [["Name", "Expertise", "Acrobatics", "Fixation target", "anticipatory_index", "compensatory_index",
                 "spotting_index", "movement_detection_index", "blinks_index", "fixation_index"]]
@@ -643,7 +650,7 @@ if GENRATE_DATA_FRAME_FLAG:
                             number_of_fixation = eye_tracking_metrics["number_of_fixation"]
                             quiet_eye_duration_absolute = eye_tracking_metrics["quiet_eye_duration_absolute"]
                             quiet_eye_duration_relative = eye_tracking_metrics["quiet_eye_duration_relative"]
-                            quiet_eye_onset_relative = eye_tracking_metrics["quiet_eye_onset_relative"]
+                            # quiet_eye_onset_relative = eye_tracking_metrics["quiet_eye_onset_relative"]
                             eye_amplitude = eye_tracking_metrics["eye_amplitude"]
                             neck_amplitude = eye_tracking_metrics["neck_amplitude"]
                             max_eye_amplitude = eye_tracking_metrics["max_eye_amplitude"]
@@ -652,8 +659,8 @@ if GENRATE_DATA_FRAME_FLAG:
                             primary_table += [[subject_name, expertise, acrobatics,
                                                fixation_duration_absolute, fixation_duration_relative,
                                                number_of_fixation, quiet_eye_duration_absolute,
-                                               quiet_eye_duration_relative, quiet_eye_onset_relative, eye_amplitude,
-                                               neck_amplitude, max_eye_amplitude, max_neck_amplitude]]
+                                               quiet_eye_duration_relative, #quiet_eye_onset_relative,
+                                               eye_amplitude, neck_amplitude, max_eye_amplitude, max_neck_amplitude]]
 
 
                             # Secondary analysis - Trajectory
@@ -706,9 +713,10 @@ if GENRATE_DATA_FRAME_FLAG:
                             # Secondary analysis - percetile heatmaps
                             percetile_heatmaps = eye_tracking_metrics["percetile_heatmaps"]
                             distance_heatmaps = eye_tracking_metrics["distance_heatmaps"]
-                            width_ellipse_heatmaps = eye_tracking_metrics["width_ellipse_heatmaps"]
-                            height_ellipse_heatmaps = eye_tracking_metrics["height_ellipse_heatmaps"]
-                            heatmaps_spreading_table += [[subject_name, expertise, acrobatics, distance_heatmaps, percetile_heatmaps, width_ellipse_heatmaps, height_ellipse_heatmaps]]
+                            # width_ellipse_heatmaps = eye_tracking_metrics["width_ellipse_heatmaps"]
+                            # height_ellipse_heatmaps = eye_tracking_metrics["height_ellipse_heatmaps"]
+                            heatmaps_spreading_table += [[subject_name, expertise, acrobatics, distance_heatmaps, percetile_heatmaps]]
+                                                          # width_ellipse_heatmaps, height_ellipse_heatmaps]]
 
                             # Qualitative analysis
                             fixation_positions = eye_tracking_metrics["fixation_positions"]
@@ -786,8 +794,8 @@ for i in range(len(primary_data_frame)):
 
 primary_plots(primary_data_frame, move_list, subelite_names, elite_names, plot_path)
 
-trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
-trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
+# trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
+# trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
 
 movement_pourcentage_data_frame = pd.DataFrame(neck_eye_movements_table[1:], columns=neck_eye_movements_table[0])
 movement_pourcentage_plots(movement_pourcentage_data_frame, move_list, subelite_names, elite_names, plot_path)
