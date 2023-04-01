@@ -58,9 +58,9 @@ def plot_primary_metrics(df, move_list, subelite_names, elite_names, metric, met
             plt.plot(i * 2 + 0.1 * (j + 1), means_elite[j], color='k', marker='o', markersize=3)
 
         plt.errorbar(i * 2 - 0.45, np.nanmean(means_subelite), yerr=np.nanstd(means_subelite), color='black',
-                     marker='o', markersize=5)
+                     marker='o', markersize=5, capsize=3)
         plt.errorbar(i * 2 + 0.45, np.nanmean(means_elite), yerr=np.nanstd(means_elite), color='black', marker='o',
-                     markersize=5)
+                     markersize=5, capsize=3)
 
     if unit is None:
         label_y = metric_name

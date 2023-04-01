@@ -133,8 +133,9 @@ def points_to_ellipse_width(centers, ellipse_fig_name):
     vx, vy = eigvecs[:,0][0], eigvecs[:,0][1]
     theta_gauss = np.arctan2(vy, vx)
     width_gauss, height_gauss = 2 * 2 * np.sqrt(eigvals)
-    success_out = False
 
+    success_out = False
+    i_loop = 0
     while success_out == False:
         # State the optimization problem with the following variables
         # Angle
@@ -173,7 +174,7 @@ def points_to_ellipse_width(centers, ellipse_fig_name):
         nlp = {"x": ellipse_param, "f": f, "g": cas.vertcat(*g)}
         opts = {"ipopt.print_level": 0}
         solver = cas.nlpsol("solver", "ipopt", nlp, opts)
-        sol = solver(x0=x0, lbx=[-np.pi, 0, 0, 0, 0], ubx=[np.pi, 214, 428, 214, 428], lbg=lbg, ubg=ubg)
+        sol = solver(x0=x0, lbx=[-2*np.pi, 0, 0, 0, 0], ubx=[np.pi, 214*2, 428*2, 214, 428], lbg=lbg, ubg=ubg)
 
         if solver.stats()['success']:
             success_out = True
@@ -183,11 +184,23 @@ def points_to_ellipse_width(centers, ellipse_fig_name):
             center_x_opt = sol['x'][3]
             center_y_opt = sol['x'][4]
         else:
-            theta_gauss = theta_gauss * np.random.uniform(0.5, 1.5)
-            width_gauss = width_gauss * np.random.uniform(0.5, 1.5)
-            height_gauss = height_gauss * np.random.uniform(0.5, 1.5)
-            print('Ellipse did not converse, trying again')
-
+            theta_gauss = theta_gauss * np.random.uniform(0.9, 1.1)
+            width_gauss = width_gauss * np.random.uniform(0.9, 1.1)
+            height_gauss = height_gauss * np.random.uniform(0.9, 1.1)
+            print('Ellipse did not converge, trying again')
+        if i_loop == 5:
+            up_extreme = centers[np.where(centers[:, 1] == centers[indices, 1].max()), :][0][0]
+            down_extreme = centers[np.where(centers[:, 1] == centers[indices, 1].min()), :][0][0]
+            left_extreme = centers[np.where(centers[:, 0] == centers[indices, 0].min()), :][0][0]
+            right_extreme = centers[np.where(centers[:, 0] == centers[indices, 0].max()), :][0][0]
+            width_gauss = np.linalg.norm(up_extreme - down_extreme)
+            height_gauss = np.linalg.norm(left_extreme - right_extreme)
+            theta_gauss_vert = np.arccos(np.dot(up_extreme - down_extreme, np.array([0, 1])) / np.linalg.norm(up_extreme - down_extreme))
+            theta_gauss_hor = np.arccos(np.dot(left_extreme - right_extreme, np.array([1, 0])) / np.linalg.norm(left_extreme - right_extreme))
+            theta_gauss = np.mean([theta_gauss_vert, theta_gauss_hor])
+        if i_loop > 10:
+            embed()
+        i_loop += 1
 
     # Plotting the original points and the fitted ellipse
     fig, ax = plt.subplots(1, 1)
