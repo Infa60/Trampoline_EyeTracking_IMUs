@@ -235,38 +235,36 @@ if PRIMARY_ANALYSIS_FLAG:
 
 def find_significant_timings(xi_interp, subelites_data, elites_data):
 
-    admissible_timings = {move: np.zeros((len(xi_interp),)) for move in move_list}
-    significant_timings = {move: np.zeros((2,)) for move in move_list}
+    admissible_timings = np.zeros((len(xi_interp),))
+    significant_timings = np.zeros((2,))
 
-    for j, move in enumerate(move_list):
-        for i in range(len(xi_interp)):
-            if np.std(subelites_data[move][:, i]) > 0 and np.std(elites_data[move][:, i]) > 0:
-                admissible_timings[move][i] = 1
-        begining_of_clusters = np.where(admissible_timings[move][1:] - admissible_timings[move][:-1] == 1)[0] +1
-        end_of_clusters = np.where(admissible_timings[move][1:] - admissible_timings[move][:-1] == -1)[0] +1
-        if admissible_timings[move][0] == 1:
-            begining_of_clusters = np.concatenate(([0], begining_of_clusters))
-        if admissible_timings[move][-1] == 1:
-            end_of_clusters = np.concatenate((end_of_clusters, [len(xi_interp)]))
+    for i in range(len(xi_interp)):
+        if np.std(subelites_data[:, i]) > 0 and np.std(elites_data[:, i]) > 0:
+            admissible_timings[i] = 1
+    begining_of_clusters = np.where(admissible_timings[1:] - admissible_timings[:-1] == 1)[0] +1
+    end_of_clusters = np.where(admissible_timings[1:] - admissible_timings[:-1] == -1)[0] +1
+    if admissible_timings[0] == 1:
+        begining_of_clusters = np.concatenate(([0], begining_of_clusters))
+    if admissible_timings[-1] == 1:
+        end_of_clusters = np.concatenate((end_of_clusters, [len(xi_interp)]))
 
-        for i in range(len(begining_of_clusters)):
-            t = spm1d.stats.ttest2(subelites_data[move][:, begining_of_clusters[i]:end_of_clusters[i]],
-                                   elites_data[move][:, begining_of_clusters[i]:end_of_clusters[i]], equal_var=False)
-            ti = t.inference(alpha=0.05, two_tailed=False)
-            if hasattr(ti, 'clusters'):
-                if ti.clusters != []:
-                    # ti.plot()
-                    # plt.show()
-                    clusters = ti.clusters
-                    for k in range(len(clusters)):
-                        cluster_x, cluster_z = clusters[k].get_patch_vertices()
-                        significant_timings[move] = np.vstack((significant_timings[move],
-                                                               np.array([cluster_x[0] + begining_of_clusters[i], cluster_x[1] + begining_of_clusters[i]])))
-        if significant_timings[move].shape == (2,):
-            significant_timings[move] = None
-        else:
-            significant_timings[move] = significant_timings[move][1:]
-            print(f"Significant timings for {move}: {significant_timings[move]}")
+    for i in range(len(begining_of_clusters)):
+        t = spm1d.stats.ttest2(subelites_data[:, begining_of_clusters[i]:end_of_clusters[i]],
+                               elites_data[:, begining_of_clusters[i]:end_of_clusters[i]], equal_var=False)
+        ti = t.inference(alpha=0.05, two_tailed=True)
+        if ti.h0reject == True:
+            if ti.clusters != []:
+                ti.plot()
+                plt.show()
+                clusters = ti.clusters
+                for k in range(len(clusters)):
+                    cluster_x, cluster_z = clusters[k].get_patch_vertices()
+                    significant_timings = np.vstack((significant_timings, np.array([cluster_x[0] + begining_of_clusters[i], cluster_x[1] + begining_of_clusters[i]])))
+    if significant_timings.shape == (2,):
+        significant_timings = None
+    else:
+        significant_timings = significant_timings[1:]
+        print(f"Significant timings : {significant_timings}")
     return admissible_timings, significant_timings
 
 def plot_gymnasium_unwrapped(axs, j, FLAG_3D=False):
@@ -312,6 +310,7 @@ def plot_gymnasium_unwrapped(axs, j, FLAG_3D=False):
 
 def plot_trajectories_data_frame(
         trajectory_curves_per_athelte_per_move,
+        significant_timings,
         move,
         title_variable,
         output_filename,
@@ -336,7 +335,7 @@ def plot_trajectories_data_frame(
                         axs[0].plot(trajectory_curves_per_athelte_per_move[name][move][0, significant_timings[move][index_this_time]],
                                     trajectory_curves_per_athelte_per_move[name][move][1, significant_timings[move][index_this_time]],
                                     color=colors_subelites[i_subelite],
-                                    linewidth=3)
+                                    linewidth=5)
             i_subelite += 1
     for i, name in enumerate(trajectory_curves_per_athelte_per_move.keys()):
         if name in elite_names:
@@ -489,11 +488,11 @@ if TRAJECTORIES_ANALYSIS_FLAG:
                     trajectory_this_time_3d,
                     wall_index_closest,
                     bound_side)
-                trajectory_curves = np.concatenate((trajectory_curves, np.reshape(unwrapped_trajectory_this_time, (2, nb_interp_points, 1))), axis=2)
-                trajectory_curves_3D = np.concatenate((trajectory_curves_3D, np.reshape(trajectory_this_time_3d, (3, nb_interp_points, 1))), axis=2)
+                trajectory_curves = np.concatenate((trajectory_curves, unwrapped_trajectory_this_time[:, :, np.newaxis]), axis=2)
+                trajectory_curves_3D = np.concatenate((trajectory_curves_3D, trajectory_this_time_3d.T[:, :, np.newaxis]), axis=2)
 
             trajectory_curves = trajectory_curves[:, :, 1:]
-            trajectory_curves_3D = trajectory_curves[:, :, 1:]
+            trajectory_curves_3D = trajectory_curves_3D[:, :, 1:]
 
             # plot_projection_of_PGOS(name, move, trajectories_table[k][4], trajectory_curves[:, :, -1], home_path)
             if len(index_this_time) > 0:
@@ -502,12 +501,20 @@ if TRAJECTORIES_ANALYSIS_FLAG:
                 plt.close('all')
 
             # Compute RMSD
-            std_each_node = np.nanstd(trajectory_curves, axis=2)
-            mean_std = np.nanmean(std_each_node, axis=1)
+            std_each_node = np.linalg.norm(np.nanstd(trajectory_curves_3D, axis=2), axis=0)
+            mean_std = np.nanmean(std_each_node)
             if name in subelite_names:
                 mean_RMSD_per_athlete_per_move_subelites[move] += [mean_std]
             elif name in elite_names:
                 mean_RMSD_per_athlete_per_move_elites[move] += [mean_std]
+            # plt.figure()
+            # plt.plot(np.nanstd(trajectory_curves_3D, axis=2).T)
+            # plt.show()
+            # fig = plt.figure()
+            # ax = fig.add_subplot(1, 1, 1, projection='3d')
+            # for k in range(trajectory_curves_3D.shape[2]):
+            #     ax.plot(trajectory_curves_3D[0, :, k], trajectory_curves_3D[1, :, k] , trajectory_curves_3D[2, :, k],  '-')
+            # plt.show()
 
     colors_subelites = [cm.get_cmap('plasma')(k) for k in np.linspace(0, 0.4, len(subelite_names))]
     colors_elites = [cm.get_cmap('plasma')(k) for k in np.linspace(0.6, 1, len(elite_names))]
@@ -528,22 +535,23 @@ if TRAJECTORIES_ANALYSIS_FLAG:
             else:
                 print(f"Probleme de nom: {name} not recognised")
 
+    significant_timings = {move: np.zeros((len(xi_interp),)) for move in move_list}
     for i, move in enumerate(move_list):
         subelites_trajectory_x[move] = subelites_trajectory_x[move][1:, :]
         subelites_trajectory_y[move] = subelites_trajectory_y[move][1:, :]
         elites_trajectory_x[move] = elites_trajectory_x[move][1:, :]
         elites_trajectory_y[move] = elites_trajectory_y[move][1:, :]
 
-        plot_trajectories_data_frame(trajectory_curves_per_athelte_per_move, move, "Projected gaze trajectory symmetrized (PGOS) ",
+        admissible_timings_x, significant_timings_x = find_significant_timings(xi_interp, subelites_trajectory_x[move], elites_trajectory_x[move])
+        admissible_timings_y, significant_timings_y = find_significant_timings(xi_interp, subelites_trajectory_y[move], elites_trajectory_y[move])
+
+        significant_timings[move] = np.logical_or(significant_timings_x, significant_timings_y)
+        if significant_timings[move] is not None:
+            print("Significant timings found for SPM1D on PGOS: ", significant_timings[move])
+
+        plot_trajectories_data_frame(trajectory_curves_per_athelte_per_move, significant_timings, move, "Projected gaze trajectory symmetrized (PGOS) ",
                       home_path + '/disk/Eye-tracking/plots/' + f'PGOS_{move}.png')
         plt.close('all')
-
-    admissible_timings_x, significant_timings_x = find_significant_timings(xi_interp, subelites_trajectory_x, elites_trajectory_x)
-    admissible_timings_y, significant_timings_y = find_significant_timings(xi_interp, subelites_trajectory_y, elites_trajectory_y)
-
-    significant_timings = np.logical_or(significant_timings_x, significant_timings_y)
-    if significant_timings[move] is not None:
-        print("Significant timings found for SPM1D on PGOS: ", significant_timings[move])
 
     print()
     print("Mean RMSD per move for subelites: ")
@@ -736,6 +744,8 @@ if AOI_ANALYSIS_FLAG:
 
     AOI_proportions_data_frame = AOI_proportions_table_temporary
 
+    test_non_normality_impact_on_results(AOI_proportions_data_frame, move_list)
+
     print("Mixed ANOVA for Trampoline bed")
     out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Trampoline bed', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
@@ -758,25 +768,25 @@ if AOI_ANALYSIS_FLAG:
     out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Blink', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
 
-    print("pairwise t-test for Trampoline bed")
+    print("Wilcoxon and Mann-Whiteney tests for Trampoline bed")
     out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Trampoline bed', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
-    print("pairwise t-test for Trampoline")
+    print("Wilcoxon and Mann-Whiteney tests for Trampoline")
     out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
-    print("pairwise t-test for Wall back front")
+    print("Wilcoxon and Mann-Whiteney tests for Wall back front")
     out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Wall back front', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
-    print("pairwise t-test for Ceiling")
+    print("Wilcoxon and Mann-Whiteney tests for Ceiling")
     out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Ceiling', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
-    print("pairwise t-test for Wall sides")
+    print("Wilcoxon and Mann-Whiteney tests for Wall sides")
     out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
-    print("pairwise t-test for Athlete himself")
-    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
-    print(f'{out}\n\n')
-    print("pairwise t-test for Blink")
+    # print("Wilcoxon and Mann-Whiteney tests for Athlete himself")
+    # out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
+    # print(f'{out}\n\n')
+    print("Wilcoxon and Mann-Whiteney tests for Blink")
     out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Blink', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
 
@@ -801,6 +811,7 @@ if NECK_EYE_ANALYSIS_FLAG:
 
     neck_eye_movements_data_frame = neck_eye_movements_table_temporary
 
+    test_non_normality_impact_on_results(neck_eye_movements_data_frame, move_list)
 
     print("Mixed ANOVA for Anticipatory movements")
     out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Anticipatory movements', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
@@ -818,19 +829,19 @@ if NECK_EYE_ANALYSIS_FLAG:
     # out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Blinks', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     # print(f'{out}\n\n')
 
-    print("pairwise t-test for Anticipatory movements")
+    print("Wilcoxon and Mann-Whiteney tests for Anticipatory movements")
     out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Anticipatory movements', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
-    print("pairwise t-test for Compensatory movements")
+    print("Wilcoxon and Mann-Whiteney tests for Compensatory movements")
     out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Compensatory movements', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
-    print("pairwise t-test for Spotting movements")
+    print("Wilcoxon and Mann-Whiteney tests for Spotting movements")
     out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Spotting movements', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
-    print("pairwise t-test for Movement detection")
+    print("Wilcoxon and Mann-Whiteney tests for Movement detection")
     out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
-    # print("pairwise t-test for Blinks")
+    # print("Wilcoxon and Mann-Whiteney tests for Blinks")
     # out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Blinks', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     # print(f'{out}\n\n')
 
@@ -851,17 +862,19 @@ if SPREADING_HEATMAP_FLAG:
               'Acrobatics': [heatmaps_spreading_data_frame['Acrobatics'][i]],
               'Distance from the center of each point of the heatmap': [heatmaps_spreading_data_frame['Distance from the center of each point of the heatmap'][i]],
               'Heat map 90th percentile': [heatmaps_spreading_data_frame['Heat map 90th percentile'][i]],
-              'Width of the ellipse comprising 90 percentiles': [heatmaps_spreading_data_frame['Width of the ellipse comprising 90 percentiles'][i]],
-              'Height of the ellipse comprising 90 percentiles': [heatmaps_spreading_data_frame['Height of the ellipse comprising 90 percentiles'][i]]}
+              'Width of the ellipse comprising 90 percentiles': [heatmaps_spreading_data_frame['Heatmap width'][i]],
+              'Height of the ellipse comprising 90 percentiles': [heatmaps_spreading_data_frame['Heatmap height'][i]]}
         heatmaps_spreading_table_temporary = pd.concat([heatmaps_spreading_table_temporary, pd.DataFrame(df)])
 
     heatmaps_spreading_data_frame = heatmaps_spreading_table_temporary
+
+    test_non_normality_impact_on_results(heatmaps_spreading_data_frame, move_list)
 
     # print("Mixed ANOVA for Heat map 90th percentile")
     # out = pg.mixed_anova(data=heatmaps_spreading_data_frame, dv='Heat map 90th percentile', within='Acrobatics',
     #                      between='Expertise', subject='Name')
     # print(f'{out}\n\n')
-    # print("pairwise t-test for Heat map 90th percentile")
+    # print("Wilcoxon and Mann-Whiteney tests for Heat map 90th percentile")
     # out = pg.pairwise_tests(data=heatmaps_spreading_data_frame, dv='Heat map 90th percentile', within='Acrobatics',
     #                         between='Expertise', subject='Name', parametric=False)
     # print(f'{out}\n\n')
@@ -870,15 +883,16 @@ if SPREADING_HEATMAP_FLAG:
     out = pg.mixed_anova(data=heatmaps_spreading_data_frame, dv='Width of the ellipse comprising 90 percentiles', within='Acrobatics',
                          between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
-    print("pairwise t-test for heatmap 90 percentile ellipse width")
-    out = pg.pairwise_tests(data=heatmaps_spreading_data_frame, dv='Width of the ellipse comprising 90 percentiles', within='Acrobatics',
-                            between='Expertise', subject='Name', parametric=False)
-
     print("Mixed ANOVA for heatmap 90 percentile ellipse height")
     out = pg.mixed_anova(data=heatmaps_spreading_data_frame, dv='Height of the ellipse comprising 90 percentiles', within='Acrobatics',
                             between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
-    print("pairwise t-test for heatmap 90 percentile ellipse height")
+
+    print("Wilcoxon and Mann-Whiteney tests for heatmap 90 percentile ellipse width")
+    out = pg.pairwise_tests(data=heatmaps_spreading_data_frame, dv='Width of the ellipse comprising 90 percentiles', within='Acrobatics',
+                            between='Expertise', subject='Name', parametric=False)
+    print(f'{out}\n\n')
+    print("Wilcoxon and Mann-Whiteney tests for heatmap 90 percentile ellipse height")
     out = pg.pairwise_tests(data=heatmaps_spreading_data_frame, dv='Height of the ellipse comprising 90 percentiles', within='Acrobatics',
                             between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
@@ -904,7 +918,7 @@ def plot_presence(presence_curves_per_athelte, move, xi_interp, index_variable, 
                             label=name)
             i_elite += 1
 
-    if len(np.shape(significant_timings[move])) > 1:
+    if len(np.shape(significant_timings)) > 1:
         for i in range(1, np.shape(significant_timings[move])[0]):
             print(f"Significant difference for {move}, {title_variable}\n")
             axs[0].axvspan(significant_timings[move][i, 0] * 100/len(xi_interp), significant_timings[move][i, 1] * 100, alpha=0.2, facecolor='k')
@@ -1074,6 +1088,18 @@ if QUALITATIVE_ANALYSIS_FLAG:
             else:
                 print(f"Probleme de nom: {name} not recognised")
 
+    admissible_timings_anticipatory = {move: [] for move in move_list}
+    significant_timings_anticipatory = {move: [] for move in move_list}
+    admissible_timings_compensatory = {move: [] for move in move_list}
+    significant_timings_compensatory = {move: [] for move in move_list}
+    admissible_timings_spotting = {move: [] for move in move_list}
+    significant_timings_spotting = {move: [] for move in move_list}
+    admissible_timings_movement_detection = {move: [] for move in move_list}
+    significant_timings_movement_detection = {move: [] for move in move_list}
+    admissible_timings_blink = {move: [] for move in move_list}
+    significant_timings_blink = {move: [] for move in move_list}
+    admissible_timings_fixation = {move: [] for move in move_list}
+    significant_timings_fixation = {move: [] for move in move_list}
     for i, move in enumerate(move_list):
         subelites_anticipatory[move] = subelites_anticipatory[move][1:]
         subelites_compensatory[move] = subelites_compensatory[move][1:]
@@ -1088,32 +1114,32 @@ if QUALITATIVE_ANALYSIS_FLAG:
         elites_blink[move] = elites_blink[move][1:]
         elites_fixation[move] = elites_fixation[move][1:]
 
-    admissible_timings_anticipatory, significant_timings_anticipatory = find_significant_timings(xi_interp, subelites_anticipatory, elites_anticipatory)
-    admissible_timings_compensatory, significant_timings_compensatory = find_significant_timings(xi_interp, subelites_compensatory, elites_compensatory)
-    admissible_timings_spotting, significant_timings_spotting = find_significant_timings(xi_interp, subelites_spotting, elites_spotting)
-    admissible_timings_movement_detection, significant_timings_movement_detection = find_significant_timings(xi_interp, subelites_movement_detection, elites_movement_detection)
-    admissible_timings_blink, significant_timings_blink = find_significant_timings(xi_interp, subelites_blink, elites_blink)
-    admissible_timings_fixation, significant_timings_fixation = find_significant_timings(xi_interp, subelites_fixation, elites_fixation)
+        admissible_timings_anticipatory[move], significant_timings_anticipatory[move] = find_significant_timings(xi_interp, subelites_anticipatory[move], elites_anticipatory[move])
+        admissible_timings_compensatory[move], significant_timings_compensatory[move] = find_significant_timings(xi_interp, subelites_compensatory[move], elites_compensatory[move])
+        admissible_timings_spotting[move], significant_timings_spotting[move] = find_significant_timings(xi_interp, subelites_spotting[move], elites_spotting[move])
+        admissible_timings_movement_detection[move], significant_timings_movement_detection[move] = find_significant_timings(xi_interp, subelites_movement_detection[move], elites_movement_detection[move])
+        admissible_timings_blink[move], significant_timings_blink[move] = find_significant_timings(xi_interp, subelites_blink[move], elites_blink[move])
+        admissible_timings_fixation[move], significant_timings_fixation[move] = find_significant_timings(xi_interp, subelites_fixation[move], elites_fixation[move])
 
     for i, move in enumerate(trial_per_athlete_per_move_index[name].keys()):
         plot_presence(presence_curves_per_athelte, move, xi_interp, 0, "Anticipatory movements ",
                       home_path + '/disk/Eye-tracking/plots/' + f'anticiaptory_presence_{move}.png',
-                      significant_timings_anticipatory)
+                      significant_timings_anticipatory[move])
         plot_presence(presence_curves_per_athelte, move, xi_interp, 1, "Compensatory movements ",
                       home_path + '/disk/Eye-tracking/plots/' + f'compensatory_presence_{move}.png',
-                      significant_timings_compensatory)
+                      significant_timings_compensatory[move])
         plot_presence(presence_curves_per_athelte, move, xi_interp, 2, "Spotting ",
                       home_path + '/disk/Eye-tracking/plots/' + f'spotting_presence_{move}.png',
-                      significant_timings_spotting)
+                      significant_timings_spotting[move])
         plot_presence(presence_curves_per_athelte, move, xi_interp, 3, "Movement detection ",
                       home_path + '/disk/Eye-tracking/plots/' + f'movement_detection_presence_{move}.png',
-                      significant_timings_movement_detection)
+                      significant_timings_movement_detection[move])
         plot_presence(presence_curves_per_athelte, move, xi_interp, 4, "Blink ",
                       home_path + '/disk/Eye-tracking/plots/' + f'blink_presence_{move}.png',
-                      significant_timings_blink)
+                      significant_timings_blink[move])
         plot_presence(presence_curves_per_athelte, move, xi_interp, 5, "Fixation ",
                       home_path + '/disk/Eye-tracking/plots/' + f'fixation_presence_{move}.png',
-                      significant_timings_fixation)
+                      significant_timings_fixation[move])
 
         plot_presence_all_at_the_same_time(presence_curves_per_athelte, move, xi_interp,
                           home_path + '/disk/Eye-tracking/plots/' + f'presence_all_{move}.png')
