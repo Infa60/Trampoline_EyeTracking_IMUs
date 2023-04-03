@@ -131,6 +131,7 @@ for i, name in enumerate(trial_per_athlete_per_move_index):
                               np.nanmean(primary_table_array[index, 7].astype(float)),
                               np.nanmean(primary_table_array[index, 8].astype(float)),
                               np.nanmean(primary_table_array[index, 9].astype(float)),
+                              np.nanmean(primary_table_array[index, 10].astype(float)),
                               ]]
             AOI_proportions_table += [[name,
                                   'Elite' if name in elite_names else 'SubElite',
@@ -158,6 +159,8 @@ for i, name in enumerate(trial_per_athlete_per_move_index):
                                   move,
                                   None,
                                   np.nanmean(heatmaps_spreading_table_array[index, 4].astype(float)),
+                                  np.nanmean(heatmaps_spreading_table_array[index, 5].astype(float)),
+                                  np.nanmean(heatmaps_spreading_table_array[index, 6].astype(float)),
                                   ]]
 
 
@@ -177,6 +180,7 @@ if PRIMARY_ANALYSIS_FLAG:
         'Fixations duration relative': [primary_data_frame['Fixations duration relative'][i]],
         'Number of fixations': [float(primary_data_frame['Number of fixations'][i])],
         'Quiet eye duration relative': [primary_data_frame['Quiet eye duration relative'][i]],
+        'Quiet eye onset relative': [primary_data_frame['Quiet eye onset relative'][i]],
         'Eye amplitude': [primary_data_frame['Eye amplitude'][i]],
         'Neck amplitude': [primary_data_frame['Neck amplitude'][i]],
         'Maximum eye amplitude': [primary_data_frame['Maximum eye amplitude'][i]],
@@ -196,6 +200,9 @@ if PRIMARY_ANALYSIS_FLAG:
     print("Mixed ANOVA for Quiet eye duration relative")
     out = pg.mixed_anova(data=primary_data_frame, dv='Quiet eye duration relative', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
+    print("Mixed ANOVA for Quiet eye onset relative")
+    out = pg.mixed_anova(data=primary_data_frame, dv='Quiet eye onset relative', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
+    print(f'{out}\n\n')
     print("Mixed ANOVA for Eye amplitude")
     out = pg.mixed_anova(data=primary_data_frame, dv='Eye amplitude', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
@@ -204,24 +211,27 @@ if PRIMARY_ANALYSIS_FLAG:
     print(f'{out}\n\n')
 
 
-    print("pairwise t-test for Fixations duration relative")
+    print("Wilcoxon and Mann-Whiteney tests for Fixations duration relative")
     out = pg.pairwise_tests(data=primary_data_frame, dv='Fixations duration relative', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
-    print("pairwise t-test for Number of fixations")
+    print("Wilcoxon and Mann-Whiteney tests for Number of fixations")
     out = pg.pairwise_tests(data=primary_data_frame, dv='Number of fixations', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
-    print("pairwise t-test for Quiet eye duration relative")
+    print("Wilcoxon and Mann-Whiteney tests for Quiet eye duration relative")
     out = pg.pairwise_tests(data=primary_data_frame, dv='Quiet eye duration relative', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
-    print("pairwise t-test for Eye amplitude")
+    print("Wilcoxon and Mann-Whiteney tests for Quiet eye onset relative")
+    out = pg.pairwise_tests(data=primary_data_frame, dv='Quiet eye onset relative', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
+    print(f'{out}\n\n')
+    print("Wilcoxon and Mann-Whiteney tests for Eye amplitude")
     out = pg.pairwise_tests(data=primary_data_frame, dv='Eye amplitude', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
-    print("pairwise t-test for Neck amplitude")
+    print("Wilcoxon and Mann-Whiteney tests for Neck amplitude")
     out = pg.pairwise_tests(data=primary_data_frame, dv='Neck amplitude', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
 
 
-# -------------------------------- Trajectories data frame = SPM1D ? ------------------------------------ #
+# -------------------------------- Trajectories data frame = SPM1D ------------------------------------ #
 
 def find_significant_timings(xi_interp, subelites_data, elites_data):
 
