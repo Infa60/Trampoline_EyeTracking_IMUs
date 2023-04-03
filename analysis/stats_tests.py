@@ -22,12 +22,12 @@ from Non_parametric_verifications_mixedANOVA import test_non_normality_impact_on
 
 
 PRIMARY_ANALYSIS_FLAG = True
-TRAJECTORIES_ANALYSIS_FLAG = False # True
-TRAJECTORIES_HEATMAPS_FLAG = False # True
-GENERATE_EACH_ATHLETE_PGOS_GRAPH = False # True
-AOI_ANALYSIS_FLAG = False # True
-NECK_EYE_ANALYSIS_FLAG = False # True
-SPREADING_HEATMAP_FLAG = False # True
+TRAJECTORIES_ANALYSIS_FLAG = True
+TRAJECTORIES_HEATMAPS_FLAG = True
+GENERATE_EACH_ATHLETE_PGOS_GRAPH = True
+AOI_ANALYSIS_FLAG = True
+NECK_EYE_ANALYSIS_FLAG = True
+SPREADING_HEATMAP_FLAG = True
 QUALITATIVE_ANALYSIS_FLAG = True
 
 move_list = ['4-', '41', '42', '43']
@@ -188,19 +188,19 @@ if PRIMARY_ANALYSIS_FLAG:
     test_non_normality_impact_on_results(primary_data_frame, move_list)
 
     print("Mixed ANOVA for Fixations duration relative")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Fixations duration relative', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    out = pg.mixed_anova(data=primary_data_frame, dv='Fixations duration relative', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Number of fixations")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Number of fixations', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    out = pg.mixed_anova(data=primary_data_frame, dv='Number of fixations', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Quiet eye duration relative")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Quiet eye duration relative', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    out = pg.mixed_anova(data=primary_data_frame, dv='Quiet eye duration relative', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Eye amplitude")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Eye amplitude', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    out = pg.mixed_anova(data=primary_data_frame, dv='Eye amplitude', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Neck amplitude")
-    out = pg.mixed_anova(data=primary_data_frame, dv='Neck amplitude', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    out = pg.mixed_anova(data=primary_data_frame, dv='Neck amplitude', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
 
 
@@ -319,14 +319,14 @@ def plot_trajectories_data_frame(
                             linestyle='None',
                             markersize=1,
                             label=name)
-                # if significant_timings[move] is not None:
-                #     for index in significant_timings[move].shape:
-                #         index_this_time = np.arange(int(round(significant_timings[move][index, 0])),
-                #                                     int(round(significant_timings[move][index, 1])))
-                #         axs[0].plot(trajectory_curves_per_athelte_per_move[name][move][0, significant_timings[move][index_this_time]],
-                #                     trajectory_curves_per_athelte_per_move[name][move][1, significant_timings[move][index_this_time]],
-                #                     color=colors_subelites[i_subelite],
-                #                     linewidth=3)
+                if significant_timings[move] is not None:
+                    for index in significant_timings[move].shape:
+                        index_this_time = np.arange(int(round(significant_timings[move][index, 0])),
+                                                    int(round(significant_timings[move][index, 1])))
+                        axs[0].plot(trajectory_curves_per_athelte_per_move[name][move][0, significant_timings[move][index_this_time]],
+                                    trajectory_curves_per_athelte_per_move[name][move][1, significant_timings[move][index_this_time]],
+                                    color=colors_subelites[i_subelite],
+                                    linewidth=3)
             i_subelite += 1
     for i, name in enumerate(trajectory_curves_per_athelte_per_move.keys()):
         if name in elite_names:
@@ -337,14 +337,14 @@ def plot_trajectories_data_frame(
                             linestyle='None',
                             markersize=1,
                             label=name)
-                # if significant_timings[move] is not None:
-                #     for index in significant_timings[move].shape:
-                #         index_this_time = np.arange(int(round(significant_timings[move][index, 0])),
-                #                                     int(round(significant_timings[move][index, 1])))
-                #         axs[1].plot(trajectory_curves_per_athelte_per_move[name][move][0, significant_timings[move][index_this_time]],
-                #                     trajectory_curves_per_athelte_per_move[name][move][1, significant_timings[move][index_this_time]],
-                #                     color=colors_elites[i_elite],
-                #                     linewidth=3)
+                if significant_timings[move] is not None:
+                    for index in significant_timings[move].shape:
+                        index_this_time = np.arange(int(round(significant_timings[move][index, 0])),
+                                                    int(round(significant_timings[move][index, 1])))
+                        axs[1].plot(trajectory_curves_per_athelte_per_move[name][move][0, significant_timings[move][index_this_time]],
+                                    trajectory_curves_per_athelte_per_move[name][move][1, significant_timings[move][index_this_time]],
+                                    color=colors_elites[i_elite],
+                                    linewidth=3)
             i_elite += 1
 
     for j in range(2):
@@ -357,6 +357,7 @@ def plot_trajectories_data_frame(
     axs[1].legend(bbox_to_anchor=(1.1, 0.5), loc='upper left', borderaxespad=0.)
     plt.savefig(output_filename, dpi=300)
     # plt.show()
+    plt.close('all')
     return
 
 def plot_mean_PGOS_per_athlete(name, move, interpolated_unwrapped_trajectory, home_path):
@@ -562,12 +563,6 @@ if TRAJECTORIES_HEATMAPS_FLAG:
         ax.plot(np.array([277, 320]), np.array([117, 117]), '-k', linewidth=1)
         ax.plot(np.array([277, 320]), np.array([138, 138]), '-k', linewidth=1)
 
-        # ax.text((-7.2 - (9.4620 - 1.2192) - 2 * 7.2 + 7.2 / 2 + 1) * 10 + 298.428, (4.5367 + 0.1)*10 + 27.295 + 5, "Ceiling", fontsize=10)
-        # ax.text((-7.2 - (9.4620 - 1.2192) + 1)*10 + 298.428, (4.5367 + 0.1)*10 + 27.295 + 5, "Wall back", fontsize=10)
-        # ax.text((7.2 + 1)*10 + 298.428, (4.5367 + 0.1)*10 + 27.295 + 5, "Wall front", fontsize=10)
-        # ax.text((-7.2 + 7.2 / 2 + 1)*10 + 298.428, (4.5367 + 9.4620 - 1.2192 + 1)*10 + 127.295 + 5, "Wall left", fontsize=10)
-        # ax.text((-7.2 + 7.2 / 2 + 0.5)*10 + 298.428, (-4.5367 - (9.4620 - 1.2192))*10 + 127.295 - 5, "Wall right", fontsize=10)
-
         ax.text((-7.2 - (9.4620 - 1.2192) - 2 * 7.2 + 7.2 / 2 + 1) * 10 + 298.428, (4.5367 + 0.1)*10 + 27.295 + 5, "Ceiling", fontsize=10)
         ax.text((-7.2 - (9.4620 - 1.2192) + 1)*10 + 298.428, (4.5367 + 0.1)*10 + 27.295 + 5, "Wall back", fontsize=10)
         ax.text((7.2 + 1)*10 + 298.428, (4.5367 + 0.1)*10 + 27.295 + 5, "Wall front", fontsize=10)
@@ -717,8 +712,6 @@ if AOI_ANALYSIS_FLAG:
                                                             'Trampoline', 'Wall back front', 'Ceiling', 'Wall sides',
                                                             'Athlete himself', 'Blink'])
     for i in range(len(AOI_proportions_data_frame)):
-        # if primary_data_frame['Name'][i] != 'MaBo':
-        # if i in list_move_ok_for_now:
         df = {'Name': [AOI_proportions_data_frame['Name'][i]],
         'Expertise': [AOI_proportions_data_frame['Expertise'][i]],
         'Acrobatics': [AOI_proportions_data_frame['Acrobatics'][i]],
@@ -734,25 +727,25 @@ if AOI_ANALYSIS_FLAG:
     AOI_proportions_data_frame = AOI_proportions_table_temporary
 
     print("Mixed ANOVA for Trampoline bed")
-    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Trampoline bed', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Trampoline bed', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Trampoline")
-    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Trampoline', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Wall back front")
-    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Wall back front', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Wall back front', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Ceiling")
-    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Ceiling', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Ceiling', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Wall sides")
-    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Athlete himself")
-    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Blink")
-    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Blink', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Blink', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
 
     print("pairwise t-test for Trampoline bed")
@@ -770,8 +763,8 @@ if AOI_ANALYSIS_FLAG:
     print("pairwise t-test for Wall sides")
     out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
-    # print("pairwise t-test for Athlete himself")
-    # out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
+    print("pairwise t-test for Athlete himself")
+    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
     print("pairwise t-test for Blink")
     out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Blink', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
@@ -786,7 +779,6 @@ if NECK_EYE_ANALYSIS_FLAG:
                                                                'Anticipatory movements', 'Compensatory movements',
                                                                'Spotting movements', 'Movement detection', 'Blinks'])
     for i in range(len(neck_eye_movements_data_frame)):
-        # if i in list_move_ok_for_now:
         df = {'Name': [neck_eye_movements_data_frame['Name'][i]],
         'Expertise': [neck_eye_movements_data_frame['Expertise'][i]],
         'Acrobatics': [neck_eye_movements_data_frame['Acrobatics'][i]],
@@ -801,19 +793,19 @@ if NECK_EYE_ANALYSIS_FLAG:
 
 
     print("Mixed ANOVA for Anticipatory movements")
-    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Anticipatory movements', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Anticipatory movements', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Compensatory movements")
-    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Compensatory movements', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Compensatory movements', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Spotting movements")
-    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Spotting movements', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Spotting movements', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
     print("Mixed ANOVA for Movement detection")
-    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
     # print("Mixed ANOVA for Blinks")
-    # out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Blinks', within='Acrobatics', between='Expertise', subject='Name', eff_size='n2')
+    # out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Blinks', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     # print(f'{out}\n\n')
 
     print("pairwise t-test for Anticipatory movements")
@@ -844,7 +836,6 @@ if SPREADING_HEATMAP_FLAG:
                                                                'Width of the ellipse comprising 90 percentiles', 
                                                                'Height of the ellipse comprising 90 percentiles'])
     for i in range(len(heatmaps_spreading_data_frame)):
-        # if i in list_move_ok_for_now:
         df = {'Name': [heatmaps_spreading_data_frame['Name'][i]],
               'Expertise': [heatmaps_spreading_data_frame['Expertise'][i]],
               'Acrobatics': [heatmaps_spreading_data_frame['Acrobatics'][i]],
@@ -867,7 +858,7 @@ if SPREADING_HEATMAP_FLAG:
     
     print("Mixed ANOVA for heatmap 90 percentile ellipse width")
     out = pg.mixed_anova(data=heatmaps_spreading_data_frame, dv='Width of the ellipse comprising 90 percentiles', within='Acrobatics',
-                         between='Expertise', subject='Name', eff_size='n2')
+                         between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
     print("pairwise t-test for heatmap 90 percentile ellipse width")
     out = pg.pairwise_tests(data=heatmaps_spreading_data_frame, dv='Width of the ellipse comprising 90 percentiles', within='Acrobatics',
@@ -875,7 +866,7 @@ if SPREADING_HEATMAP_FLAG:
 
     print("Mixed ANOVA for heatmap 90 percentile ellipse height")
     out = pg.mixed_anova(data=heatmaps_spreading_data_frame, dv='Height of the ellipse comprising 90 percentiles', within='Acrobatics',
-                            between='Expertise', subject='Name', eff_size='n2')
+                            between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
     print("pairwise t-test for heatmap 90 percentile ellipse height")
     out = pg.pairwise_tests(data=heatmaps_spreading_data_frame, dv='Height of the ellipse comprising 90 percentiles', within='Acrobatics',
@@ -995,6 +986,7 @@ def plot_presence_all_at_the_same_time(presence_curves_per_athelte, move, xi_int
     plt.legend(ncol=len(variable_names))
     plt.savefig(output_file_name[:-4] + 'legend.png', dpi=300)
     # plt.show()
+    plt.close('all')
     return
 
 if QUALITATIVE_ANALYSIS_FLAG:

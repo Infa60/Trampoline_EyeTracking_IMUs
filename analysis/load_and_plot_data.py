@@ -794,8 +794,8 @@ for i in range(len(primary_data_frame)):
 
 primary_plots(primary_data_frame, move_list, subelite_names, elite_names, plot_path)
 
-# trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
-# trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
+trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
+trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
 
 movement_pourcentage_data_frame = pd.DataFrame(neck_eye_movements_table[1:], columns=neck_eye_movements_table[0])
 movement_pourcentage_plots(movement_pourcentage_data_frame, move_list, subelite_names, elite_names, plot_path)
