@@ -89,7 +89,7 @@ def primary_plots(df, move_list, subelite_names, elite_names, plot_path):
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Fixations duration relative', 'Fixations relative duration', None, 'fixation_duration_relative', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Number of fixations', 'Number of fixations', None, 'fixation_number', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye duration relative', 'Quiet eye relative duration', None, 'quiet_eye_duration_relative', f'{plot_path}/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye onset relative', 'Quiet eye onset duration', None, 'quiet_eye_onset_relative', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye onset relative', 'Quiet eye onset relative', None, 'quiet_eye_onset_relative', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Eye amplitude', 'Eye movement amplitude', 'rad', 'eye_amplitude', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Neck amplitude', 'Neck movement amplitude', 'rad', 'neck_amplitude', f'{plot_path}/')
     return
@@ -397,6 +397,9 @@ def AOI_pourcentage_plots(df, move_list, subelite_names, elite_names, plot_path)
 
 def heatmap_spreading_plots(df, move_list, subelite_names, elite_names, plot_path):
 
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Heatmap width', 'Ellipse width', 'cm', 'width_ellipse_heatmaps', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Heatmap height', 'Ellipse height', 'cm', 'height_ellipse_heatmaps', f'{plot_path}/')
+
     max_spreading = 0
     for i in range(len(df["Distance from the center of each point of the heatmap"])):
         if np.nanmax(df["Distance from the center of each point of the heatmap"][i]) > max_spreading:
@@ -573,6 +576,48 @@ def timing_plots(df, move_list, subelite_names, elite_names, plot_path):
 
     return
 
+def plot_eye_and_neck_angles(df, subelite_names, elite_names, move_list, plot_path):
+
+    colors_subelites = [cm.get_cmap('plasma')(k) for k in np.linspace(0, 0.4, len(subelite_names))]
+    colors_elites = [cm.get_cmap('plasma')(k) for k in np.linspace(0.6, 1, len(elite_names))]
+
+    fig, axs = plt.subplots(2, 2)
+    for i, move in enumerate(move_list):
+        for j in range(len(subelite_names)):
+            index_this_time = np.where(np.logical_and(df['Name'] == subelite_names[j], df['Acrobatics'] == move_list[i]))
+            for m, idx_this_move in enumerate(index_this_time[0]):
+                eye_angles = df["eye_angles"][idx_this_move]
+                neck_angles = df["neck_angles"][idx_this_move]
+                nomalised_time = np.linspace(0, 1, len(eye_angles))
+                # azimuth
+                axs[0, 0].plot(nomalised_time, eye_angles[0, :], color=colors_subelites[j])
+                axs[0, 1].plot(nomalised_time, neck_angles[0, :], color=colors_subelites[j])
+                # elevation
+                axs[1, 0].plot(nomalised_time, eye_angles[1, :], color=colors_subelites[j])
+                axs[1, 1].plot(nomalised_time, neck_angles[1, :], color=colors_subelites[j])
+
+        for j in range(len(elite_names)):
+            index_this_time = np.where(np.logical_and(df['Name'] == elite_names[j], df['Acrobatics'] == move_list[i]))
+            for m, idx_this_move in enumerate(index_this_time[0]):
+                eye_angles = df["eye_angles"][idx_this_move]
+                neck_angles = df["neck_angles"][idx_this_move]
+                nomalised_time = np.linspace(0, 1, len(eye_angles))
+                # azimuth
+                axs[0, 0].plot(nomalised_time, eye_angles[0, :], color=colors_elites[j])
+                axs[0, 1].plot(nomalised_time, neck_angles[0, :], color=colors_elites[j])
+                # elevation
+                axs[1, 0].plot(nomalised_time, eye_angles[1, :], color=colors_elites[j])
+                axs[1, 1].plot(nomalised_time, neck_angles[1, :], color=colors_elites[j])
+
+        plt.legend(ncol=2, loc='upper center', bbox_to_anchor=(-1.30, 2.35), fontsize=12)
+        # axs[1, 3].text(-235, -20, 'Normalized time [%]', fontsize=12)
+        # axs[1, 3].text(-425, 153, 'Subelite', fontsize=12, rotation=90)
+        # axs[1, 3].text(-425, 50, 'Elite', fontsize=12, rotation=90)
+        # plt.subplots_adjust(hspace=0.1, top=0.9, bottom=0.1)
+        plt.savefig(f"{plot_path}/eye_and_neck_angles_{move}.png", dpi=300)
+        # plt.show()
+
+    return
 
 ### ------------------------ Code beginig ------------------------ ###
 
@@ -625,6 +670,8 @@ heatmaps_spreading_table = [["Name", "Expertise", "Acrobatics", "Distance from t
 
 qualitative_table = [["Name", "Expertise", "Acrobatics", "Fixation target", "anticipatory_index", "compensatory_index",
                 "spotting_index", "movement_detection_index", "blinks_index", "fixation_index"]]
+
+eye_neck_angles_table = [["Name", "Expertise", "Acrobatics", "Eye angle", "Neck angle"]]
 
 if GENRATE_DATA_FRAME_FLAG:
     for folder_subject in os.listdir(results_path):
@@ -731,6 +778,11 @@ if GENRATE_DATA_FRAME_FLAG:
                                              anticipatory_index, compensatory_index, spotting_index,
                                              movement_detection_index, blinks_index, fixation_index]]
 
+                            # Eye and Neck angles visualization
+                            eye_angles = eye_tracking_metrics["eye_angles"]
+                            EulAngles_neck = eye_tracking_metrics["EulAngles_neck"]
+                            eye_neck_angles_table += [[subject_name, expertise, acrobatics, eye_angles, EulAngles_neck]]
+
 
     savemat(f'{plot_path}/primary_table.mat', {'primary_table': primary_table})
     savemat(f'{plot_path}/trajectories_table.mat', {'trajectories_table': trajectories_table})
@@ -739,6 +791,7 @@ if GENRATE_DATA_FRAME_FLAG:
     savemat(f'{plot_path}/neck_eye_movements_indices_table.mat', {'neck_eye_movements_indices_table': neck_eye_movements_indices_table})
     savemat(f'{plot_path}/heatmaps_spreading_table.mat', {'heatmaps_spreading_table': heatmaps_spreading_table})
     savemat(f'{plot_path}/qualitative_table.mat', {'qualitative_table': qualitative_table})
+    savemat(f'{plot_path}/eye_and_neck_angles_table.mat', {'eye_and_neck_angles_table': eye_and_neck_angles_table})
 
     # save as pickle files
     with open(f'{plot_path}/primary_table.pkl', 'wb') as f:
@@ -755,6 +808,8 @@ if GENRATE_DATA_FRAME_FLAG:
         pickle.dump(heatmaps_spreading_table, f)
     with open(f'{plot_path}/qualitative_table.pkl', 'wb') as f:
         pickle.dump(qualitative_table, f)
+    with open(f'{plot_path}/qualitative_table.pkl', 'wb') as f:
+        pickle.dump(eye_and_neck_angles_table, f)
 
 else:
     primary_table = loadmat(f'{plot_path}/primary_table.mat')['primary_table']
@@ -764,6 +819,7 @@ else:
     neck_eye_movements_indices_table = loadmat(f'{plot_path}/neck_eye_movements_table.mat')['neck_eye_movements_indices_table']
     heatmaps_spreading_table = loadmat(f'{plot_path}/heatmaps_spreading_table.mat')['heatmaps_spreading_table']
     qualitative_table = loadmat(f'{plot_path}/qualitative_table.mat')['qualitative_table']
+    eye_and_neck_angles_table = loadmat(f'{plot_path}/eye_and_neck_angles_table.mat')['eye_and_neck_angles_table']
 
     # load the pickle files
     with open(f'{plot_path}/primary_table.pkl', 'rb') as f:
@@ -778,6 +834,8 @@ else:
         heatmaps_spreading_table = pickle.load(f)
     with open(f'{plot_path}/qualitative_table.pkl', 'rb') as f:
         qualitative_table = pickle.load(f)
+    with open(f'{plot_path}/eye_and_neck_angles_table.pkl', 'rb') as f:
+        eye_and_neck_angles_table = pickle.load(f)
 
 move_list = ['4-', '41', '42', '43']
 
@@ -817,6 +875,9 @@ heatmap_spreading_plots(heatmap_spreading_data_frame, move_list, subelite_names,
 
 qualitative_data_frame = pd.DataFrame(qualitative_table[1:], columns=qualitative_table[0])
 timing_plots(qualitative_data_frame, move_list, subelite_names, elite_names, plot_path)
+
+eye_and_neck_angles_data_frame = pd.DataFrame(eye_and_neck_angles_table[1:], columns=eye_and_neck_angles_table[0])
+plot_eye_and_neck_angles()
 
 
 
