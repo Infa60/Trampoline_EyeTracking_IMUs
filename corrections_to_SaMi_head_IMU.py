@@ -242,10 +242,26 @@ def cart2sph(x, y, z):
     az = math.atan2(y, x)  # phi
     return r, elev, az
 
+
+
 FIND_FRAMES_CLAP_FLAG = False
 
-xsens_file_dir = "/home/charbie/disk/Eye-tracking/XsensData/SaMi/exports_shoulder_height/"
-xsens_file_name = "SaMi_02"  # = 870  # "SaMi_03" = 1150
+"""
+"SaMi_02" = 870  
+"SaMi_03" = 1150
+"AnBe_01" = 230
+"AnBe_08" = 60
+"AnBe_09" = 270
+"AnBe_10" = 218
+"AnBe_11" = 285
+"AnBe_12" = 165
+"AnBe_15" = 285
+"AnBe_16" = 310
+"""
+xsens_file_name = "AnBe_16"
+# frame_range = range(250, 450)  # Synchro clap Xsens frames
+head_orientation_zero_frame = 310
+xsens_file_dir = f"/home/charbie/disk/Eye-tracking/XsensData/{xsens_file_name[:4]}/exports_shoulder_height/"
 Xsens_position, Xsens_orientation, links, num_joints = load_xsens(xsens_file_dir, xsens_file_name)
 
 if not FIND_FRAMES_CLAP_FLAG:
@@ -253,7 +269,6 @@ if not FIND_FRAMES_CLAP_FLAG:
     rotation_nothing_points = rotation_nothing @ np.array([1, 0, 0])
 
     # Head orientation during the clap, where the athelte is looking in front of her
-    head_orientation_zero_frame = 870
     head_orientation_zero = Xsens_orientation[head_orientation_zero_frame, 24:28] / np.linalg.norm(Xsens_orientation[head_orientation_zero_frame, 24:28])
     quaternion_head_orientation_zero = biorbd.Quaternion(head_orientation_zero[0], head_orientation_zero[1], head_orientation_zero[2], head_orientation_zero[3])
     RotMat_head_orientation_zero = biorbd.Quaternion.toMatrix(quaternion_head_orientation_zero).to_array()
@@ -277,7 +292,7 @@ if not FIND_FRAMES_CLAP_FLAG:
                                                                            RotMat_head[2, 0], RotMat_head[2, 1], RotMat_head[2, 2])).to_array()
         new_Xsens_orientation["orientation"][i, 24:28] = New_quaternion_head
 
-    sio.savemat(f"/home/charbie/disk/Eye-tracking/XsensData/SaMi/exports_shoulder_height/{xsens_file_name}/orientation.mat", new_Xsens_orientation)
+    sio.savemat(f"/home/charbie/disk/Eye-tracking/XsensData/{xsens_file_name[:4]}/exports_shoulder_height/{xsens_file_name}/orientation.mat", new_Xsens_orientation)
 else:
     RotMat_head_orientation_zero = None
 
@@ -307,14 +322,9 @@ if not FIND_FRAMES_CLAP_FLAG:
 
 text = [ax.text(-1, -1, 2, "0")]
 
-max_frame = 0
 # Creating the Animation object
-if max_frame == 0:
+if not FIND_FRAMES_CLAP_FLAG:
     frame_range = range(len(Xsens_position))
-else:
-    frame_range = range(max_frame)
-
-# frame_range = range(0, 1000)  # Synchro clap Xsens frames
 
 
 (
