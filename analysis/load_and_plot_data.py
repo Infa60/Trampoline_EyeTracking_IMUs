@@ -682,28 +682,15 @@ def plot_eye_and_neck_angles(df, subelite_names, elite_names, move_list, plot_pa
                                         color=colors_subelites[j], alpha=0.2)
             axs[1, 1].plot(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation'], color=colors_subelites[j])
 
-            # Plot max angles timing
-            # axs[0, 0].axvspan(neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing'] - neck_and_eye_curves_per_athelte_std[name][move]['eye_azimuth_max_timing'],
-            #                   neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing'] + neck_and_eye_curves_per_athelte_std[name][move]['eye_azimuth_max_timing'],
-            #                   color=colors_subelites[j], alpha=0.1)
             axs[0, 0].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing'],
                                      neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing']]),
                            np.array([-1.5, 1.5]), color=colors_subelites[j], linestyle='--')
-            # axs[0, 1].axvspan(neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing'] - neck_and_eye_curves_per_athelte_std[name][move]['neck_azimuth_max_timing'],
-            #                     neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing'] + neck_and_eye_curves_per_athelte_std[name][move]['neck_azimuth_max_timing'],
-            #                     color=colors_subelites[j], alpha=0.1)
             axs[0, 1].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing'],
                                         neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing']]),
                             np.array([-1.5, 1.5]), color=colors_subelites[j], linestyle='--')
-            # axs[1, 0].axvspan(neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing'] - neck_and_eye_curves_per_athelte_std[name][move]['eye_elevation_max_timing'],
-            #                     neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing'] + neck_and_eye_curves_per_athelte_std[name][move]['eye_elevation_max_timing'],
-            #                     color=colors_subelites[j], alpha=0.1)
             axs[1, 0].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing'],
                                         neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing']]),
                             np.array([-1.5, 1.5]), color=colors_subelites[j], linestyle='--')
-            # axs[1, 1].axvspan(neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing'] - neck_and_eye_curves_per_athelte_std[name][move]['neck_elevation_max_timing'],
-            #                     neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing'] + neck_and_eye_curves_per_athelte_std[name][move]['neck_elevation_max_timing'],
-            #                     color=colors_subelites[j], alpha=0.1)
             axs[1, 1].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing'],
                                         neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing']]),
                             np.array([-1.5, 1.5]), color=colors_subelites[j], linestyle='--')
@@ -756,35 +743,15 @@ def plot_eye_and_neck_angles(df, subelite_names, elite_names, move_list, plot_pa
             axs[1, 1].plot(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation'], color=colors_elites[j])
 
             # Plot max angles timing
-            # axs[0, 0].axvspan(neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing'] -
-            #                   neck_and_eye_curves_per_athelte_std[name][move]['eye_azimuth_max_timing'],
-            #                   neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing'] +
-            #                   neck_and_eye_curves_per_athelte_std[name][move]['eye_azimuth_max_timing'],
-            #                   color=colors_elites[j], alpha=0.1)
             axs[0, 0].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing'],
                                      neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing']]),
                            np.array([-1.5, 1.5]), color=colors_elites[j], linestyle='--')
-            # axs[0, 1].axvspan(neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing'] -
-            #                   neck_and_eye_curves_per_athelte_std[name][move]['neck_azimuth_max_timing'],
-            #                   neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing'] +
-            #                   neck_and_eye_curves_per_athelte_std[name][move]['neck_azimuth_max_timing'],
-            #                   color=colors_elites[j], alpha=0.1)
             axs[0, 1].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing'],
                                      neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing']]),
                            np.array([-1.5, 1.5]), color=colors_elites[j], linestyle='--')
-            # axs[1, 0].axvspan(neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing'] -
-            #                   neck_and_eye_curves_per_athelte_std[name][move]['eye_elevation_max_timing'],
-            #                   neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing'] +
-            #                   neck_and_eye_curves_per_athelte_std[name][move]['eye_elevation_max_timing'],
-            #                   color=colors_elites[j], alpha=0.1)
             axs[1, 0].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing'],
                                      neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing']]),
                            np.array([-1.5, 1.5]), color=colors_elites[j], linestyle='--')
-            # axs[1, 1].axvspan(neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing'] -
-            #                   neck_and_eye_curves_per_athelte_std[name][move]['neck_elevation_max_timing'],
-            #                   neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing'] +
-            #                   neck_and_eye_curves_per_athelte_std[name][move]['neck_elevation_max_timing'],
-            #                   color=colors_elites[j], alpha=0.1)
             axs[1, 1].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing'],
                                      neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing']]),
                            np.array([-1.5, 1.5]), color=colors_elites[j], linestyle='--')
