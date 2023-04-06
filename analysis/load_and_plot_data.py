@@ -6,6 +6,7 @@ import matplotlib.cm as cm
 import pickle
 from IPython import embed
 import pandas as pd
+from scipy import interpolate
 import os
 from scipy.io import savemat, loadmat
 import mpl_toolkits.mplot3d.axes3d as p3
@@ -578,44 +579,320 @@ def timing_plots(df, move_list, subelite_names, elite_names, plot_path):
 
 def plot_eye_and_neck_angles(df, subelite_names, elite_names, move_list, plot_path):
 
+    athlete_names = subelite_names + elite_names
     colors_subelites = [cm.get_cmap('plasma')(k) for k in np.linspace(0, 0.4, len(subelite_names))]
     colors_elites = [cm.get_cmap('plasma')(k) for k in np.linspace(0.6, 1, len(elite_names))]
 
-    fig, axs = plt.subplots(2, 2)
+    # Find mean eye and neck angles for all athletes
+    nb_interp_points = 500
+    xi_interp = np.linspace(0, 100, nb_interp_points)
+    neck_and_eye_curves_per_athelte_mean = {}
+    neck_and_eye_curves_per_athelte_std = {}
+    for j, name in enumerate(athlete_names):
+        neck_and_eye_curves_per_athelte_mean[name] = {}
+        neck_and_eye_curves_per_athelte_std[name] = {}
+        for i, move in enumerate(move_list):
+            neck_and_eye_curves_per_athelte_mean[name][move] = {}
+            neck_and_eye_curves_per_athelte_std[name][move] = {}
+            eye_azimuth_interpolated = np.zeros((nb_interp_points, 1))
+            eye_elevation_interpolated = np.zeros((nb_interp_points, 1))
+            neck_azimuth_interpolated = np.zeros((nb_interp_points, 1))
+            neck_elevation_interpolated = np.zeros((nb_interp_points, 1))
+            eye_azimuth_max_timing = np.zeros((1, 1))
+            eye_elevation_max_timing = np.zeros((1, 1))
+            neck_azimuth_max_timing = np.zeros((1, 1))
+            neck_elevation_max_timing = np.zeros((1, 1))
+            quiet_eye_onset = np.zeros((1, 1))
+            
+            index_this_time = np.where(np.logical_and(df['Name'] == athlete_names[j], df['Acrobatics'] == move_list[i]))[0]
+            for k in index_this_time:
+                if df["Twist side"][k] == "G":
+                    eye_azimuth = -df["Eye angle"][k][0, :]
+                    neck_azimuth = -df["Neck angle"][k][:, 0]
+                else:
+                    eye_azimuth = df["Eye angle"][k][0, :]
+                    neck_azimuth = df["Neck angle"][k][:, 0]
+                eye_elevation = df["Eye angle"][k][1, :]
+                neck_elevation = df["Neck angle"][k][:, 1]
+
+                nomalised_time = np.linspace(0, 100, len(eye_elevation))
+                interp_eye_azimuth = interpolate.interp1d(nomalised_time, eye_azimuth)
+                eye_azimuth_interpolated = np.hstack((eye_azimuth_interpolated, interp_eye_azimuth(xi_interp).reshape(-1, 1)))
+                interp_eye_elevation = interpolate.interp1d(nomalised_time, eye_elevation)
+                eye_elevation_interpolated = np.hstack((eye_elevation_interpolated, interp_eye_elevation(xi_interp).reshape(-1, 1)))
+                interp_neck_azimuth = interpolate.interp1d(nomalised_time, neck_azimuth)
+                neck_azimuth_interpolated = np.hstack((neck_azimuth_interpolated, interp_neck_azimuth(xi_interp).reshape(-1, 1)))
+                interp_neck_elevation = interpolate.interp1d(nomalised_time, neck_elevation)
+                neck_elevation_interpolated = np.hstack((neck_elevation_interpolated, interp_neck_elevation(xi_interp).reshape(-1, 1)))
+                eye_azimuth_max_timing = np.vstack((eye_azimuth_max_timing, np.nanargmax(np.abs(eye_azimuth)) * 100 / len(eye_azimuth)))
+                eye_elevation_max_timing = np.vstack((eye_elevation_max_timing, np.nanargmax(np.abs(eye_elevation)) * 100 / len(eye_elevation)))
+                neck_azimuth_max_timing = np.vstack((neck_azimuth_max_timing, np.nanargmax(np.abs(neck_azimuth)) * 100 / len(neck_azimuth)))
+                neck_elevation_max_timing = np.vstack((neck_elevation_max_timing, np.nanargmax(np.abs(neck_elevation)) * 100 / len(neck_elevation)))
+                quiet_eye_onset = np.vstack((quiet_eye_onset, df["Quiet eye onset relative"][k] * 100))
+                
+            eye_azimuth_interpolated = eye_azimuth_interpolated[:, 1:]
+            eye_elevation_interpolated = eye_elevation_interpolated[:, 1:]
+            neck_azimuth_interpolated = neck_azimuth_interpolated[:, 1:]
+            neck_elevation_interpolated = neck_elevation_interpolated[:, 1:]
+            eye_azimuth_max_timing = eye_azimuth_max_timing[1:]
+            eye_elevation_max_timing = eye_elevation_max_timing[1:]
+            neck_azimuth_max_timing = neck_azimuth_max_timing[1:]
+            neck_elevation_max_timing = neck_elevation_max_timing[1:]
+            quiet_eye_onset = quiet_eye_onset[1:]
+
+            neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth'] = np.nanmean(eye_azimuth_interpolated, axis=1)
+            neck_and_eye_curves_per_athelte_std[name][move]['eye_azimuth'] = np.nanstd(eye_azimuth_interpolated, axis=1)
+            neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation'] = np.nanmean(eye_elevation_interpolated, axis=1)
+            neck_and_eye_curves_per_athelte_std[name][move]['eye_elevation'] = np.nanstd(eye_elevation_interpolated, axis=1)
+            neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth'] = np.nanmean(neck_azimuth_interpolated, axis=1)
+            neck_and_eye_curves_per_athelte_std[name][move]['neck_azimuth'] = np.nanstd(neck_azimuth_interpolated, axis=1)
+            neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation'] = np.nanmean(neck_elevation_interpolated, axis=1)
+            neck_and_eye_curves_per_athelte_std[name][move]['neck_elevation'] = np.nanstd(neck_elevation_interpolated, axis=1)
+            neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing'] = np.nanmedian(eye_azimuth_max_timing)
+            neck_and_eye_curves_per_athelte_std[name][move]['eye_azimuth_max_timing'] = np.nanstd(eye_azimuth_max_timing)
+            neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing'] = np.nanmedian(eye_elevation_max_timing)
+            neck_and_eye_curves_per_athelte_std[name][move]['eye_elevation_max_timing'] = np.nanstd(eye_elevation_max_timing)
+            neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing'] = np.nanmedian(neck_azimuth_max_timing)
+            neck_and_eye_curves_per_athelte_std[name][move]['neck_azimuth_max_timing'] = np.nanstd(neck_azimuth_max_timing)
+            neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing'] = np.nanmedian(neck_elevation_max_timing)
+            neck_and_eye_curves_per_athelte_std[name][move]['neck_elevation_max_timing'] = np.nanstd(neck_elevation_max_timing)
+            neck_and_eye_curves_per_athelte_mean[name][move]['quiet_eye_onset'] = np.nanmedian(quiet_eye_onset)
+            neck_and_eye_curves_per_athelte_std[name][move]['quiet_eye_onset'] = np.nanstd(quiet_eye_onset)
+
+
+    # Plot mean eye and neck angles for all subelites
     for i, move in enumerate(move_list):
+        fig1, axs = plt.subplots(2, 2, figsize=(15, 6))
+        for j, name in enumerate(subelite_names):
+            # Plot angles
+            axs[0, 0].fill_between(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth'] - neck_and_eye_curves_per_athelte_std[name][move]['eye_azimuth'],
+                                      neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth'] + neck_and_eye_curves_per_athelte_std[name][move]['eye_azimuth'],
+                                        color=colors_subelites[j], alpha=0.2)
+            axs[0, 0].plot(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth'], color=colors_subelites[j], label=name)
+            axs[0, 1].fill_between(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth'] - neck_and_eye_curves_per_athelte_std[name][move]['neck_azimuth'],
+                                        neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth'] + neck_and_eye_curves_per_athelte_std[name][move]['neck_azimuth'],
+                                        color=colors_subelites[j], alpha=0.2)
+            axs[0, 1].plot(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth'], color=colors_subelites[j])
+            axs[1, 0].fill_between(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation'] - neck_and_eye_curves_per_athelte_std[name][move]['eye_elevation'],
+                                        neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation'] + neck_and_eye_curves_per_athelte_std[name][move]['eye_elevation'],
+                                        color=colors_subelites[j], alpha=0.2)
+            axs[1, 0].plot(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation'], color=colors_subelites[j])
+            axs[1, 1].fill_between(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation'] - neck_and_eye_curves_per_athelte_std[name][move]['neck_elevation'],
+                                        neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation'] + neck_and_eye_curves_per_athelte_std[name][move]['neck_elevation'],
+                                        color=colors_subelites[j], alpha=0.2)
+            axs[1, 1].plot(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation'], color=colors_subelites[j])
+
+            # Plot max angles timing
+            # axs[0, 0].axvspan(neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing'] - neck_and_eye_curves_per_athelte_std[name][move]['eye_azimuth_max_timing'],
+            #                   neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing'] + neck_and_eye_curves_per_athelte_std[name][move]['eye_azimuth_max_timing'],
+            #                   color=colors_subelites[j], alpha=0.1)
+            axs[0, 0].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing'],
+                                     neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing']]),
+                           np.array([-1.5, 1.5]), color=colors_subelites[j], linestyle='--')
+            # axs[0, 1].axvspan(neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing'] - neck_and_eye_curves_per_athelte_std[name][move]['neck_azimuth_max_timing'],
+            #                     neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing'] + neck_and_eye_curves_per_athelte_std[name][move]['neck_azimuth_max_timing'],
+            #                     color=colors_subelites[j], alpha=0.1)
+            axs[0, 1].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing'],
+                                        neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing']]),
+                            np.array([-1.5, 1.5]), color=colors_subelites[j], linestyle='--')
+            # axs[1, 0].axvspan(neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing'] - neck_and_eye_curves_per_athelte_std[name][move]['eye_elevation_max_timing'],
+            #                     neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing'] + neck_and_eye_curves_per_athelte_std[name][move]['eye_elevation_max_timing'],
+            #                     color=colors_subelites[j], alpha=0.1)
+            axs[1, 0].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing'],
+                                        neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing']]),
+                            np.array([-1.5, 1.5]), color=colors_subelites[j], linestyle='--')
+            # axs[1, 1].axvspan(neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing'] - neck_and_eye_curves_per_athelte_std[name][move]['neck_elevation_max_timing'],
+            #                     neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing'] + neck_and_eye_curves_per_athelte_std[name][move]['neck_elevation_max_timing'],
+            #                     color=colors_subelites[j], alpha=0.1)
+            axs[1, 1].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing'],
+                                        neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing']]),
+                            np.array([-1.5, 1.5]), color=colors_subelites[j], linestyle='--')
+
+            # Plot quiet eye onset timing
+            for i_x in range(2):
+                for i_y in range(2):
+                    axs[i_x, i_y].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['quiet_eye_onset'],
+                                             neck_and_eye_curves_per_athelte_mean[name][move]['quiet_eye_onset']]),
+                                   np.array([-1.5, 1.5]), color=colors_subelites[j], linestyle='-')
+
+        for i_x in range(2):
+            for i_y in range(2):
+                axs[i_x, i_y].spines['top'].set_visible(False)
+                axs[i_x, i_y].spines['right'].set_visible(False)
+                axs[i_x, i_y].set_xlim(0, 100)
+                axs[i_x, i_y].set_ylim(-2, 2)
+        axs[0, 0].legend(ncol=1, loc='upper center', bbox_to_anchor=(2.4, 0.7), fontsize=12)
+        axs[1, 0].set_xlabel('Normalized time [%]', fontsize=15)
+        axs[1, 1].set_xlabel('Normalized time [%]', fontsize=15)
+        axs[0, 0].set_ylabel('Azimuth [rad]', fontsize=15)
+        axs[1, 0].set_ylabel('Elevation [rad]', fontsize=15)
+        axs[0, 0].set_title('Eye', fontsize=15)
+        axs[0, 1].set_title('Neck', fontsize=15)
+        plt.subplots_adjust(hspace=0.1, top=0.9, bottom=0.1, left=0.1, right=0.85)
+        plt.savefig(f"{plot_path}/mean_subelites_eye_and_neck_angles_{move}.png", dpi=300)
+        # plt.show()
+
+
+    # Plot mean eye and neck angles for all elites
+    for i, move in enumerate(move_list):
+        fig1, axs = plt.subplots(2, 2, figsize=(15, 6))
+        for j, name in enumerate(elite_names):
+            # Plot angles
+            axs[0, 0].fill_between(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth'] - neck_and_eye_curves_per_athelte_std[name][move]['eye_azimuth'],
+                                      neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth'] + neck_and_eye_curves_per_athelte_std[name][move]['eye_azimuth'],
+                                        color=colors_elites[j], alpha=0.2)
+            axs[0, 0].plot(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth'], color=colors_elites[j], label=name)
+            axs[0, 1].fill_between(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth'] - neck_and_eye_curves_per_athelte_std[name][move]['neck_azimuth'],
+                                        neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth'] + neck_and_eye_curves_per_athelte_std[name][move]['neck_azimuth'],
+                                        color=colors_elites[j], alpha=0.2)
+            axs[0, 1].plot(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth'], color=colors_elites[j])
+            axs[1, 0].fill_between(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation'] - neck_and_eye_curves_per_athelte_std[name][move]['eye_elevation'],
+                                        neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation'] + neck_and_eye_curves_per_athelte_std[name][move]['eye_elevation'],
+                                        color=colors_elites[j], alpha=0.2)
+            axs[1, 0].plot(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation'], color=colors_elites[j])
+            axs[1, 1].fill_between(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation'] - neck_and_eye_curves_per_athelte_std[name][move]['neck_elevation'],
+                                        neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation'] + neck_and_eye_curves_per_athelte_std[name][move]['neck_elevation'],
+                                        color=colors_elites[j], alpha=0.2)
+            axs[1, 1].plot(xi_interp, neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation'], color=colors_elites[j])
+
+            # Plot max angles timing
+            # axs[0, 0].axvspan(neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing'] -
+            #                   neck_and_eye_curves_per_athelte_std[name][move]['eye_azimuth_max_timing'],
+            #                   neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing'] +
+            #                   neck_and_eye_curves_per_athelte_std[name][move]['eye_azimuth_max_timing'],
+            #                   color=colors_elites[j], alpha=0.1)
+            axs[0, 0].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing'],
+                                     neck_and_eye_curves_per_athelte_mean[name][move]['eye_azimuth_max_timing']]),
+                           np.array([-1.5, 1.5]), color=colors_elites[j], linestyle='--')
+            # axs[0, 1].axvspan(neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing'] -
+            #                   neck_and_eye_curves_per_athelte_std[name][move]['neck_azimuth_max_timing'],
+            #                   neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing'] +
+            #                   neck_and_eye_curves_per_athelte_std[name][move]['neck_azimuth_max_timing'],
+            #                   color=colors_elites[j], alpha=0.1)
+            axs[0, 1].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing'],
+                                     neck_and_eye_curves_per_athelte_mean[name][move]['neck_azimuth_max_timing']]),
+                           np.array([-1.5, 1.5]), color=colors_elites[j], linestyle='--')
+            # axs[1, 0].axvspan(neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing'] -
+            #                   neck_and_eye_curves_per_athelte_std[name][move]['eye_elevation_max_timing'],
+            #                   neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing'] +
+            #                   neck_and_eye_curves_per_athelte_std[name][move]['eye_elevation_max_timing'],
+            #                   color=colors_elites[j], alpha=0.1)
+            axs[1, 0].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing'],
+                                     neck_and_eye_curves_per_athelte_mean[name][move]['eye_elevation_max_timing']]),
+                           np.array([-1.5, 1.5]), color=colors_elites[j], linestyle='--')
+            # axs[1, 1].axvspan(neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing'] -
+            #                   neck_and_eye_curves_per_athelte_std[name][move]['neck_elevation_max_timing'],
+            #                   neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing'] +
+            #                   neck_and_eye_curves_per_athelte_std[name][move]['neck_elevation_max_timing'],
+            #                   color=colors_elites[j], alpha=0.1)
+            axs[1, 1].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing'],
+                                     neck_and_eye_curves_per_athelte_mean[name][move]['neck_elevation_max_timing']]),
+                           np.array([-1.5, 1.5]), color=colors_elites[j], linestyle='--')
+
+            # Plot quiet eye onset timing
+            for i_x in range(2):
+                for i_y in range(2):
+                    axs[i_x, i_y].plot(np.array([neck_and_eye_curves_per_athelte_mean[name][move]['quiet_eye_onset'],
+                                             neck_and_eye_curves_per_athelte_mean[name][move]['quiet_eye_onset']]),
+                                   np.array([-1.5, 1.5]), color=colors_elites[j], linestyle='-')
+
+        for i_x in range(2):
+            for i_y in range(2):
+                axs[i_x, i_y].spines['top'].set_visible(False)
+                axs[i_x, i_y].spines['right'].set_visible(False)
+                axs[i_x, i_y].set_xlim(0, 100)
+                axs[i_x, i_y].set_ylim(-2, 2)
+        axs[0, 0].legend(ncol=1, loc='upper center', bbox_to_anchor=(2.4, 0.7), fontsize=12)
+        axs[1, 0].set_xlabel('Normalized time [%]', fontsize=15)
+        axs[1, 1].set_xlabel('Normalized time [%]', fontsize=15)
+        axs[0, 0].set_ylabel('Azimuth [rad]', fontsize=15)
+        axs[1, 0].set_ylabel('Elevation [rad]', fontsize=15)
+        axs[0, 0].set_title('Eye', fontsize=15)
+        axs[0, 1].set_title('Neck', fontsize=15)
+        plt.subplots_adjust(hspace=0.1, top=0.9, bottom=0.1, left=0.1, right=0.85)
+        plt.savefig(f"{plot_path}/mean_elites_eye_and_neck_angles_{move}.png", dpi=300)
+        # plt.show()
+
+    # Plot all eye and neck angles for subelite athletes
+    for i, move in enumerate(move_list):
+        fig1, axs = plt.subplots(2, 2, figsize=(15, 6))
         for j in range(len(subelite_names)):
             index_this_time = np.where(np.logical_and(df['Name'] == subelite_names[j], df['Acrobatics'] == move_list[i]))
             for m, idx_this_move in enumerate(index_this_time[0]):
-                eye_angles = df["eye_angles"][idx_this_move]
-                neck_angles = df["neck_angles"][idx_this_move]
-                nomalised_time = np.linspace(0, 1, len(eye_angles))
+                eye_angles = df["Eye angle"][idx_this_move]
+                neck_angles = df["Neck angle"][idx_this_move]
+                nomalised_time = np.linspace(0, 100, np.shape(eye_angles)[1])
                 # azimuth
-                axs[0, 0].plot(nomalised_time, eye_angles[0, :], color=colors_subelites[j])
-                axs[0, 1].plot(nomalised_time, neck_angles[0, :], color=colors_subelites[j])
-                # elevation
-                axs[1, 0].plot(nomalised_time, eye_angles[1, :], color=colors_subelites[j])
-                axs[1, 1].plot(nomalised_time, neck_angles[1, :], color=colors_subelites[j])
+                if df["Twist side"][idx_this_move] == "G":
+                    axs[0, 0].plot(nomalised_time, -eye_angles[0, :], color=colors_subelites[j])
+                    axs[0, 1].plot(nomalised_time, -neck_angles.T[0, :], color=colors_subelites[j])
+                else:
+                    axs[0, 0].plot(nomalised_time, -eye_angles[0, :], color=colors_subelites[j])
+                    axs[0, 1].plot(nomalised_time, -neck_angles.T[0, :], color=colors_subelites[j])
 
+                # elevation
+                if m == 0:
+                    axs[1, 0].plot(nomalised_time, eye_angles[1, :], color=colors_subelites[j], label=subelite_names[j])
+                else:
+                    axs[1, 0].plot(nomalised_time, eye_angles[1, :], color=colors_subelites[j])
+                axs[1, 1].plot(nomalised_time, neck_angles.T[1, :], color=colors_subelites[j])
+
+        for i_x in range(2):
+            for i_y in range(2):
+                axs[i_x, i_y].spines['top'].set_visible(False)
+                axs[i_x, i_y].spines['right'].set_visible(False)
+                axs[i_x, i_y].set_xlim(0, 100)
+                axs[i_x, i_y].set_ylim(-2, 2)
+        axs[1, 0].legend(ncol=1, loc='upper center', bbox_to_anchor=(2.4, 1.7), fontsize=12)
+        axs[1, 0].set_xlabel('Normalized time [%]', fontsize=15)
+        axs[1, 1].set_xlabel('Normalized time [%]', fontsize=15)
+        axs[0, 0].set_ylabel('Elevation [rad]', fontsize=15)
+        axs[1, 0].set_ylabel('Azimuth [rad]', fontsize=15)
+        axs[0, 0].set_title('Eye', fontsize=15)
+        axs[0, 1].set_title('Neck', fontsize=15)
+        plt.subplots_adjust(hspace=0.1, top=0.9, bottom=0.1, left=0.1, right=0.85)
+        plt.savefig(f"{plot_path}/subelites_eye_and_neck_angles_{move}.png", dpi=300)
+        # plt.show()
+
+    # Plot all eye and neck angles for elite athletes
+    for i, move in enumerate(move_list):
+        fig1, axs = plt.subplots(2, 2, figsize=(15, 6))
         for j in range(len(elite_names)):
             index_this_time = np.where(np.logical_and(df['Name'] == elite_names[j], df['Acrobatics'] == move_list[i]))
             for m, idx_this_move in enumerate(index_this_time[0]):
-                eye_angles = df["eye_angles"][idx_this_move]
-                neck_angles = df["neck_angles"][idx_this_move]
-                nomalised_time = np.linspace(0, 1, len(eye_angles))
+                eye_angles = df["Eye angle"][idx_this_move]
+                neck_angles = df["Neck angle"][idx_this_move]
+                nomalised_time = np.linspace(0, 100, np.shape(eye_angles)[1])
                 # azimuth
-                axs[0, 0].plot(nomalised_time, eye_angles[0, :], color=colors_elites[j])
-                axs[0, 1].plot(nomalised_time, neck_angles[0, :], color=colors_elites[j])
+                if df["Twist side"][idx_this_move] == "G":
+                    axs[0, 0].plot(nomalised_time, -eye_angles[0, :], color=colors_elites[j])
+                    axs[0, 1].plot(nomalised_time, -neck_angles.T[0, :], color=colors_elites[j])
+                else:
+                    axs[0, 0].plot(nomalised_time, eye_angles[0, :], color=colors_elites[j])
+                    axs[0, 1].plot(nomalised_time, neck_angles.T[0, :], color=colors_elites[j])
                 # elevation
-                axs[1, 0].plot(nomalised_time, eye_angles[1, :], color=colors_elites[j])
-                axs[1, 1].plot(nomalised_time, neck_angles[1, :], color=colors_elites[j])
+                if m == 0:
+                    axs[1, 0].plot(nomalised_time, eye_angles[1, :], color=colors_elites[j], label=elite_names[j])
+                else:
+                    axs[1, 0].plot(nomalised_time, eye_angles[1, :], color=colors_elites[j])
+                axs[1, 1].plot(nomalised_time, neck_angles.T[1, :], color=colors_elites[j])
 
-        plt.legend(ncol=2, loc='upper center', bbox_to_anchor=(-1.30, 2.35), fontsize=12)
-        # axs[1, 3].text(-235, -20, 'Normalized time [%]', fontsize=12)
-        # axs[1, 3].text(-425, 153, 'Subelite', fontsize=12, rotation=90)
-        # axs[1, 3].text(-425, 50, 'Elite', fontsize=12, rotation=90)
-        # plt.subplots_adjust(hspace=0.1, top=0.9, bottom=0.1)
-        plt.savefig(f"{plot_path}/eye_and_neck_angles_{move}.png", dpi=300)
-        # plt.show()
+        for i_x in range(2):
+            for i_y in range(2):
+                axs[i_x, i_y].spines['top'].set_visible(False)
+                axs[i_x, i_y].spines['right'].set_visible(False)
+                axs[i_x, i_y].set_xlim(0, 100)
+                axs[i_x, i_y].set_ylim(-2, 2)
+        axs[1, 0].legend(ncol=1, loc='upper center', bbox_to_anchor=(2.4, 1.7), fontsize=12)
+        axs[1, 0].set_xlabel('Normalized time [%]', fontsize=15)
+        axs[1, 1].set_xlabel('Normalized time [%]', fontsize=15)
+        axs[0, 0].set_ylabel('Azimuth [rad]', fontsize=15)
+        axs[1, 0].set_ylabel('Elevation [rad]', fontsize=15)
+        axs[0, 0].set_title('Eye', fontsize=15)
+        axs[0, 1].set_title('Neck', fontsize=15)
+        plt.subplots_adjust(hspace=0.1, top=0.9, bottom=0.1, left=0.1, right=0.85)
+        plt.savefig(f"{plot_path}/elites_eye_and_neck_angles_{move}.png", dpi=300)
+        plt.show()
 
     return
 
@@ -671,7 +948,7 @@ heatmaps_spreading_table = [["Name", "Expertise", "Acrobatics", "Distance from t
 qualitative_table = [["Name", "Expertise", "Acrobatics", "Fixation target", "anticipatory_index", "compensatory_index",
                 "spotting_index", "movement_detection_index", "blinks_index", "fixation_index"]]
 
-eye_neck_angles_table = [["Name", "Expertise", "Acrobatics", "Eye angle", "Neck angle"]]
+eye_neck_angles_table = [["Name", "Expertise", "Acrobatics", "Twist side", "Quiet eye onset relative", "Eye angle", "Neck angle"]]
 
 if GENRATE_DATA_FRAME_FLAG:
     for folder_subject in os.listdir(results_path):
@@ -781,7 +1058,7 @@ if GENRATE_DATA_FRAME_FLAG:
                             # Eye and Neck angles visualization
                             eye_angles = eye_tracking_metrics["eye_angles"]
                             EulAngles_neck = eye_tracking_metrics["EulAngles_neck"]
-                            eye_neck_angles_table += [[subject_name, expertise, acrobatics, eye_angles, EulAngles_neck]]
+                            eye_neck_angles_table += [[subject_name, expertise, acrobatics, twist_side, quiet_eye_onset_relative, eye_angles, EulAngles_neck]]
 
 
     savemat(f'{plot_path}/primary_table.mat', {'primary_table': primary_table})
@@ -791,7 +1068,7 @@ if GENRATE_DATA_FRAME_FLAG:
     savemat(f'{plot_path}/neck_eye_movements_indices_table.mat', {'neck_eye_movements_indices_table': neck_eye_movements_indices_table})
     savemat(f'{plot_path}/heatmaps_spreading_table.mat', {'heatmaps_spreading_table': heatmaps_spreading_table})
     savemat(f'{plot_path}/qualitative_table.mat', {'qualitative_table': qualitative_table})
-    savemat(f'{plot_path}/eye_and_neck_angles_table.mat', {'eye_and_neck_angles_table': eye_and_neck_angles_table})
+    savemat(f'{plot_path}/eye_neck_angles_table.mat', {'eye_neck_angles_table': eye_neck_angles_table})
 
     # save as pickle files
     with open(f'{plot_path}/primary_table.pkl', 'wb') as f:
@@ -809,7 +1086,7 @@ if GENRATE_DATA_FRAME_FLAG:
     with open(f'{plot_path}/qualitative_table.pkl', 'wb') as f:
         pickle.dump(qualitative_table, f)
     with open(f'{plot_path}/qualitative_table.pkl', 'wb') as f:
-        pickle.dump(eye_and_neck_angles_table, f)
+        pickle.dump(eye_neck_angles_table, f)
 
 else:
     primary_table = loadmat(f'{plot_path}/primary_table.mat')['primary_table']
@@ -819,7 +1096,7 @@ else:
     neck_eye_movements_indices_table = loadmat(f'{plot_path}/neck_eye_movements_table.mat')['neck_eye_movements_indices_table']
     heatmaps_spreading_table = loadmat(f'{plot_path}/heatmaps_spreading_table.mat')['heatmaps_spreading_table']
     qualitative_table = loadmat(f'{plot_path}/qualitative_table.mat')['qualitative_table']
-    eye_and_neck_angles_table = loadmat(f'{plot_path}/eye_and_neck_angles_table.mat')['eye_and_neck_angles_table']
+    eye_neck_angles_table = loadmat(f'{plot_path}/eye_neck_angles_table.mat')['eye_neck_angles_table']
 
     # load the pickle files
     with open(f'{plot_path}/primary_table.pkl', 'rb') as f:
@@ -834,8 +1111,8 @@ else:
         heatmaps_spreading_table = pickle.load(f)
     with open(f'{plot_path}/qualitative_table.pkl', 'rb') as f:
         qualitative_table = pickle.load(f)
-    with open(f'{plot_path}/eye_and_neck_angles_table.pkl', 'rb') as f:
-        eye_and_neck_angles_table = pickle.load(f)
+    with open(f'{plot_path}/eye_neck_angles_table.pkl', 'rb') as f:
+        eye_neck_angles_table = pickle.load(f)
 
 move_list = ['4-', '41', '42', '43']
 
@@ -851,53 +1128,33 @@ for i in range(len(primary_data_frame)):
         if primary_data_frame['Name'][i] not in elite_names:
             elite_names.append(primary_data_frame['Name'][i])
 
-primary_plots(primary_data_frame, move_list, subelite_names, elite_names, plot_path)
+# primary_plots(primary_data_frame, move_list, subelite_names, elite_names, plot_path)
 
-trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
-trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
+# trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
+# trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
 
-movement_pourcentage_data_frame = pd.DataFrame(neck_eye_movements_table[1:], columns=neck_eye_movements_table[0])
-movement_pourcentage_plots(movement_pourcentage_data_frame, move_list, subelite_names, elite_names, plot_path)
-movement_blocks_number_plot(neck_eye_movements_indices_table, move_list, subelite_names, elite_names, plot_path)
+# movement_pourcentage_data_frame = pd.DataFrame(neck_eye_movements_table[1:], columns=neck_eye_movements_table[0])
+# movement_pourcentage_plots(movement_pourcentage_data_frame, move_list, subelite_names, elite_names, plot_path)
+# movement_blocks_number_plot(neck_eye_movements_indices_table, move_list, subelite_names, elite_names, plot_path)
 
-AOI_table_tempo = [['Name', 'Expertise', 'Acrobatics', 'Trampoline bed', 'Trampoline', 'Wall back front', 'Ceiling',
-                    'Wall sides', 'Athlete himself', 'Blink']]
-for i in range(1, len(AOI_proportions_table)):
-    AOI_table_tempo += [[AOI_proportions_table[i][0], AOI_proportions_table[i][1], AOI_proportions_table[i][2],
-                            AOI_proportions_table[i][3], AOI_proportions_table[i][4], AOI_proportions_table[i][5] + AOI_proportions_table[i][6],
-                            AOI_proportions_table[i][7], AOI_proportions_table[i][8], AOI_proportions_table[i][9],
-                            AOI_proportions_table[i][10]]]
-AOI_pourcentage_data_frame_tempo = pd.DataFrame(AOI_table_tempo[1:], columns=AOI_table_tempo[0])
-AOI_pourcentage_plots(AOI_pourcentage_data_frame_tempo, move_list, subelite_names, elite_names, plot_path)
+# AOI_table_tempo = [['Name', 'Expertise', 'Acrobatics', 'Trampoline bed', 'Trampoline', 'Wall back front', 'Ceiling',
+#                     'Wall sides', 'Athlete himself', 'Blink']]
+# for i in range(1, len(AOI_proportions_table)):
+#     AOI_table_tempo += [[AOI_proportions_table[i][0], AOI_proportions_table[i][1], AOI_proportions_table[i][2],
+#                             AOI_proportions_table[i][3], AOI_proportions_table[i][4], AOI_proportions_table[i][5] + AOI_proportions_table[i][6],
+#                             AOI_proportions_table[i][7], AOI_proportions_table[i][8], AOI_proportions_table[i][9],
+#                             AOI_proportions_table[i][10]]]
+# AOI_pourcentage_data_frame_tempo = pd.DataFrame(AOI_table_tempo[1:], columns=AOI_table_tempo[0])
+# AOI_pourcentage_plots(AOI_pourcentage_data_frame_tempo, move_list, subelite_names, elite_names, plot_path)
 
-heatmap_spreading_data_frame = pd.DataFrame(heatmaps_spreading_table[1:], columns=heatmaps_spreading_table[0])
-heatmap_spreading_plots(heatmap_spreading_data_frame, move_list, subelite_names, elite_names, plot_path)
+# heatmap_spreading_data_frame = pd.DataFrame(heatmaps_spreading_table[1:], columns=heatmaps_spreading_table[0])
+# heatmap_spreading_plots(heatmap_spreading_data_frame, move_list, subelite_names, elite_names, plot_path)
 
-qualitative_data_frame = pd.DataFrame(qualitative_table[1:], columns=qualitative_table[0])
-timing_plots(qualitative_data_frame, move_list, subelite_names, elite_names, plot_path)
+# qualitative_data_frame = pd.DataFrame(qualitative_table[1:], columns=qualitative_table[0])
+# timing_plots(qualitative_data_frame, move_list, subelite_names, elite_names, plot_path)
 
-eye_and_neck_angles_data_frame = pd.DataFrame(eye_and_neck_angles_table[1:], columns=eye_and_neck_angles_table[0])
-plot_eye_and_neck_angles()
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+eye_and_neck_angles_data_frame = pd.DataFrame(eye_neck_angles_table[1:], columns=eye_neck_angles_table[0])
+plot_eye_and_neck_angles(eye_and_neck_angles_data_frame, subelite_names, elite_names, move_list, plot_path)
 
 
 

@@ -300,6 +300,7 @@ def run_analysis(
             wall_index_facing_front_wall,
             EulAngles_head_global,
             EulAngles_neck,
+            eye_angles,
             Xsens_orthogonal_thorax_position,
             Xsens_orthogonal_head_position,
             ) = animate(
@@ -365,6 +366,7 @@ def run_analysis(
             "wall_index_facing_front_wall": wall_index_facing_front_wall,
             "EulAngles_head_global" : EulAngles_head_global,
             "EulAngles_neck" : EulAngles_neck,
+            "eye_angles" : eye_angles,
             "Xsens_orthogonal_thorax_position" : Xsens_orthogonal_thorax_position,
             "Xsens_orthogonal_head_position" : Xsens_orthogonal_head_position,
             "trampoline_bed_proportions" : move_summary_heatmaps[j]["trampoline_bed_proportions"],

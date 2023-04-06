@@ -545,7 +545,7 @@ def identify_head_eye_movements(elevation, azimuth, blink_index, EulAngles_head_
     pourcentage_movement_detection = np.sum(movement_detection_index) / len(movement_detection_index)
     pourcentage_blinks = np.sum(blink_index) / len(blink_index)
 
-    return (neck_amplitude, eye_amplitude, max_neck_amplitude, max_eye_amplitude, neck_amplitude_percentile,
+    return (eye_angles, neck_amplitude, eye_amplitude, max_neck_amplitude, max_eye_amplitude, neck_amplitude_percentile,
            eye_amplitude_percentile, pourcentage_anticipatory, pourcentage_compensatory, pourcentage_spotting,
            pourcentage_movement_detection, pourcentage_blinks, anticipatory_index, compensatory_index, spotting_index,
            movement_detection_index, blink_index)
@@ -919,6 +919,7 @@ def animate(
     if FLAG_GENERATE_STATS_METRICS:
 
         (
+            eye_angles,
             neck_amplitude,
             eye_amplitude,
             max_neck_amplitude,
@@ -1036,6 +1037,7 @@ def animate(
         wall_index_facing_front_wall,
         EulAngles_head_global,
         EulAngles_neck,
+        eye_angles,
         Xsens_orthogonal_thorax_position,
         Xsens_orthogonal_head_position,
     )
