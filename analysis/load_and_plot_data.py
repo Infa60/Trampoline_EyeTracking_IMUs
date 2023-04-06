@@ -332,8 +332,8 @@ def movement_pourcentage_plots(df, move_list, subelite_names, elite_names, plot_
     for i in range(4):
         ax.text(-0.3 + i*2 - 0.5, -7, 'Subelite')
         ax.text(-0.3 + i*2 + 0.5, -7, 'Elite')
-    # plt.show()
     plt.savefig(f"{plot_path}/movement_pourcentage.png", dpi=300)
+    # plt.show()
 
     return
 
@@ -391,8 +391,8 @@ def AOI_pourcentage_plots(df, move_list, subelite_names, elite_names, plot_path)
         ax.text(-0.3 + i*2 - 0.5, -7, 'Subelite')
         ax.text(-0.3 + i*2 + 0.5, -7, 'Elite')
 
-    # plt.show()
     plt.savefig(f"{plot_path}/AOI_pourcentage.png", dpi=300)
+    # plt.show()
 
     return
 
@@ -859,7 +859,7 @@ def plot_eye_and_neck_angles(df, subelite_names, elite_names, move_list, plot_pa
         axs[0, 1].set_title('Neck', fontsize=15)
         plt.subplots_adjust(hspace=0.1, top=0.9, bottom=0.1, left=0.1, right=0.85)
         plt.savefig(f"{plot_path}/elites_eye_and_neck_angles_{move}.png", dpi=300)
-        plt.show()
+        # plt.show()
 
     return
 
@@ -1095,30 +1095,30 @@ for i in range(len(primary_data_frame)):
         if primary_data_frame['Name'][i] not in elite_names:
             elite_names.append(primary_data_frame['Name'][i])
 
-# primary_plots(primary_data_frame, move_list, subelite_names, elite_names, plot_path)
+primary_plots(primary_data_frame, move_list, subelite_names, elite_names, plot_path)
 
-# trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
-# trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
+trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
+trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
 
-# movement_pourcentage_data_frame = pd.DataFrame(neck_eye_movements_table[1:], columns=neck_eye_movements_table[0])
-# movement_pourcentage_plots(movement_pourcentage_data_frame, move_list, subelite_names, elite_names, plot_path)
-# movement_blocks_number_plot(neck_eye_movements_indices_table, move_list, subelite_names, elite_names, plot_path)
+movement_pourcentage_data_frame = pd.DataFrame(neck_eye_movements_table[1:], columns=neck_eye_movements_table[0])
+movement_pourcentage_plots(movement_pourcentage_data_frame, move_list, subelite_names, elite_names, plot_path)
+movement_blocks_number_plot(neck_eye_movements_indices_table, move_list, subelite_names, elite_names, plot_path)
 
-# AOI_table_tempo = [['Name', 'Expertise', 'Acrobatics', 'Trampoline bed', 'Trampoline', 'Wall back front', 'Ceiling',
-#                     'Wall sides', 'Athlete himself', 'Blink']]
-# for i in range(1, len(AOI_proportions_table)):
-#     AOI_table_tempo += [[AOI_proportions_table[i][0], AOI_proportions_table[i][1], AOI_proportions_table[i][2],
-#                             AOI_proportions_table[i][3], AOI_proportions_table[i][4], AOI_proportions_table[i][5] + AOI_proportions_table[i][6],
-#                             AOI_proportions_table[i][7], AOI_proportions_table[i][8], AOI_proportions_table[i][9],
-#                             AOI_proportions_table[i][10]]]
-# AOI_pourcentage_data_frame_tempo = pd.DataFrame(AOI_table_tempo[1:], columns=AOI_table_tempo[0])
-# AOI_pourcentage_plots(AOI_pourcentage_data_frame_tempo, move_list, subelite_names, elite_names, plot_path)
+AOI_table_tempo = [['Name', 'Expertise', 'Acrobatics', 'Trampoline bed', 'Trampoline', 'Wall back front', 'Ceiling',
+                    'Wall sides', 'Athlete himself', 'Blink']]
+for i in range(1, len(AOI_proportions_table)):
+    AOI_table_tempo += [[AOI_proportions_table[i][0], AOI_proportions_table[i][1], AOI_proportions_table[i][2],
+                            AOI_proportions_table[i][3], AOI_proportions_table[i][4], AOI_proportions_table[i][5] + AOI_proportions_table[i][6],
+                            AOI_proportions_table[i][7], AOI_proportions_table[i][8], AOI_proportions_table[i][9],
+                            AOI_proportions_table[i][10]]]
+AOI_pourcentage_data_frame_tempo = pd.DataFrame(AOI_table_tempo[1:], columns=AOI_table_tempo[0])
+AOI_pourcentage_plots(AOI_pourcentage_data_frame_tempo, move_list, subelite_names, elite_names, plot_path)
 
-# heatmap_spreading_data_frame = pd.DataFrame(heatmaps_spreading_table[1:], columns=heatmaps_spreading_table[0])
-# heatmap_spreading_plots(heatmap_spreading_data_frame, move_list, subelite_names, elite_names, plot_path)
+heatmap_spreading_data_frame = pd.DataFrame(heatmaps_spreading_table[1:], columns=heatmaps_spreading_table[0])
+heatmap_spreading_plots(heatmap_spreading_data_frame, move_list, subelite_names, elite_names, plot_path)
 
-# qualitative_data_frame = pd.DataFrame(qualitative_table[1:], columns=qualitative_table[0])
-# timing_plots(qualitative_data_frame, move_list, subelite_names, elite_names, plot_path)
+qualitative_data_frame = pd.DataFrame(qualitative_table[1:], columns=qualitative_table[0])
+timing_plots(qualitative_data_frame, move_list, subelite_names, elite_names, plot_path)
 
 eye_and_neck_angles_data_frame = pd.DataFrame(eye_neck_angles_table[1:], columns=eye_neck_angles_table[0])
 plot_eye_and_neck_angles(eye_and_neck_angles_data_frame, subelite_names, elite_names, move_list, plot_path)
