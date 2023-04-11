@@ -213,6 +213,25 @@ def points_to_ellipse_width(centers, ellipse_fig_name):
     ax.set_aspect('equal')
     plt.savefig(ellipse_fig_name, pdi=300)
     # plt.show()
+    plt.close(fig)
+
+    # Plot an example of ellipse fitting for supplementary material
+    # fig, ax = plt.subplots(1, 1)
+    # ax.plot(centers[:, 0], centers[:, 1], '.', markersize=2, color='k', label='All gaze points')
+    # ax.plot(centers[indices, 0], centers[indices, 1], '.', markersize=2, color='b', label='Gaze points under\n' + r'$90^{th}$ percentile distance')
+    # ax.plot(mean_centers[0], mean_centers[1], 'x', color='r', label='Mean gaze point')
+    # ellipse_2 = Ellipse(xy=(float(center_x_opt[0]), float(center_y_opt)), width=float(width_opt), height=float(height_opt), angle=float(theta_opt*180/np.pi), facecolor='blue', alpha=0.3, label='Fitted ellipse')
+    # ax.add_patch(ellipse_2)
+    # put_lines_on_fig(style='-k')
+    # ax.set_aspect('equal')
+    # ax.set_xlabel('X [cm]')
+    # ax.set_ylabel('Y [cm]')
+    # ax.set_title("Example of ellipse fitting on the \ngaze points on the trampoline bed")
+    # ax.set_xlim([0, 214])
+    # ax.set_ylim([0, 428])
+    # ax.legend(bbox_to_anchor=(1.05, 0.6), loc='upper left', borderaxespad=0., frameon=False)
+    # plt.savefig('/home/charbie/disk/Eye-tracking/plots' + '/ellipse_fitting_example.png', pdi=900)
+    # # plt.show()
     return distance, width_opt, height_opt
 
 def points_to_gaussian_heatmap(centers, height, width, scale):
@@ -240,23 +259,23 @@ def points_to_gaussian_heatmap(centers, height, width, scale):
     img = zz.reshape((height, width))
     return img
 
-def put_lines_on_fig():
+def put_lines_on_fig(style='-w'):
     """
     Draw the same lines as the red lines on the trampoline bed.
     """
-    plt.plot(np.array([0, 214]), np.array([0, 0]), '-w', linewidth=1)
-    plt.plot(np.array([214, 214]), np.array([214, 428]), '-w', linewidth=1)
-    plt.plot(np.array([0, 214]), np.array([428, 428]), '-w', linewidth=1)
-    plt.plot(np.array([0, 0]), np.array([0, 428]), '-w', linewidth=1)
+    plt.plot(np.array([0, 214]), np.array([0, 0]), style, linewidth=1)
+    plt.plot(np.array([214, 214]), np.array([214, 428]), style, linewidth=1)
+    plt.plot(np.array([0, 214]), np.array([428, 428]), style, linewidth=1)
+    plt.plot(np.array([0, 0]), np.array([0, 428]), style, linewidth=1)
 
-    plt.plot(np.array([53, 53]), np.array([0, 428]), '-w', linewidth=1)
-    plt.plot(np.array([161, 161]), np.array([0, 428]), '-w', linewidth=1)
-    plt.plot(np.array([0, 214]), np.array([107, 107]), '-w', linewidth=1)
-    plt.plot(np.array([0, 214]), np.array([322, 322]), '-w', linewidth=1)
-    plt.plot(np.array([53, 161]), np.array([160, 160]), '-w', linewidth=1)
-    plt.plot(np.array([53, 161]), np.array([268, 268]), '-w', linewidth=1)
-    plt.plot(np.array([107 - 25, 107 + 25]), np.array([214, 214]), '-w', linewidth=1)
-    plt.plot(np.array([107, 107]), np.array([214 - 25, 214 + 25]), '-w', linewidth=1)
+    plt.plot(np.array([53, 53]), np.array([0, 428]), style, linewidth=1)
+    plt.plot(np.array([161, 161]), np.array([0, 428]), style, linewidth=1)
+    plt.plot(np.array([0, 214]), np.array([107, 107]), style, linewidth=1)
+    plt.plot(np.array([0, 214]), np.array([322, 322]), style, linewidth=1)
+    plt.plot(np.array([53, 161]), np.array([160, 160]), style, linewidth=1)
+    plt.plot(np.array([53, 161]), np.array([268, 268]), style, linewidth=1)
+    plt.plot(np.array([107 - 25, 107 + 25]), np.array([214, 214]), style, linewidth=1)
+    plt.plot(np.array([107, 107]), np.array([214 - 25, 214 + 25]), style, linewidth=1)
     return
 
 def run_create_heatmaps(subject_name, subject_expertise, move_names, move_orientation, repetition_number, movie_name, out_path, start_of_move_index_image, end_of_move_index_image, curent_AOI_label, csv_eye_tracking, gaze_position_labels):

@@ -19,7 +19,7 @@ from IPython import embed
 ##########################################################################################
 
 
-PRIMARY_ANALYSIS_FLAG = False # True
+PRIMARY_ANALYSIS_FLAG = True
 TRAJECTORIES_ANALYSIS_FLAG = True
 TRAJECTORIES_HEATMAPS_FLAG = True
 GENERATE_EACH_ATHLETE_PGOS_GRAPH = True
