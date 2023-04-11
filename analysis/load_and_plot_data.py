@@ -1052,7 +1052,7 @@ if GENRATE_DATA_FRAME_FLAG:
         pickle.dump(heatmaps_spreading_table, f)
     with open(f'{plot_path}/qualitative_table.pkl', 'wb') as f:
         pickle.dump(qualitative_table, f)
-    with open(f'{plot_path}/qualitative_table.pkl', 'wb') as f:
+    with open(f'{plot_path}/eye_neck_angles_table.pkl', 'wb') as f:
         pickle.dump(eye_neck_angles_table, f)
 
 else:

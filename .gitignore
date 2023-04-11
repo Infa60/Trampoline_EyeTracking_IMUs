@@ -137,3 +137,5 @@ analysis/stats_output.txt
 analysis/stats_output_without_43.txt
 
 *.png
+
+*.txt

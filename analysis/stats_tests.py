@@ -19,7 +19,7 @@ from IPython import embed
 ##########################################################################################
 
 
-PRIMARY_ANALYSIS_FLAG = True
+PRIMARY_ANALYSIS_FLAG = False # True
 TRAJECTORIES_ANALYSIS_FLAG = True
 TRAJECTORIES_HEATMAPS_FLAG = True
 GENERATE_EACH_ATHLETE_PGOS_GRAPH = True
@@ -414,6 +414,7 @@ def plot_mean_PGOS_per_athlete(name, move, interpolated_unwrapped_trajectory, ho
             i_min = i
 
     if GENERATE_EACH_ATHLETE_PGOS_GRAPH:
+        print("Plotting PGOS for " + name + " " + move)
         fig, ax = plt.subplots()
         axs = [ax]
         plot_gymnasium_unwrapped(axs, 0)
@@ -436,7 +437,7 @@ def plot_mean_PGOS_per_athlete(name, move, interpolated_unwrapped_trajectory, ho
     # axs[1].plot(np.arange(500), interpolated_unwrapped_trajectory[1, :, i_min], '-m', label=f'{i}')
     # plt.suptitle(f"{name} {move}")
     # plt.show()
-    return interpolated_unwrapped_trajectory[:, :, i_min]
+    return i_min, interpolated_unwrapped_trajectory[:, :, i_min]
 
 def plot_projection_of_PGOS(name, move, original_trajectory, projected_interpolated_trajectory_curve, home_path):
     fig = plt.figure()
@@ -484,6 +485,7 @@ if TRAJECTORIES_ANALYSIS_FLAG:
     nb_interp_points = 500
     xi_interp = np.linspace(0, 1, nb_interp_points)
     trajectory_curves_per_athelte_per_move = {}
+    representatives_curves_3D = {move: {name: [] for name in trial_per_athlete_per_move_index.keys()} for move in move_list}
     mean_RMSD_per_athlete_per_move_subelites = {move: [] for move in move_list}
     mean_RMSD_per_athlete_per_move_elites = {move: [] for move in move_list}
     for j, name in enumerate(trial_per_athlete_per_move_index.keys()):
@@ -523,9 +525,12 @@ if TRAJECTORIES_ANALYSIS_FLAG:
 
             # plot_projection_of_PGOS(name, move, trajectories_table[k][4], trajectory_curves[:, :, -1], home_path)
             if len(index_this_time) > 0:
-                representative_trajectory = plot_mean_PGOS_per_athlete(name, move, trajectory_curves, home_path)
+                representative_index, representative_trajectory = plot_mean_PGOS_per_athlete(name, move, trajectory_curves, home_path)
                 trajectory_curves_per_athelte_per_move[name][move] = representative_trajectory
                 plt.close('all')
+
+            if len(index_this_time) > 0:
+                representatives_curves_3D[move][name] = trajectory_curves_3D[:, :, representative_index]
 
             # Compute RMSD
             std_each_node = np.linalg.norm(np.nanstd(trajectory_curves_3D, axis=2), axis=0)
@@ -549,16 +554,20 @@ if TRAJECTORIES_ANALYSIS_FLAG:
     subelites_trajectory_y = {move: np.zeros((len(xi_interp), )) for move in move_list}
     elites_trajectory_x = {move: np.zeros((len(xi_interp), )) for move in move_list}
     elites_trajectory_y = {move: np.zeros((len(xi_interp), )) for move in move_list}
+    subelite_representative_curve_3D = {move: np.zeros((3, len(xi_interp), 1)) for move in move_list}
+    elite_representative_curve_3D = {move: np.zeros((3, len(xi_interp), 1)) for move in move_list}
     for name in trajectory_curves_per_athelte_per_move.keys():
         for move in trajectory_curves_per_athelte_per_move[name].keys():
             if name in subelite_names:
                 if len(trajectory_curves_per_athelte_per_move[name][move]) != 0:
                     subelites_trajectory_x[move] = np.vstack((subelites_trajectory_x[move], trajectory_curves_per_athelte_per_move[name][move][0, :]))
                     subelites_trajectory_y[move] = np.vstack((subelites_trajectory_y[move], trajectory_curves_per_athelte_per_move[name][move][1, :]))
+                    subelite_representative_curve_3D[move] = np.concatenate((subelite_representative_curve_3D[move], representatives_curves_3D[move][name][:, :, np.newaxis]), axis=2)
             elif name in elite_names:
                 if len(trajectory_curves_per_athelte_per_move[name][move]) != 0:
                     elites_trajectory_x[move] = np.vstack((elites_trajectory_x[move], trajectory_curves_per_athelte_per_move[name][move][0, :]))
                     elites_trajectory_y[move] = np.vstack((elites_trajectory_y[move], trajectory_curves_per_athelte_per_move[name][move][1, :]))
+                    elite_representative_curve_3D[move] = np.concatenate((elite_representative_curve_3D[move], representatives_curves_3D[move][name][:, :, np.newaxis]), axis=2)
             else:
                 print(f"Probleme de nom: {name} not recognised")
 
@@ -568,6 +577,8 @@ if TRAJECTORIES_ANALYSIS_FLAG:
         subelites_trajectory_y[move] = subelites_trajectory_y[move][1:, :]
         elites_trajectory_x[move] = elites_trajectory_x[move][1:, :]
         elites_trajectory_y[move] = elites_trajectory_y[move][1:, :]
+        subelite_representative_curve_3D[move] = subelite_representative_curve_3D[move][:, :, 1:]
+        elite_representative_curve_3D[move] = elite_representative_curve_3D[move][:, :, 1:]
 
         admissible_timings_x, significant_timings_x = find_significant_timings(xi_interp, subelites_trajectory_x[move], elites_trajectory_x[move])
         admissible_timings_y, significant_timings_y = find_significant_timings(xi_interp, subelites_trajectory_y[move], elites_trajectory_y[move])
@@ -581,14 +592,28 @@ if TRAJECTORIES_ANALYSIS_FLAG:
         plt.close('all')
 
     print()
-    print("Mean RMSD per move for subelites: ")
+    print("Mean intra-RMSD per move for subelites: ")
     for move in move_list:
-        print(f"{move}: {np.nanmean(mean_RMSD_per_athlete_per_move_subelites[move])}")
+        print(f"{move}: {np.nanmean(mean_RMSD_per_athlete_per_move_subelites[move])} +- {np.nanstd(mean_RMSD_per_athlete_per_move_subelites[move])}")
     print()
-    print("Mean RMSD per move for elites: ")
+    print("Mean intra-RMSD per move for elites: ")
     for move in move_list:
-        print(f"{move}: {np.nanmean(mean_RMSD_per_athlete_per_move_elites[move])}")
+        print(f"{move}: {np.nanmean(mean_RMSD_per_athlete_per_move_elites[move])} +- {np.nanstd(mean_RMSD_per_athlete_per_move_elites[move])}")
     print()
+
+    # Compute RMSD
+    print()
+    print("Mean inter-RMSD per move for subelites: ")
+    for move in move_list:
+        std_each_node_subelites = np.linalg.norm(np.nanstd(subelite_representative_curve_3D[move], axis=2), axis=0)
+        print(f"{move}: {np.nanmean(std_each_node_subelites)}")
+    print()
+    print("Mean inter-RMSD per move for elites: ")
+    for move in move_list:
+        std_each_node_elites = np.linalg.norm(np.nanstd(elite_representative_curve_3D[move], axis=2), axis=0)
+        print(f"{move}: {np.nanmean(std_each_node_elites)}")
+    print()
+
 
 if TRAJECTORIES_HEATMAPS_FLAG:
     def put_lines_on_fig(ax):
@@ -756,24 +781,25 @@ if AOI_ANALYSIS_FLAG:
 
     AOI_proportions_table_temporary = pd.DataFrame(columns=['Name', 'Expertise', 'Acrobatics', 'Trampoline bed',
                                                             'Trampoline', 'Wall back front', 'Ceiling', 'Wall sides',
-                                                            'Athlete himself', 'Blink'])
+                                                             'Blink']) # 'Athlete himself',
     for i, name in enumerate(trial_per_athlete_per_move_index):
         for j, move in enumerate(trial_per_athlete_per_move_index[name]):
             index_this_time = np.where(np.logical_and(AOI_proportions_data_frame['Name'] == name, AOI_proportions_data_frame['Acrobatics'] == move))[0]
             df = {'Name': [name],
-                  'Expertise': [AOI_proportions_data_frame['Acrobatics'][index_this_time[0]]],
-                  'Acrobatics': [np.nanmedian(AOI_proportions_data_frame['Acrobatics'][index_this_time])],
+                  'Expertise': [AOI_proportions_data_frame['Expertise'][index_this_time[0]]],
+                  'Acrobatics': [move],
                   'Trampoline bed': [np.nanmedian(AOI_proportions_data_frame['Trampoline bed'][index_this_time])],
                   'Trampoline': [np.nanmedian(AOI_proportions_data_frame['Trampoline'][index_this_time])],
                   'Wall back front': [
                       np.nanmedian(AOI_proportions_data_frame['Wall front'][index_this_time] + AOI_proportions_data_frame['Wall back'][index_this_time])],
                   'Ceiling': [np.nanmedian(AOI_proportions_data_frame['Ceiling'][index_this_time])],
                   'Wall sides': [np.nanmedian(AOI_proportions_data_frame['Wall sides'][index_this_time])],
-                  'Athlete himself': [np.nanmedian(AOI_proportions_data_frame['Athlete himself'][index_this_time])],
+                  # 'Athlete himself': [np.nanmedian(AOI_proportions_data_frame['Athlete himself'][index_this_time])],
                   'Blink': [np.nanmedian(AOI_proportions_data_frame['Blink'][index_this_time])]}
-            primary_data_frame_temporary = pd.concat([primary_data_frame_temporary, pd.DataFrame(df)])
+            AOI_proportions_table_temporary = pd.concat([AOI_proportions_table_temporary, pd.DataFrame(df)])
 
     AOI_proportions_data_frame = AOI_proportions_table_temporary
+
 
     print("Mixed ANOVA for Trampoline bed")
     out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Trampoline bed', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
@@ -825,12 +851,12 @@ if AOI_ANALYSIS_FLAG:
     out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Wall sides', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
 
-    print("Mixed ANOVA for Athlete himself")
-    out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
-    print(f'{out}\n\n')
-    print("T-tests for Athlete himself")
-    out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name', parametric=True)
-    print(f'{out}\n\n')
+    # print("Mixed ANOVA for Athlete himself")
+    # out = pg.mixed_anova(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
+    # print(f'{out}\n\n')
+    # print("T-tests for Athlete himself")
+    # out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name', parametric=True)
+    # print(f'{out}\n\n')
     # print("Wilcoxon and Mann-Whiteney tests for Athlete himself")
     # out = pg.pairwise_tests(data=AOI_proportions_data_frame, dv='Athlete himself', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     # print(f'{out}\n\n')
@@ -917,7 +943,6 @@ if SPREADING_HEATMAP_FLAG:
     heatmaps_spreading_data_frame.to_csv(home_path + "/disk/Eye-tracking/plots/heatmaps_spreading_data_frame.csv")
 
     heatmaps_spreading_table_temporary = pd.DataFrame(columns=['Name', 'Expertise', 'Acrobatics',
-                                                               'Distance from the center of each point of the heatmap',
                                                                'Heat map 90th percentile', 
                                                                'Width of the ellipse comprising 90 percentiles', 
                                                                'Height of the ellipse comprising 90 percentiles'])
@@ -925,9 +950,8 @@ if SPREADING_HEATMAP_FLAG:
         for j, move in enumerate(trial_per_athlete_per_move_index[name]):
             index_this_time = np.where(np.logical_and(heatmaps_spreading_data_frame['Name'] == name, heatmaps_spreading_data_frame['Acrobatics'] == move))[0]
             df = {'Name': [name],
-                  'Expertise': [heatmaps_spreading_data_frame['Expertise'][index_this_time]],
+                  'Expertise': [heatmaps_spreading_data_frame['Expertise'][index_this_time[0]]],
                   'Acrobatics': [move],
-                  'Distance from the center of each point of the heatmap': [np.nanmedian(heatmaps_spreading_data_frame['Distance from the center of each point of the heatmap'][index_this_time])],
                   'Heat map 90th percentile': [np.nanmedian(heatmaps_spreading_data_frame['Heat map 90th percentile'][index_this_time])],
                   'Width of the ellipse comprising 90 percentiles': [np.nanmedian(heatmaps_spreading_data_frame['Heatmap width'][index_this_time])],
                   'Height of the ellipse comprising 90 percentiles': [np.nanmedian(heatmaps_spreading_data_frame['Heatmap height'][index_this_time])]}
