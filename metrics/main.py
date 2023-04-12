@@ -407,7 +407,6 @@ parser = argparse.ArgumentParser("Enter Pupils API_KEY")
 parser.add_argument("API_KEY", action="store", help="Pupils API_KEY")
 args = parser.parse_args()
 API_KEY = args.API_KEY
-# API_KEY = "VPNzqxefqpunjUdzKWb3Fr9hQM368y7Q6Lqkc4KVxLHT"
 
 if os.path.exists("/home/user"):
     home_path = "/home/user"

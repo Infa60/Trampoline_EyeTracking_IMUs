@@ -525,7 +525,7 @@ def heatmap_percetiel_plot(df, move_list, elite_names, subelite_names, plot_path
 def timing_plots(df, move_list, subelite_names, elite_names, plot_path):
 
     move_type_list = ["anticipatory_index", "compensatory_index", "spotting_index", "movement_detection_index", "blinks_index", "fixation_index"]
-    move_type_labels = ["Anticipatory movement", "Compensatorymovement", "Spotting", "Movement detection", "Blink", "Fixation"]
+    move_type_labels = ["Anticipatory movement", "Compensatorymovement", "Spotting", "Self-motion detection", "Blink", "Fixation"]
     colors = [cm.get_cmap('plasma')(k) for k in [0., 0.35, 0.45, 0.65, 0.75, 0.95]]
 
     fig, axs = plt.subplots(2, 4)

@@ -925,13 +925,13 @@ if NECK_EYE_ANALYSIS_FLAG:
     out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Spotting movements', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
 
-    print("Mixed ANOVA for Movement detection")
+    print("Mixed ANOVA for Self-motion detection")
     out = pg.mixed_anova(data=neck_eye_movements_data_frame, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
     print(f'{out}\n\n')
-    print("T-tests for Movement detection")
+    print("T-tests for Self-motion detection")
     out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name', parametric=True)
     print(f'{out}\n\n')
-    print("Wilcoxon and Mann-Whiteney tests for Movement detection")
+    print("Wilcoxon and Mann-Whiteney tests for Self-motion detection")
     out = pg.pairwise_tests(data=neck_eye_movements_data_frame, dv='Movement detection', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
 
@@ -1031,7 +1031,7 @@ def plot_presence_all_at_the_same_time(presence_curves_per_athelte, move, xi_int
 
     colors = [cm.get_cmap('plasma')(k) for k in np.linspace(0, 1, 6)]
 
-    variable_names = ["Anticipatory movements", "Compensatory movements", "Spotting", "Movement detection", "Blink", "Fixation"]
+    variable_names = ["Anticipatory movements", "Compensatory movements", "Spotting", "Self-motion detection", "Blink", "Fixation"]
 
     presence_curves_subelites = {variable_names[index_variable]: np.zeros((len(xi_interp, ))) for index_variable in range(len(variable_names))}
     presence_curves_elites = {variable_names[index_variable]: np.zeros((len(xi_interp, ))) for index_variable in range(len(variable_names))}
@@ -1219,7 +1219,7 @@ if QUALITATIVE_ANALYSIS_FLAG:
         plot_presence(presence_curves_per_athelte, move, xi_interp, 2, "Spotting ",
                       home_path + '/disk/Eye-tracking/plots/' + f'spotting_presence_{move}.png',
                       significant_timings_spotting[move])
-        plot_presence(presence_curves_per_athelte, move, xi_interp, 3, "Movement detection ",
+        plot_presence(presence_curves_per_athelte, move, xi_interp, 3, "Self-motion detection ",
                       home_path + '/disk/Eye-tracking/plots/' + f'movement_detection_presence_{move}.png',
                       significant_timings_movement_detection[move])
         plot_presence(presence_curves_per_athelte, move, xi_interp, 4, "Blink ",
