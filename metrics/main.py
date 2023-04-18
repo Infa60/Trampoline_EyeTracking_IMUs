@@ -380,7 +380,8 @@ def run_analysis(
             "percetile_heatmaps" : move_summary_heatmaps[j]["percetile_heatmaps"],
             "distance_heatmaps" : move_summary_heatmaps[j]["distance_heatmaps"],
             "width_ellipse_heatmaps": move_summary_heatmaps[j]["width_ellipse_heatmaps"],
-            "height_ellipse_heatmaps": move_summary_heatmaps[j]["height_ellipse_heatmaps"]}
+            "height_ellipse_heatmaps": move_summary_heatmaps[j]["height_ellipse_heatmaps"],
+            "Xsens_position_no_level_CoM_corrected_rotated_per_move": Xsens_position_no_level_CoM_corrected_rotated_per_move[j]}
 
             with open(output_file_name[:-4] + "__eyetracking_metrics.pkl", 'wb') as handle:
                 pickle.dump(move_summary, handle)
