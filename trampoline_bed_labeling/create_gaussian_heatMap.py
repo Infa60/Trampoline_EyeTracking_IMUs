@@ -11,24 +11,9 @@ from IPython import embed
 import sys
 sys.path.append("../metrics")
 from remove_data_during_blinks import remove_data_during_blinks_pupil, home_made_blink_confidence_threshold, remove_data_during_blinks_manual_labeling
+from rectangle_labeler_video_suplementary_info import load_csv
 
-
-def load_pupil(gaze_position_labels, eye_tracking_data_path):
-    """
-    Load the data from Pupil Labs for the orientation of the gaze.
-    """
-
-    with open(gaze_position_labels, "rb") as handle:
-        points_labels, active_points, curent_AOI_label, csv_eye_tracking = pickle.load(handle)
-
-    for i in range(len(curent_AOI_label["Jump"])):
-        if curent_AOI_label["Not an acrobatics"][i] == 1 or curent_AOI_label["Jump"][i] == 1:
-            if i+1 < len(curent_AOI_label["Jump"]):
-                if (curent_AOI_label["Not an acrobatics"][i+1] == 0 and curent_AOI_label["Trampoline"][i+1] == 0 and curent_AOI_label["Trampoline bed"][i+1] == 0 and curent_AOI_label["Wall front"][i+1] == 0 and curent_AOI_label["Wall back"][i+1] == 0 and curent_AOI_label["Wall right"][i+1] == 0 and curent_AOI_label["Wall left"][i+1] == 0 and curent_AOI_label["Self"][i+1] == 0 and curent_AOI_label["Ceiling"][i+1] == 0):
-                    curent_AOI_label["Jump"][i+1] = 1
-
-    filename_timestamps = eye_tracking_data_path + 'world_timestamps.csv'
-    filename_info = eye_tracking_data_path + 'info.json'
+def get_blinks(filename_timestamps, filename_info, filename_curent_label, curent_label, csv_eye_tracking):
 
     timestamp_image_read = np.char.split(pd.read_csv(filename_timestamps, sep='\t').values.astype('str'), sep=',')
     timestamp_image = np.zeros((len(timestamp_image_read, )))
@@ -43,25 +28,25 @@ def load_pupil(gaze_position_labels, eye_tracking_data_path):
         if char == '"':
             num_quote += 1
             if num_quote == 3:
-                SCENE_CAMERA_SERIAL_NUMBER = serial_number_str[pos+1:pos+6]
+                SCENE_CAMERA_SERIAL_NUMBER = serial_number_str[pos + 1:pos + 6]
                 break
 
-    last_slash = gaze_position_labels.rfind('/')
-    trial_name = gaze_position_labels[last_slash+1:-20]
-    blinks_labeled_file_name = gaze_position_labels[:last_slash-14] + "blinks_labeled/" + trial_name + "_labeling_blinks.pkl"
+    last_slash = filename_curent_label.rfind('/')
+    last_underscore = filename_curent_label[:filename_curent_label.rfind('_')].rfind('_')
+    trial_name = filename_curent_label[last_slash + 1:last_underscore]
+    blinks_labeled_file_name = filename_curent_label[:last_slash - 14] + "blinks_labeled/" + trial_name + "_labeling_blinks.pkl"
 
     with open(blinks_labeled_file_name, "rb") as handle:
         active_blinks, time_stamps_left_eye = pickle.load(handle)
-
 
     time_stamps_eye_tracking_index_on_pupil = np.zeros((len(timestamp_image),))
     for i in range(len(timestamp_image)):
         time_stamps_eye_tracking_index_on_pupil[i] = np.argmin(np.abs(csv_eye_tracking[:, 0] - float(timestamp_image[i])))
 
     # Don't mess with begining as an acrobatics, this is a labeling error, not a real behavior
-    curent_AOI_label["Not an acrobatics"][0] = 1
+    curent_label["Not an acrobatics"][0] = 1
 
-    zeros_clusters_index = curent_AOI_label["Not an acrobatics"][:-1] - curent_AOI_label["Not an acrobatics"][1:]
+    zeros_clusters_index = curent_label["Not an acrobatics"][:-1] - curent_label["Not an acrobatics"][1:]
     zeros_clusters_index = np.hstack((0, zeros_clusters_index))
 
     end_of_cluster_index_image = np.where(zeros_clusters_index == -1)[0].tolist()
@@ -71,10 +56,24 @@ def load_pupil(gaze_position_labels, eye_tracking_data_path):
     if len(end_of_cluster_index_image) != len(start_of_cluster_index_image):
         plt.figure()
         plt.plot(zeros_clusters_index, label="Diff accrobatics")
-        plt.plot(curent_AOI_label["Not an acrobatics"], '-r', label="Not an acrobatics labeled")
+        plt.plot(curent_label["Not an acrobatics"], '-r', label="Not an acrobatics labeled")
         plt.legend()
         plt.show()
         raise RuntimeError("Labeling problem, see graph to help fix it")
+    return active_blinks, time_stamps_left_eye, start_of_cluster_index_image, end_of_cluster_index_image, time_stamps_eye_tracking_index_on_pupil, SCENE_CAMERA_SERIAL_NUMBER
+
+def load_pupil(gaze_position_labels, eye_tracking_data_path):
+    """
+    Load the data from Pupil Labs for the orientation of the gaze.
+    """
+
+    with open(gaze_position_labels, "rb") as handle:
+        points_labels, active_points, curent_AOI_label, csv_eye_tracking = pickle.load(handle)
+
+    filename_timestamps = eye_tracking_data_path + 'world_timestamps.csv'
+    filename_info = eye_tracking_data_path + 'info.json'
+
+    active_blinks, time_stamps_left_eye, start_of_cluster_index_image, end_of_cluster_index_image, time_stamps_eye_tracking_index_on_pupil, SCENE_CAMERA_SERIAL_NUMBER = get_blinks(filename_timestamps, filename_info, gaze_position_labels, curent_AOI_label, csv_eye_tracking)
 
     start_of_move_index_image = []
     end_of_move_index_image = []
@@ -101,6 +100,44 @@ def load_pupil(gaze_position_labels, eye_tracking_data_path):
     start_of_jump_index = time_stamps_eye_tracking_index_on_pupil[start_of_jump_index_image]
 
     return curent_AOI_label, csv_eye_tracking, active_blinks, time_stamps_left_eye, start_of_move_index, end_of_move_index, start_of_jump_index, end_of_jump_index, start_of_move_index_image, end_of_move_index_image, start_of_jump_index_image, end_of_jump_index_image, time_stamps_eye_tracking_index_on_pupil, SCENE_CAMERA_SERIAL_NUMBER
+
+
+def load_pupil_jumps_only(gaze_jumps_labels, eye_tracking_data_path):
+    """
+    Load the data from Pupil Labs for the orientation of the gaze.
+    """
+    with open(gaze_jumps_labels, "rb") as handle:
+        curent_jumps_label = pickle.load(handle)[0]
+
+    filename = eye_tracking_data_path + 'gaze.csv'
+    filename_timestamps = eye_tracking_data_path + 'world_timestamps.csv'
+    filename_info = eye_tracking_data_path + 'info.json'
+
+    csv_read = np.char.split(pd.read_csv(filename, sep='\t').values.astype('str'), sep=',')
+    timestamps_read = np.char.split(pd.read_csv(filename_timestamps, sep='\t').values.astype('str'), sep=',')
+
+    csv_eye_tracking = load_csv(csv_read, timestamps_read)
+
+    active_blinks, time_stamps_left_eye, start_of_cluster_index_image, end_of_cluster_index_image, time_stamps_eye_tracking_index_on_pupil, SCENE_CAMERA_SERIAL_NUMBER = get_blinks(filename_timestamps, filename_info, gaze_jumps_labels, curent_jumps_label, csv_eye_tracking)
+
+    start_of_move_index_image = []
+    end_of_move_index_image = []
+    start_of_jump_index_image = []
+    end_of_jump_index_image = []
+    for i in range(len(start_of_cluster_index_image)):
+        if curent_jumps_label["Jump"][start_of_cluster_index_image[i] + 1] == 1:
+            start_of_jump_index_image += [start_of_cluster_index_image[i]]
+            end_of_jump_index_image += [end_of_cluster_index_image[i]]
+        elif curent_jumps_label["Acrobatics"][start_of_cluster_index_image[i] + 1] == 1:
+            start_of_move_index_image += [start_of_cluster_index_image[i]]
+            end_of_move_index_image += [end_of_cluster_index_image[i]]
+
+    end_of_move_index = time_stamps_eye_tracking_index_on_pupil[end_of_move_index_image]
+    start_of_move_index = time_stamps_eye_tracking_index_on_pupil[start_of_move_index_image]
+    end_of_jump_index = time_stamps_eye_tracking_index_on_pupil[end_of_jump_index_image]
+    start_of_jump_index = time_stamps_eye_tracking_index_on_pupil[start_of_jump_index_image]
+
+    return curent_jumps_label, csv_eye_tracking, active_blinks, time_stamps_left_eye, start_of_move_index, end_of_move_index, start_of_jump_index, end_of_jump_index, start_of_move_index_image, end_of_move_index_image, start_of_jump_index_image, end_of_jump_index_image, time_stamps_eye_tracking_index_on_pupil, SCENE_CAMERA_SERIAL_NUMBER
 
 
 def points_to_percentile(centers):

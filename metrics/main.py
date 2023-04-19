@@ -16,7 +16,7 @@ from animate_JCS import animate
 from remove_data_during_blinks import remove_data_during_blinks_pupil, home_made_blink_confidence_threshold, remove_data_during_blinks_manual_labeling
 from set_initial_orientation import rotate_pelvis_to_initial_orientation, get_initial_gaze_orientation
 sys.path.append('../trampoline_bed_labeling/')
-from create_gaussian_heatMap import run_create_heatmaps, load_pupil
+from create_gaussian_heatMap import run_create_heatmaps, load_pupil, load_pupil_jumps_only
 sys.path.append('../stick_figure_for_figures/')
 from generate_stick_figure import generate_stick_figure
 
@@ -100,6 +100,7 @@ def run_analysis(
     eye_tracking_data_path,
     subject_expertise,
     gaze_position_labels,
+    gaze_jumps_labels,
     out_path,
     anthropo_name,
     max_threshold,
@@ -127,23 +128,40 @@ def run_analysis(
         file_dir = home_path + f'/disk/Eye-tracking/XsensData/{subject_name}/exports_shoulder_height/'
         Xsens_ms, Xsens_position, Xsens_orientation, Xsens_centerOfMass, links, num_joints, Xsens_sensorFreeAcceleration, Xsens_global_JCS_orientations, Xsens_jointAngle = load_xsens(file_dir, xsens_file_name)
 
-    (
-        curent_AOI_label,
-        csv_eye_tracking,
-        active_blinks,
-        time_stamps_left_eye,
-        start_of_move_index,
-        end_of_move_index,
-        start_of_jump_index,
-        end_of_jump_index,
-        start_of_move_index_image,
-        end_of_move_index_image,
-        start_of_jump_index_image,
-        end_of_jump_index_image,
-        time_stamps_eye_tracking_index_on_pupil,
-        SCENE_CAMERA_SERIAL_NUMBER,
-    ) = load_pupil(gaze_position_labels, eye_tracking_data_path)
-
+    if gaze_position_labels is not None:
+        (
+            curent_AOI_label,
+            csv_eye_tracking,
+            active_blinks,
+            time_stamps_left_eye,
+            start_of_move_index,
+            end_of_move_index,
+            start_of_jump_index,
+            end_of_jump_index,
+            start_of_move_index_image,
+            end_of_move_index_image,
+            start_of_jump_index_image,
+            end_of_jump_index_image,
+            time_stamps_eye_tracking_index_on_pupil,
+            SCENE_CAMERA_SERIAL_NUMBER,
+        ) = load_pupil(gaze_position_labels, eye_tracking_data_path)
+    elif gaze_jumps_labels is not None:
+        (
+            curent_jumps_label,
+            csv_eye_tracking,
+            active_blinks,
+            time_stamps_left_eye,
+            start_of_move_index,
+            end_of_move_index,
+            start_of_jump_index,
+            end_of_jump_index,
+            start_of_move_index_image,
+            end_of_move_index_image,
+            start_of_jump_index_image,
+            end_of_jump_index_image,
+            time_stamps_eye_tracking_index_on_pupil,
+            SCENE_CAMERA_SERIAL_NUMBER,
+        ) = load_pupil_jumps_only(gaze_jumps_labels, eye_tracking_data_path)
     csv_eye_tracking_confident, blink_index = remove_data_during_blinks_manual_labeling(csv_eye_tracking, active_blinks, time_stamps_left_eye)
 
     if GENERATE_HEATMAPS:
@@ -326,6 +344,34 @@ def run_analysis(
                     FLAG_PUPIL_ANGLES_PLOT,
                 )
 
+            if GENERATE_HEATMAPS:
+                trampoline_bed_proportions = move_summary_heatmaps[j]["trampoline_bed_proportions"]
+                trampoline_proportions = move_summary_heatmaps[j]["trampoline_proportions"]
+                wall_front_proportions = move_summary_heatmaps[j]["wall_front_proportions"]
+                wall_back_proportions = move_summary_heatmaps[j]["wall_back_proportions"]
+                ceiling_proportions = move_summary_heatmaps[j]["ceiling_proportions"]
+                side_proportions = move_summary_heatmaps[j]["side_proportions"]
+                self_proportions = move_summary_heatmaps[j]["self_proportions"]
+                blink_proportions = move_summary_heatmaps[j]["blink_proportions"]
+                percetile_heatmaps = move_summary_heatmaps[j]["percetile_heatmaps"]
+                distance_heatmaps = move_summary_heatmaps[j]["distance_heatmaps"]
+                width_ellipse_heatmaps = move_summary_heatmaps[j]["width_ellipse_heatmaps"]
+                height_ellipse_heatmaps = move_summary_heatmaps[j]["height_ellipse_heatmaps"]
+            else:
+                print("Warning: Heatmaps were not generated !")
+                trampoline_bed_proportions = None
+                trampoline_proportions = None
+                wall_front_proportions = None
+                wall_back_proportions = None
+                ceiling_proportions = None
+                side_proportions = None
+                self_proportions = None
+                blink_proportions = None
+                percetile_heatmaps = None
+                distance_heatmaps = None
+                width_ellipse_heatmaps = None
+                height_ellipse_heatmaps = None
+
             # Save the data in a dictionnary for the stats analysis and plots.
             move_summary = {"subject_expertise": subject_expertise,
             "subject_name": subject_name,
@@ -369,18 +415,18 @@ def run_analysis(
             "eye_angles" : eye_angles,
             "Xsens_orthogonal_thorax_position" : Xsens_orthogonal_thorax_position,
             "Xsens_orthogonal_head_position" : Xsens_orthogonal_head_position,
-            "trampoline_bed_proportions" : move_summary_heatmaps[j]["trampoline_bed_proportions"],
-            "trampoline_proportions" : move_summary_heatmaps[j]["trampoline_proportions"],
-            "wall_front_proportions" : move_summary_heatmaps[j]["wall_front_proportions"],
-            "wall_back_proportions" : move_summary_heatmaps[j]["wall_back_proportions"],
-            "ceiling_proportions" : move_summary_heatmaps[j]["ceiling_proportions"],
-            "side_proportions" : move_summary_heatmaps[j]["side_proportions"],
-            "self_proportions" : move_summary_heatmaps[j]["self_proportions"],
-            "blink_proportions": move_summary_heatmaps[j]["blink_proportions"],
-            "percetile_heatmaps" : move_summary_heatmaps[j]["percetile_heatmaps"],
-            "distance_heatmaps" : move_summary_heatmaps[j]["distance_heatmaps"],
-            "width_ellipse_heatmaps": move_summary_heatmaps[j]["width_ellipse_heatmaps"],
-            "height_ellipse_heatmaps": move_summary_heatmaps[j]["height_ellipse_heatmaps"],
+            "trampoline_bed_proportions" : trampoline_bed_proportions,
+            "trampoline_proportions" : trampoline_proportions,
+            "wall_front_proportions" : wall_front_proportions,
+            "wall_back_proportions" : wall_back_proportions,
+            "ceiling_proportions" : ceiling_proportions,
+            "side_proportions" : side_proportions,
+            "self_proportions" : self_proportions,
+            "blink_proportions": blink_proportions,
+            "percetile_heatmaps" : percetile_heatmaps,
+            "distance_heatmaps" : distance_heatmaps,
+            "width_ellipse_heatmaps": width_ellipse_heatmaps,
+            "height_ellipse_heatmaps": height_ellipse_heatmaps,
             "Xsens_position_no_level_CoM_corrected_rotated_per_move": Xsens_position_no_level_CoM_corrected_rotated_per_move[j]}
 
             with open(output_file_name[:-4] + "__eyetracking_metrics.pkl", 'wb') as handle:
@@ -391,23 +437,37 @@ def run_analysis(
 
 # ------------------- Code beginning ------------------- #
 
-GENERATE_HEATMAPS = True # False #
-GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False  # True #
-FLAG_SYNCHRO_PLOTS = True # False  #
-FLAG_COM_PLOTS = False  # True #
-FLAG_ANIMAITON = True  # False #
-FLAG_PUPIL_ANGLES_PLOT = True # False  #
-FLAG_GAZE_TRAJECTORY = True  # False  #
-FLAG_GENERATE_STATS_METRICS = True  # False #
-FLAG_ANALYSIS = True  # False #
+# # Flags for elite vs sub-elite study
+# GENERATE_HEATMAPS = True
+# GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
+# FLAG_SYNCHRO_PLOTS = True
+# FLAG_COM_PLOTS = False
+# FLAG_ANIMAITON = True
+# FLAG_PUPIL_ANGLES_PLOT = True
+# FLAG_GAZE_TRAJECTORY = True
+# FLAG_GENERATE_STATS_METRICS = True
+# FLAG_ANALYSIS = True
+# FLAG_TURN_ATHLETES_FOR_PGO = True
+# GENERATE_STICK_FIGURE_FOR_GRAPHS = False
+
+# Flags for Vision OCP study
+GENERATE_HEATMAPS = False
+GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
+FLAG_SYNCHRO_PLOTS = True
+FLAG_COM_PLOTS = False
+FLAG_ANIMAITON = True
+FLAG_PUPIL_ANGLES_PLOT = True
+FLAG_GAZE_TRAJECTORY = True
+FLAG_GENERATE_STATS_METRICS = True
+FLAG_ANALYSIS = True
 FLAG_TURN_ATHLETES_FOR_PGO = True
 GENERATE_STICK_FIGURE_FOR_GRAPHS = False
 
-
-parser = argparse.ArgumentParser("Enter Pupils API_KEY")
-parser.add_argument("API_KEY", action="store", help="Pupils API_KEY")
-args = parser.parse_args()
-API_KEY = args.API_KEY
+# parser = argparse.ArgumentParser("Enter Pupils API_KEY")
+# parser.add_argument("API_KEY", action="store", help="Pupils API_KEY")
+# args = parser.parse_args()
+# API_KEY = args.API_KEY
+API_KEY = "VPNzqxefqpunjUdzKWb3Fr9hQM368y7Q6Lqkc4KVxLHT"
 
 if os.path.exists("/home/user"):
     home_path = "/home/user"
@@ -452,6 +512,12 @@ for i_trial in range(len(trial_table)):
 
     points_labeled_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"
     gaze_position_labels = points_labeled_path + movie_name + "_labeling_points.pkl"
+    gaze_jumps_labels = None
+    if not os.path.exists(gaze_position_labels):
+        if not os.path.exists(points_labeled_path + movie_name + "_labeling_jumps.pkl"):
+            raise RuntimeError(f"Nor {gaze_position_labels} nor {points_labeled_path + movie_name + '_labeling_jumps.pkl'} exist")
+        gaze_position_labels = None
+        gaze_jumps_labels = points_labeled_path + movie_name + "_labeling_jumps.pkl"
     out_path = home_path + "/disk/Eye-tracking/Results"  # Results_20ms_threshold
     anthropo_name = (
         home_path
@@ -470,6 +536,7 @@ for i_trial in range(len(trial_table)):
         eye_tracking_data_path,
         subject_expertise,
         gaze_position_labels,
+        gaze_jumps_labels,
         out_path,
         anthropo_name,
         max_threshold,

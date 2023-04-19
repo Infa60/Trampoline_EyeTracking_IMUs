@@ -30,16 +30,31 @@ labeling_pkl_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"
 with open(labeling_pkl_path + labeling_pkl_name, 'rb') as file:
     data = pickle.load(file)
 
-points_labels = data[0]
-active_points = data[1]
-curent_AOI_label = data[2]
-csv_eye_tracking = data[3]
+# AOI labels
+# points_labels = data[0]
+# active_points = data[1]
+# curent_AOI_label = data[2]
+# csv_eye_tracking = data[3]
 
+# Jump labels only
+curent_AOI_label = data[0]
+
+plt.figure()
+plt.plot(curent_AOI_label['Jump'], '-r')
+plt.plot(curent_AOI_label['Acrobatics'], '-b')
+plt.show()
 
 ### Do modifications to the file
-curent_AOI_label['Jump'][:88] = 0
+curent_AOI_label['Jump'][1200:] = 0
+curent_AOI_label['Acrobatics'][1200:] = 0
+curent_AOI_label['Not an acrobatics'][1200:] = 1
 
 
 ### Overwrite the file with corrections
 with open(labeling_pkl_path + labeling_pkl_name + 'modif', 'wb') as handle:
     pickle.dump([points_labels, active_points, curent_AOI_label, csv_eye_tracking], handle)
+
+### Overwrite the file with corrections
+with open(labeling_pkl_path + labeling_pkl_name + 'modif', 'wb') as handle:
+    pickle.dump([curent_AOI_label], handle)
+
