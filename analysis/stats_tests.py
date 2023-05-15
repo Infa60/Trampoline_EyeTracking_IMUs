@@ -257,6 +257,33 @@ if PRIMARY_ANALYSIS_FLAG:
     out = pg.pairwise_tests(data=primary_data_frame, dv='Neck amplitude', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
     print(f'{out}\n\n')
 
+    duration_data_frame = pd.DataFrame(columns=['Name', 'Expertise', 'Acrobatics', 'Data type', 'Data measure'])
+    for i, name in enumerate(trial_per_athlete_per_move_index):
+        for j, move in enumerate(trial_per_athlete_per_move_index[name]):
+            index = np.where(np.logical_and(primary_data_frame['Name'] == name, primary_data_frame['Acrobatics'] == move))[0]
+            df = {'Name': [name],
+                  'Expertise': [primary_data_frame['Expertise']],
+                  'Acrobatics': [move],
+                  'Data type': ["Fixations duration relative"],
+                  'Data measure': [np.array(primary_data_frame['Fixations duration relative'])[index][0]]}
+            duration_data_frame = pd.concat([duration_data_frame, pd.DataFrame(df)])
+
+            df = {'Name': [name],
+                  'Expertise': [primary_data_frame['Expertise']],
+                  'Acrobatics': [move],
+                  'Data type': ["Quiet eye duration relative"],
+                  'Data measure': [np.array(primary_data_frame['Quiet eye duration relative'])[index][0]]}
+            duration_data_frame = pd.concat([duration_data_frame, pd.DataFrame(df)])
+
+    print("Two-way paired measures ANOVA for quiet eye duration vs fixation duration")
+    out = pg.rm_anova(data=duration_data_frame, dv='Data measure', within=['Data type', 'Acrobatics'], subject='Name', correction=True, effsize='n2')
+    print(f'{out}\n\n')
+    print("T-tests for quiet eye duration vs fixation duration")
+    out = pg.pairwise_tests(data=duration_data_frame, dv='Data measure', within=['Data type', 'Acrobatics'], subject='Name', parametric=True)
+    print(f'{out}\n\n')
+    print("Wilcoxon and Mann-Whiteney tests for quiet eye duration vs fixation duration")
+    out = pg.pairwise_tests(data=duration_data_frame, dv='Data measure', within=['Data type', 'Acrobatics'], subject='Name', parametric=False)
+    print(f'{out}\n\n')
 
 # -------------------------------- Trajectories data frame = SPM1D ------------------------------------ #
 
@@ -592,27 +619,64 @@ if TRAJECTORIES_ANALYSIS_FLAG:
         plt.close('all')
 
     print()
-    print("Mean intra-RMSD per move for subelites: ")
+    print("Mean intra-MSTD per move for subelites: ")
     for move in move_list:
         print(f"{move}: {np.nanmean(mean_RMSD_per_athlete_per_move_subelites[move])} +- {np.nanstd(mean_RMSD_per_athlete_per_move_subelites[move])}")
     print()
-    print("Mean intra-RMSD per move for elites: ")
+    print("Mean intra-MSTD per move for elites: ")
     for move in move_list:
         print(f"{move}: {np.nanmean(mean_RMSD_per_athlete_per_move_elites[move])} +- {np.nanstd(mean_RMSD_per_athlete_per_move_elites[move])}")
     print()
 
     # Compute RMSD
     print()
-    print("Mean inter-RMSD per move for subelites: ")
+    print("Mean inter-MSTD per move for subelites: ")
     for move in move_list:
         std_each_node_subelites = np.linalg.norm(np.nanstd(subelite_representative_curve_3D[move], axis=2), axis=0)
         print(f"{move}: {np.nanmean(std_each_node_subelites)}")
     print()
-    print("Mean inter-RMSD per move for elites: ")
+    print("Mean inter-MSTD per move for elites: ")
     for move in move_list:
         std_each_node_elites = np.linalg.norm(np.nanstd(elite_representative_curve_3D[move], axis=2), axis=0)
         print(f"{move}: {np.nanmean(std_each_node_elites)}")
     print()
+
+
+    intra_MSTD_table = pd.DataFrame(columns=['Name', 'Expertise', 'Acrobatics', 'MSTD'])
+    for j, move in enumerate(move_list):
+        i_elite = 0
+        i_subelite = 0
+        for i, name in enumerate(trajectory_curves_per_athelte_per_move.keys()):
+            if name in subelite_names:
+                df = {'Name': [name],
+                      'Expertise': ['Subelite'],
+                      'Acrobatics': [move],
+                      'MSTD': [mean_RMSD_per_athlete_per_move_subelites[move][i_subelite]]}
+                i_subelite += 1
+            elif name in elite_names:
+                if name == 'MaBo' and move == '43':
+                    df = {'Name': [name],
+                          'Expertise': ['Elite'],
+                          'Acrobatics': [move],
+                          'MSTD': [np.nanmean(mean_RMSD_per_athlete_per_move_elites['43'])]}
+                else:
+                    df = {'Name': [name],
+                          'Expertise': ['Elite'],
+                          'Acrobatics': [move],
+                          'MSTD': [mean_RMSD_per_athlete_per_move_elites[move][i_elite]]}
+                i_elite += 1
+            intra_MSTD_table = pd.concat([intra_MSTD_table, pd.DataFrame(df)])
+
+    # mixed ANOVA for the MSTD
+    print("Mixed ANOVA for intra-MSTD")
+    out = pg.mixed_anova(data=intra_MSTD_table, dv='MSTD', within='Acrobatics', between='Expertise', subject='Name', effsize='n2')
+    print(f'{out}\n\n')
+    print("T-tests for intra-MSTD")
+    out = pg.pairwise_tests(data=intra_MSTD_table, dv='MSTD', within='Acrobatics', between='Expertise', subject='Name', parametric=True)
+    print(f'{out}\n\n')
+    print("Wilcoxon and Mann-Whiteney tests for intra-MSTD")
+    out = pg.pairwise_tests(data=intra_MSTD_table, dv='MSTD', within='Acrobatics', between='Expertise', subject='Name', parametric=False)
+    print(f'{out}\n\n')
 
 
 if TRAJECTORIES_HEATMAPS_FLAG:
