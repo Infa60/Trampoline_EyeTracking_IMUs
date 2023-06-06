@@ -730,12 +730,12 @@ if TRAJECTORIES_HEATMAPS_FLAG:
 
         return heatmap_this_time
 
-    def plot_heatmaps_unwraped(subelites_heatmaps, elites_heatmaps, output_filename, move):
+    def plot_heatmaps_unwraped(subelites_heatmaps, elites_heatmaps, output_filename, move, vmin, vmax):
         fig, axs = plt.subplots(1, 2, figsize=(18, 6))
         put_lines_on_fig(axs[0])
         put_lines_on_fig(axs[1])
-        f = axs[0].imshow(subelites_heatmaps, cmap=plt.get_cmap('hot_r'))  # 'hot_r'
-        axs[1].imshow(elites_heatmaps, cmap=plt.get_cmap('hot_r'))
+        f = axs[0].imshow(subelites_heatmaps, cmap=plt.get_cmap('hot_r'), vmin=vmin, vmax=vmax)  # 'hot_r'
+        axs[1].imshow(elites_heatmaps, cmap=plt.get_cmap('hot_r'), vmin=vmin, vmax=vmax)
         axs[0].axis('off')
         axs[1].axis('off')
         plt.subplots_adjust(right=0.8)
@@ -828,13 +828,19 @@ if TRAJECTORIES_HEATMAPS_FLAG:
         subelites_heatmaps_fixations[move] /= subelites_nb_athlete_per_move[move]
         elites_heatmaps_fixations[move] /= elites_nb_athlete_per_move[move]
 
+    vmax_fixations = max(np.nanmax(np.array([np.nanmax(subelites_heatmaps_fixations[move]) for move in move_list])),
+                        np.nanmax(np.array([np.nanmax(elites_heatmaps_fixations[move]) for move in move_list])))
+    vmax_trajectory = max(np.nanmax(np.array([np.nanmax(subelites_heatmaps_trajectory[move]) for move in move_list])),
+                         np.nanmax(np.array([np.nanmax(elites_heatmaps_trajectory[move]) for move in move_list])))
+
+    for i, move in enumerate(move_list):
         plot_heatmaps_unwraped(subelites_heatmaps_trajectory[move], elites_heatmaps_trajectory[move],
                                home_path + '/disk/Eye-tracking/plots/' + f'heatmaps_trajectory_{move}.svg',
-                               move)
+                               move, vmin=0, vmax=vmax_trajectory)
 
         plot_heatmaps_unwraped(subelites_heatmaps_fixations[move], elites_heatmaps_fixations[move],
                                home_path + '/disk/Eye-tracking/plots/' + f'heatmaps_fixations_{move}.svg',
-                               move)
+                               move, vmin=0, vmax=vmax_fixations)
         plt.close('all')
 
 # ----------------------------------------- AOI data frame = Mixed ANOVA --------------------------------------------- #

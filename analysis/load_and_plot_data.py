@@ -30,16 +30,22 @@ def plot_primary_metrics(df, move_list, subelite_names, elite_names, metric, met
     subelite_color = cmap(0.25)
     elite_color = cmap(0.70)
 
+    # Convert rad to degrees
+    if unit == r"$^\circ$":
+        coef = 180 / np.pi
+    else:
+        coef = 1
+
     plt.figure()
     for i in range(len(df)):
         move_index = move_list.index(df['Acrobatics'][i])
         if df['Expertise'][i] == 'SubElite':
             if df['Name'][i] in subelite_names:
-                plt.plot((subelite_names.index(df['Name'][i]) + 1) * -0.1 + move_index * 2, df[metric][i],
+                plt.plot((subelite_names.index(df['Name'][i]) + 1) * -0.1 + move_index * 2, df[metric][i]*coef,
                      color=subelite_color, marker='o', markersize=2)
         if df['Expertise'][i] == 'Elite':
             if df['Name'][i] in elite_names:
-                plt.plot((elite_names.index(df['Name'][i]) + 1) * 0.1 + move_index * 2, df[metric][i],
+                plt.plot((elite_names.index(df['Name'][i]) + 1) * 0.1 + move_index * 2, df[metric][i]*coef,
                      color=elite_color, marker='o', markersize=2)
 
     for i in range(len(move_list)):
@@ -50,17 +56,17 @@ def plot_primary_metrics(df, move_list, subelite_names, elite_names, metric, met
                 np.logical_and(df['Name'] == subelite_names[j], df['Acrobatics'] == move_list[i]))
             subelite_list = list(df[metric][index_this_time[0]])
             means_subelite.append(np.nanmedian(subelite_list))
-            plt.plot(i * 2 - 0.1 * (j + 1), means_subelite[j], color='k', marker='o', markersize=3)
+            plt.plot(i * 2 - 0.1 * (j + 1), means_subelite[j]*coef, color='k', marker='o', markersize=3)
         for j in range(len(elite_names)):
             index_this_time = np.where(
                 np.logical_and(df['Name'] == elite_names[j], df['Acrobatics'] == move_list[i]))
             elite_list = df[metric][index_this_time[0]]
             means_elite.append(np.nanmedian(elite_list))
-            plt.plot(i * 2 + 0.1 * (j + 1), means_elite[j], color='k', marker='o', markersize=3)
+            plt.plot(i * 2 + 0.1 * (j + 1), means_elite[j]*coef, color='k', marker='o', markersize=3)
 
-        plt.errorbar(i * 2 - 0.45, np.nanmean(means_subelite), yerr=np.nanstd(means_subelite), color='black',
+        plt.errorbar(i * 2 - 0.45, np.nanmean(means_subelite)*coef, yerr=np.nanstd(means_subelite)*coef, color='black',
                      marker='o', markersize=5, capsize=3)
-        plt.errorbar(i * 2 + 0.45, np.nanmean(means_elite), yerr=np.nanstd(means_elite), color='black', marker='o',
+        plt.errorbar(i * 2 + 0.45, np.nanmean(means_elite)*coef, yerr=np.nanstd(means_elite)*coef, color='black', marker='o',
                      markersize=5, capsize=3)
 
     if unit is None:
@@ -73,7 +79,7 @@ def plot_primary_metrics(df, move_list, subelite_names, elite_names, metric, met
     plt.xticks(ticks=[0, 2, 4, 6], labels=[i + '/' for i in move_list])
 
     plt.xlim(-1.2, 7)
-    plt.ylim(np.nanmin(df[metric]) - (np.nanmax(df[metric]) - np.nanmin(df[metric])) * 0.1, np.nanmax(df[metric])  + (np.nanmax(df[metric]) - np.nanmin(df[metric])) * 0.1)
+    plt.ylim(np.nanmin(df[metric]*coef) - (np.nanmax(df[metric]*coef) - np.nanmin(df[metric]*coef)) * 0.1, np.nanmax(df[metric]*coef)  + (np.nanmax(df[metric]*coef) - np.nanmin(df[metric]*coef)) * 0.1)
     plt.plot(-2, 0, 'o', color=subelite_color, markersize=2, label='SubElite')
     plt.plot(-2, 0, 'o', color=elite_color, markersize=2, label='Elite')
     plt.plot(-2, 0, 'ok', markersize=3, label='Median per participant')
@@ -91,8 +97,8 @@ def primary_plots(df, move_list, subelite_names, elite_names, plot_path):
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Number of fixations', 'Number of fixations', None, 'fixation_number', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye duration relative', 'Quiet eye relative duration', None, 'quiet_eye_duration_relative', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye onset relative', 'Quiet eye onset relative', None, 'quiet_eye_onset_relative', f'{plot_path}/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Eye amplitude', 'Eye movement amplitude', 'rad', 'eye_amplitude', f'{plot_path}/')
-    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Neck amplitude', 'Neck movement amplitude', 'rad', 'neck_amplitude', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Eye amplitude', 'Eye movement amplitude', r"$^\circ$", 'eye_amplitude', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Neck amplitude', 'Neck movement amplitude', r"$^\circ$", 'neck_amplitude', f'{plot_path}/')
     return
 
 def trajectory_plots(df, move_list, subelite_names, elite_names):
@@ -1096,29 +1102,29 @@ for i in range(len(primary_data_frame)):
             elite_names.append(primary_data_frame['Name'][i])
 
 primary_plots(primary_data_frame, move_list, subelite_names, elite_names, plot_path)
-#
-# trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
-# trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
-#
-# movement_pourcentage_data_frame = pd.DataFrame(neck_eye_movements_table[1:], columns=neck_eye_movements_table[0])
-# movement_pourcentage_plots(movement_pourcentage_data_frame, move_list, subelite_names, elite_names, plot_path)
-# movement_blocks_number_plot(neck_eye_movements_indices_table, move_list, subelite_names, elite_names, plot_path)
-#
-# AOI_table_tempo = [['Name', 'Expertise', 'Acrobatics', 'Trampoline bed', 'Trampoline', 'Wall back front', 'Ceiling',
-#                     'Wall sides', 'Athlete himself', 'Blink']]
-# for i in range(1, len(AOI_proportions_table)):
-#     AOI_table_tempo += [[AOI_proportions_table[i][0], AOI_proportions_table[i][1], AOI_proportions_table[i][2],
-#                             AOI_proportions_table[i][3], AOI_proportions_table[i][4], AOI_proportions_table[i][5] + AOI_proportions_table[i][6],
-#                             AOI_proportions_table[i][7], AOI_proportions_table[i][8], AOI_proportions_table[i][9],
-#                             AOI_proportions_table[i][10]]]
-# AOI_pourcentage_data_frame_tempo = pd.DataFrame(AOI_table_tempo[1:], columns=AOI_table_tempo[0])
-# AOI_pourcentage_plots(AOI_pourcentage_data_frame_tempo, move_list, subelite_names, elite_names, plot_path)
-#
-# heatmap_spreading_data_frame = pd.DataFrame(heatmaps_spreading_table[1:], columns=heatmaps_spreading_table[0])
-# heatmap_spreading_plots(heatmap_spreading_data_frame, move_list, subelite_names, elite_names, plot_path)
-#
-# qualitative_data_frame = pd.DataFrame(qualitative_table[1:], columns=qualitative_table[0])
-# timing_plots(qualitative_data_frame, move_list, subelite_names, elite_names, plot_path)
+
+trajectories_data_frame = pd.DataFrame(trajectories_table[1:], columns=trajectories_table[0])
+trajectory_plots(trajectories_data_frame, move_list, subelite_names, elite_names)
+
+movement_pourcentage_data_frame = pd.DataFrame(neck_eye_movements_table[1:], columns=neck_eye_movements_table[0])
+movement_pourcentage_plots(movement_pourcentage_data_frame, move_list, subelite_names, elite_names, plot_path)
+movement_blocks_number_plot(neck_eye_movements_indices_table, move_list, subelite_names, elite_names, plot_path)
+
+AOI_table_tempo = [['Name', 'Expertise', 'Acrobatics', 'Trampoline bed', 'Trampoline', 'Wall back front', 'Ceiling',
+                    'Wall sides', 'Athlete himself', 'Blink']]
+for i in range(1, len(AOI_proportions_table)):
+    AOI_table_tempo += [[AOI_proportions_table[i][0], AOI_proportions_table[i][1], AOI_proportions_table[i][2],
+                            AOI_proportions_table[i][3], AOI_proportions_table[i][4], AOI_proportions_table[i][5] + AOI_proportions_table[i][6],
+                            AOI_proportions_table[i][7], AOI_proportions_table[i][8], AOI_proportions_table[i][9],
+                            AOI_proportions_table[i][10]]]
+AOI_pourcentage_data_frame_tempo = pd.DataFrame(AOI_table_tempo[1:], columns=AOI_table_tempo[0])
+AOI_pourcentage_plots(AOI_pourcentage_data_frame_tempo, move_list, subelite_names, elite_names, plot_path)
+
+heatmap_spreading_data_frame = pd.DataFrame(heatmaps_spreading_table[1:], columns=heatmaps_spreading_table[0])
+heatmap_spreading_plots(heatmap_spreading_data_frame, move_list, subelite_names, elite_names, plot_path)
+
+qualitative_data_frame = pd.DataFrame(qualitative_table[1:], columns=qualitative_table[0])
+timing_plots(qualitative_data_frame, move_list, subelite_names, elite_names, plot_path)
 
 eye_and_neck_angles_data_frame = pd.DataFrame(eye_neck_angles_table[1:], columns=eye_neck_angles_table[0])
 plot_eye_and_neck_angles(eye_and_neck_angles_data_frame, subelite_names, elite_names, move_list, plot_path)
