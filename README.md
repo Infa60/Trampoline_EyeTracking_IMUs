@@ -1,6 +1,3 @@
-# Version of the code used in the article
-[![DOI](https://zenodo.org/badge/567807579.svg)](https://zenodo.org/badge/latestdoi/567807579)
-
 # Introduction
 This repository is linked to a research project on the visual strategies of trampolinists. The aim of the project is to identify differences in visuomotor behavior between elite and subelite athletes during the execution of four simple acrobatics: 4-/, 41/, 42/ and 43/. The scientific article related is [not submitted yet] (DOI to come). We measured the kinematics with IMUs (Xsens) and the visual startegies with a wearable eye-tracking (Pupil invisible). 
 
@@ -29,7 +26,7 @@ If you use the code available here, please cite:
   year = {2023},
   publisher = {GitHub},
   journal = {GitHub repository},
-  howpublished = {\url{https://github.com/EveCharbie/Trampoline_EyeTracking_IMUs}}
+  howpublished = {\url{https://zenodo.org/badge/latestdoi/567807579}}
 }
 ```
 
