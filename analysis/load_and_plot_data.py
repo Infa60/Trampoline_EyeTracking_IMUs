@@ -79,7 +79,10 @@ def plot_primary_metrics(df, move_list, subelite_names, elite_names, metric, met
     plt.xticks(ticks=[0, 2, 4, 6], labels=[i + '/' for i in move_list])
 
     plt.xlim(-1.2, 7)
-    plt.ylim(np.nanmin(df[metric]*coef) - (np.nanmax(df[metric]*coef) - np.nanmin(df[metric]*coef)) * 0.1, np.nanmax(df[metric]*coef)  + (np.nanmax(df[metric]*coef) - np.nanmin(df[metric]*coef)) * 0.1)
+    if "Heatmap" in metric:
+        plt.ylim(-10, 450)
+    else:
+        plt.ylim(np.nanmin(df[metric]*coef) - (np.nanmax(df[metric]*coef) - np.nanmin(df[metric]*coef)) * 0.1, np.nanmax(df[metric]*coef)  + (np.nanmax(df[metric]*coef) - np.nanmin(df[metric]*coef)) * 0.1)
     plt.plot(-2, 0, 'o', color=subelite_color, markersize=2, label='SubElite')
     plt.plot(-2, 0, 'o', color=elite_color, markersize=2, label='Elite')
     plt.plot(-2, 0, 'ok', markersize=3, label='Median per participant')
@@ -99,6 +102,7 @@ def primary_plots(df, move_list, subelite_names, elite_names, plot_path):
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Quiet eye onset relative', 'Quiet eye onset relative', None, 'quiet_eye_onset_relative', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Eye amplitude', 'Eye movement amplitude', r"$^\circ$", 'eye_amplitude', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Neck amplitude', 'Neck movement amplitude', r"$^\circ$", 'neck_amplitude', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Acrobatics duration', 'Acrobatics duration', "s", 'move_duration', f'{plot_path}/')
     return
 
 def trajectory_plots(df, move_list, subelite_names, elite_names):
@@ -896,7 +900,7 @@ primary_table = [["Name", "Expertise", "Acrobatics",
                   "Fixations duration absolute", "Fixations duration relative", "Number of fixations",
                   "Quiet eye duration absolute", "Quiet eye duration relative", "Quiet eye onset relative",
                   "Eye amplitude", "Neck amplitude", "Maximum eye amplitude", "Maximum neck amplitude",
-                  ]]
+                  "Acrobatics duration"]]
 
 trajectories_table = [["Name", "Expertise", "Acrobatics", "Projected gaze orientation (PGO)",
                        "Projected gaze orientation facing front wall (PGOS)",
@@ -953,12 +957,17 @@ if GENRATE_DATA_FRAME_FLAG:
                             neck_amplitude = eye_tracking_metrics["neck_amplitude"]
                             max_eye_amplitude = eye_tracking_metrics["max_eye_amplitude"]
                             max_neck_amplitude = eye_tracking_metrics["max_neck_amplitude"]
+                            move_duration = fixation_duration_absolute / fixation_duration_relative
+                            if abs(move_duration - (quiet_eye_duration_absolute / quiet_eye_duration_relative)) > 0.01:
+                                print(f"WARNING: {subject_name} {acrobatics} {move_number} {move_duration} "
+                                      f"{quiet_eye_duration_absolute} {quiet_eye_duration_relative}")
 
                             primary_table += [[subject_name, expertise, acrobatics,
                                                fixation_duration_absolute, fixation_duration_relative,
                                                number_of_fixation, quiet_eye_duration_absolute,
                                                quiet_eye_duration_relative, quiet_eye_onset_relative,
-                                               eye_amplitude, neck_amplitude, max_eye_amplitude, max_neck_amplitude]]
+                                               eye_amplitude, neck_amplitude, max_eye_amplitude, max_neck_amplitude,
+                                               move_duration]]
 
 
                             # Secondary analysis - Trajectory
