@@ -81,6 +81,8 @@ def plot_primary_metrics(df, move_list, subelite_names, elite_names, metric, met
     plt.xlim(-1.2, 7)
     if "Heatmap" in metric:
         plt.ylim(-10, 450)
+    elif metric == "Acrobatics duration":
+        plt.ylim(0.9, 1.9)
     else:
         plt.ylim(np.nanmin(df[metric]*coef) - (np.nanmax(df[metric]*coef) - np.nanmin(df[metric]*coef)) * 0.1, np.nanmax(df[metric]*coef)  + (np.nanmax(df[metric]*coef) - np.nanmin(df[metric]*coef)) * 0.1)
     plt.plot(-2, 0, 'o', color=subelite_color, markersize=2, label='SubElite')
