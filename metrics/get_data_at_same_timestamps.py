@@ -135,7 +135,7 @@ def get_data_at_same_timestamps(
 
     elevation_pupil_pixel = csv_eye_tracking[:, 1]
     azimuth_pupil_pixel = csv_eye_tracking[:, 2]
-    elevation, azimuth = pixelPoints_to_gazeAngles(
+    elevation, azimuth, camera_matrix, distortion_coeff = pixelPoints_to_gazeAngles(
         elevation_pupil_pixel, azimuth_pupil_pixel, SCENE_CAMERA_SERIAL_NUMBER, API_KEY,
     )
 
@@ -175,4 +175,6 @@ def get_data_at_same_timestamps(
         elevation_per_move,
         azimuth_per_move,
         blink_index_per_move,
+        camera_matrix,
+        distortion_coeff
     )

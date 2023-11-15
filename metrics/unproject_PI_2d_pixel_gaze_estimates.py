@@ -132,4 +132,4 @@ def pixelPoints_to_gazeAngles(elevation_pixel, azimuth_pixel, SCENE_CAMERA_SERIA
     # convert to numpy array for display purposes:
     # pprint(np.array([radius, elevation, azimuth]).T)
 
-    return elevation, azimuth
+    return elevation, azimuth, camera_matrix, distortion_coeff

@@ -86,7 +86,7 @@ def load_xsens(file_dir, xsens_file_name):
 
     num_joints = int(round(np.shape(Xsens_position)[1]) / 3)
 
-    return Xsens_ms, Xsens_position, Xsens_orientation, Xsens_centerOfMass, links, num_joints, Xsens_sensorFreeAcceleration, Xsens_global_JCS_orientations, Xsens_jointAngle
+    return Xsens_ms, Xsens_position, Xsens_orientation, Xsens_centerOfMass, links, num_joints, Xsens_sensorFreeAcceleration, Xsens_global_JCS_positions, Xsens_global_JCS_orientations, Xsens_jointAngle
 
 
 def run_analysis(
@@ -126,7 +126,7 @@ def run_analysis(
         hip_height = load_anthropo(anthropo_name)
 
         file_dir = home_path + f'/disk/Eye-tracking/XsensData/{subject_name}/exports_shoulder_height/'
-        Xsens_ms, Xsens_position, Xsens_orientation, Xsens_centerOfMass, links, num_joints, Xsens_sensorFreeAcceleration, Xsens_global_JCS_orientations, Xsens_jointAngle = load_xsens(file_dir, xsens_file_name)
+        Xsens_ms, Xsens_position, Xsens_orientation, Xsens_centerOfMass, links, num_joints, Xsens_sensorFreeAcceleration, Xsens_global_JCS_positions, Xsens_global_JCS_orientations, Xsens_jointAngle = load_xsens(file_dir, xsens_file_name)
 
     if gaze_position_labels is not None:
         (
@@ -226,7 +226,9 @@ def run_analysis(
             Xsens_CoM_per_move,
             elevation_per_move,
             azimuth_per_move,
-            blink_index_per_move
+            blink_index_per_move,
+            camera_matrix,
+            distortion_coeff,
         ) = get_data_at_same_timestamps(
             Xsens_orientation_rotated,
             Xsens_position_rotated,
@@ -250,7 +252,7 @@ def run_analysis(
         Xsens_position_no_level_CoM_corrected_rotated_per_move, CoM_trajectory_per_move = CoM_transfo(
             time_vector_pupil_per_move, Xsens_position_rotated_per_move, Xsens_CoM_per_move, num_joints, hip_height, FLAG_COM_PLOTS
         )
-        Xsens_position_facing_front_wall_no_level_CoM_corrected_rotated_per_move, _= CoM_transfo(
+        Xsens_position_facing_front_wall_no_level_CoM_corrected_rotated_per_move, _ = CoM_transfo(
             time_vector_pupil_per_move, Xsens_position_facing_front_wall_per_move, Xsens_CoM_per_move, num_joints, hip_height, FLAG_COM_PLOTS
         )
         
@@ -427,7 +429,14 @@ def run_analysis(
             "distance_heatmaps" : distance_heatmaps,
             "width_ellipse_heatmaps": width_ellipse_heatmaps,
             "height_ellipse_heatmaps": height_ellipse_heatmaps,
-            "Xsens_position_no_level_CoM_corrected_rotated_per_move": Xsens_position_no_level_CoM_corrected_rotated_per_move[j]}
+            "Xsens_position_no_level_CoM_corrected_rotated_per_move": Xsens_position_no_level_CoM_corrected_rotated_per_move[j],
+            "Xsens_jointAngle_per_move": Xsens_jointAngle_per_move[j],
+            "Xsens_orientation_per_move": Xsens_orientation_per_move[j],
+            "Xsens_CoM_per_move": Xsens_CoM_per_move[j],
+            "time_vector_pupil_per_move": time_vector_pupil_per_move[j],
+            "camera_matrix": camera_matrix,
+            "distortion_coeff": distortion_coeff,
+            }
 
             with open(output_file_name[:-4] + "__eyetracking_metrics.pkl", 'wb') as handle:
                 pickle.dump(move_summary, handle)
@@ -463,11 +472,10 @@ FLAG_ANALYSIS = True
 FLAG_TURN_ATHLETES_FOR_PGO = True
 GENERATE_STICK_FIGURE_FOR_GRAPHS = False
 
-# parser = argparse.ArgumentParser("Enter Pupils API_KEY")
-# parser.add_argument("API_KEY", action="store", help="Pupils API_KEY")
-# args = parser.parse_args()
-# API_KEY = args.API_KEY
-API_KEY = "VPNzqxefqpunjUdzKWb3Fr9hQM368y7Q6Lqkc4KVxLHT"
+parser = argparse.ArgumentParser("Enter Pupils API_KEY")
+parser.add_argument("API_KEY", action="store", help="Pupils API_KEY")
+args = parser.parse_args()
+API_KEY = args.API_KEY
 
 if os.path.exists("/home/user"):
     home_path = "/home/user"
@@ -518,7 +526,7 @@ for i_trial in range(len(trial_table)):
             raise RuntimeError(f"Nor {gaze_position_labels} nor {points_labeled_path + movie_name + '_labeling_jumps.pkl'} exist")
         gaze_position_labels = None
         gaze_jumps_labels = points_labeled_path + movie_name + "_labeling_jumps.pkl"
-    out_path = home_path + "/disk/Eye-tracking/Results"  # Results_20ms_threshold
+    out_path = home_path + "/disk/Eye-tracking/Results_831"  # Results_20ms_threshold
     anthropo_name = (
         home_path
         + f"/disk/Eye-tracking/Xsens_measurements/{subject_name}_anthropo.csv"

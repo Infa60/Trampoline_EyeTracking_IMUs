@@ -8,7 +8,6 @@ import mpl_toolkits.mplot3d.axes3d as p3
 import matplotlib.animation as animation
 import itertools
 from operator import itemgetter
-from unproject_PI_2d_pixel_gaze_estimates import pixelPoints_to_gazeAngles
 from gaze_position_gymnasium import get_gaze_position_from_intersection
 from sync_jump import moving_average
 
