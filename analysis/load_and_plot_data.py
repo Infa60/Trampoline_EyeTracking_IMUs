@@ -105,6 +105,8 @@ def primary_plots(df, move_list, subelite_names, elite_names, plot_path):
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Eye amplitude', 'Eye movement amplitude', r"$^\circ$", 'eye_amplitude', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Neck amplitude', 'Neck movement amplitude', r"$^\circ$", 'neck_amplitude', f'{plot_path}/')
     plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Acrobatics duration', 'Acrobatics duration', "s", 'move_duration', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Maximum eye amplitude', 'Max eye angle', r"$^\circ$", 'max_eye_amplitude', f'{plot_path}/')
+    plot_primary_metrics(df, move_list, subelite_names, elite_names, 'Maximum neck amplitude', 'Max neck angle',r"$^\circ$", 'max_neck_amplitude', f'{plot_path}/')
     return
 
 def trajectory_plots(df, move_list, subelite_names, elite_names):
