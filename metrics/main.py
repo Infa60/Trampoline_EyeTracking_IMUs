@@ -446,8 +446,21 @@ def run_analysis(
 
 # ------------------- Code beginning ------------------- #
 
-# # Flags for elite vs sub-elite study
-# GENERATE_HEATMAPS = True
+# Flags for elite vs sub-elite study
+GENERATE_HEATMAPS = True
+GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
+FLAG_SYNCHRO_PLOTS = True
+FLAG_COM_PLOTS = False
+FLAG_ANIMAITON = True
+FLAG_PUPIL_ANGLES_PLOT = True
+FLAG_GAZE_TRAJECTORY = True
+FLAG_GENERATE_STATS_METRICS = True
+FLAG_ANALYSIS = True
+FLAG_TURN_ATHLETES_FOR_PGO = True
+GENERATE_STICK_FIGURE_FOR_GRAPHS = False
+
+# # Flags for Vision OCP study
+# GENERATE_HEATMAPS = False
 # GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
 # FLAG_SYNCHRO_PLOTS = True
 # FLAG_COM_PLOTS = False
@@ -526,7 +539,7 @@ for i_trial in range(len(trial_table)):
             raise RuntimeError(f"Nor {gaze_position_labels} nor {points_labeled_path + movie_name + '_labeling_jumps.pkl'} exist")
         gaze_position_labels = None
         gaze_jumps_labels = points_labeled_path + movie_name + "_labeling_jumps.pkl"
-    out_path = home_path + "/disk/Eye-tracking/Results_831"  # Results_20ms_threshold
+    out_path = home_path + "/disk/Eye-tracking/Results"  # Results_20ms_threshold
     anthropo_name = (
         home_path
         + f"/disk/Eye-tracking/Xsens_measurements/{subject_name}_anthropo.csv"

@@ -66,8 +66,10 @@ def plot_primary_metrics(df, move_list, subelite_names, elite_names, metric, met
 
         plt.errorbar(i * 2 - 0.45, np.nanmean(means_subelite)*coef, yerr=np.nanstd(means_subelite)*coef, color='black',
                      marker='o', markersize=5, capsize=3)
+        # print(f"Sub-elites {move_list[i]}: {np.nanmean(means_subelite)*coef} +/- {np.nanstd(means_subelite)*coef}")
         plt.errorbar(i * 2 + 0.45, np.nanmean(means_elite)*coef, yerr=np.nanstd(means_elite)*coef, color='black', marker='o',
                      markersize=5, capsize=3)
+        # print(f"Elites {move_list[i]}: {np.nanmean(means_elite)*coef} +/- {np.nanstd(means_elite)*coef}")
 
     if unit is None:
         label_y = metric_name
@@ -94,6 +96,11 @@ def plot_primary_metrics(df, move_list, subelite_names, elite_names, metric, met
     plt.savefig(save_path + title + '.png', dpi=300)
     # plt.show()
 
+    # Acrobatics duration results as reported in the paper
+    # mean_subelite_duration = np.nanmean(np.array([1.2907669760000002, 1.23379474488889, 1.2613704391111114, 1.2335791502222218]))
+    # mean_elite_duration = np.nanmean(np.array([1.4897826240000014, 1.5162666559999993, 1.561718672000001, 1.4720472502857136]))
+    # print(f"{(mean_elite_duration - mean_subelite_duration) / mean_elite_duration * 100} % ToF difference")
+    # 1.509953800571429 vs 1.2548778275555559 = 16.89296539532149 % ToF difference
     return
 
 def primary_plots(df, move_list, subelite_names, elite_names, plot_path):

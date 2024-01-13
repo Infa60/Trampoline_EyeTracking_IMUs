@@ -357,7 +357,7 @@ def sync_jump(
     It returns the pupil time vector that is shifted to match the Xsens timestamps. 
     """
 
-    # remove nans at the begining of the trial from csv_eye_tracking
+    # remove nans at the beginning of the trial from csv_eye_tracking
     i = 0
     while np.isnan(csv_eye_tracking[i, 0]):
         i += 1
