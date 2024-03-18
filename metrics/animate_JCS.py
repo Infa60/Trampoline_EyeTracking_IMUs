@@ -40,7 +40,7 @@ def Xsens_quat_to_orientation(
     Quat_thorax = biorbd.Quaternion(Quat_normalized_thorax[0], Quat_normalized_thorax[1], Quat_normalized_thorax[2],
                                     Quat_normalized_thorax[3])
     RotMat_head = biorbd.Quaternion.toMatrix(Quat_head)
-    EulAngles_head_global = biorbd.Rotation_toEulerAngles(RotMat_head, 'xyz').to_array()
+    EulAngles_head_global = biorbd.Rotation.toEulerAngles(RotMat_head, 'xyz').to_array()
     RotMat_head = biorbd.Quaternion.toMatrix(Quat_head).to_array()
     RotMat_thorax = biorbd.Quaternion.toMatrix(Quat_thorax).to_array()
 
@@ -63,11 +63,11 @@ def Xsens_quat_to_orientation(
             RotMat_head @ np.array([eye_position_depth, 0, eye_position_height])
             + Xsens_position[18:21]
     )
-    gaze_rotMat = biorbd.Rotation_fromEulerAngles(np.array([azimuth, elevation]), "zy").to_array()
+    gaze_rotMat = biorbd.Rotation.fromEulerAngles(np.array([azimuth, elevation]), "zy").to_array()
     gaze_orientation = gaze_rotMat @ RotMat_head @ np.array([10, 0, 0]) + eye_position
 
     RotMat_between = np.linalg.inv(RotMat_thorax) @ RotMat_head
-    EulAngles_neck = biorbd.Rotation_toEulerAngles(
+    EulAngles_neck = biorbd.Rotation.toEulerAngles(
         biorbd.Rotation(RotMat_between[0, 0], RotMat_between[0, 1], RotMat_between[0, 2],
                         RotMat_between[1, 0], RotMat_between[1, 1], RotMat_between[1, 2],
                         RotMat_between[2, 0], RotMat_between[2, 1], RotMat_between[2, 2]), 'zy').to_array()

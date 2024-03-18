@@ -3,7 +3,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import pickle
 import scipy.io as sio
-from IPython import embed
+# from IPython import embed
 import pandas as pd
 import argparse
 import os
@@ -126,7 +126,9 @@ def run_analysis(
         hip_height = load_anthropo(anthropo_name)
 
         file_dir = home_path + f'/disk/Eye-tracking/XsensData/{subject_name}/exports_shoulder_height/'
-        Xsens_ms, Xsens_position, Xsens_orientation, Xsens_centerOfMass, links, num_joints, Xsens_sensorFreeAcceleration, Xsens_global_JCS_positions, Xsens_global_JCS_orientations, Xsens_jointAngle = load_xsens(file_dir, xsens_file_name)
+        (Xsens_ms, Xsens_position, Xsens_orientation, Xsens_centerOfMass, links, num_joints,
+         Xsens_sensorFreeAcceleration, Xsens_global_JCS_positions, Xsens_global_JCS_orientations, Xsens_jointAngle
+         ) = load_xsens(file_dir, xsens_file_name)
 
     if gaze_position_labels is not None:
         (
@@ -267,6 +269,8 @@ def run_analysis(
                 os.makedirs(home_path + f"/disk/Eye-tracking/Results/{subject_name}")
             if not os.path.exists(home_path + f"/disk/Eye-tracking/Results/{subject_name}/{move_surname}"):
                 os.makedirs(home_path + f"/disk/Eye-tracking/Results/{subject_name}/{move_surname}")
+            if not os.path.exists(home_path + f"/Documents/StageMathieu/DataTrampo/Xsens_pkl/{subject_name}/{move_surname}"):
+                os.makedirs(home_path + f"/Documents/StageMathieu/DataTrampo/Xsens_pkl/{subject_name}/{move_surname}")
 
             folder_name = (
                     f"{out_path}/{subject_name}/{move_surname}/{movie_name}__{move_surname}__{repetition_number[j]}"
@@ -376,66 +380,68 @@ def run_analysis(
 
             # Save the data in a dictionnary for the stats analysis and plots.
             move_summary = {"subject_expertise": subject_expertise,
-            "subject_name": subject_name,
-            "number_of_fixation" : number_of_fixation,
-            "fixation_duration_absolute" : fixation_duration_absolute,
-            "fixation_duration_relative" : fixation_duration_relative,
-            "fixation_positions" : fixation_positions,
-            "fixation_timing" : fixation_timing,
-            "fixation_index" : fixation_index,
-            "quiet_eye_duration_absolute" : quiet_eye_duration_absolute,
-            "quiet_eye_duration_relative" : quiet_eye_duration_relative,
-            "quiet_eye_onset_relative" : quiet_eye_onset_relative,
-            "gaze_position_temporal_evolution_projected" : gaze_position_temporal_evolution_projected,
-            "gaze_position_temporal_evolution_projected_facing_front_wall" : gaze_position_temporal_evolution_projected_facing_front_wall,
-            "position_threshold_block" : position_threshold_block,
-            "wall_index_block" : wall_index_block,
-            "move_orientation": move_orientation[j],
-            "neck_amplitude" : neck_amplitude,
-            "eye_amplitude" : eye_amplitude,
-            "max_neck_amplitude" : max_neck_amplitude,
-            "max_eye_amplitude" : max_eye_amplitude,
-            "neck_amplitude_percentile" : neck_amplitude_percentile,
-            "eye_amplitude_percentile" : eye_amplitude_percentile,
-            "pourcentage_anticipatory" : pourcentage_anticipatory,
-            "pourcentage_compensatory" : pourcentage_compensatory,
-            "pourcentage_spotting" : pourcentage_spotting,
-            "pourcentage_movement_detection" : pourcentage_movement_detection,
-            "pourcentage_blinks" : pourcentage_blinks,
-            "anticipatory_index" : anticipatory_index,
-            "compensatory_index" : compensatory_index,
-            "spotting_index" : spotting_index,
-            "movement_detection_index" : movement_detection_index,
-            "blinks_index" : blinks_index,
-            "Xsens_head_position_calculated" : Xsens_head_position_calculated,
-            "eye_position" : eye_position,
-            "gaze_orientation" : gaze_orientation,
-            "wall_index" : wall_index,
-            "wall_index_facing_front_wall": wall_index_facing_front_wall,
-            "EulAngles_head_global" : EulAngles_head_global,
-            "EulAngles_neck" : EulAngles_neck,
-            "eye_angles" : eye_angles,
-            "Xsens_orthogonal_thorax_position" : Xsens_orthogonal_thorax_position,
-            "Xsens_orthogonal_head_position" : Xsens_orthogonal_head_position,
-            "trampoline_bed_proportions" : trampoline_bed_proportions,
-            "trampoline_proportions" : trampoline_proportions,
-            "wall_front_proportions" : wall_front_proportions,
-            "wall_back_proportions" : wall_back_proportions,
-            "ceiling_proportions" : ceiling_proportions,
-            "side_proportions" : side_proportions,
-            "self_proportions" : self_proportions,
-            "blink_proportions": blink_proportions,
-            "percetile_heatmaps" : percetile_heatmaps,
-            "distance_heatmaps" : distance_heatmaps,
-            "width_ellipse_heatmaps": width_ellipse_heatmaps,
-            "height_ellipse_heatmaps": height_ellipse_heatmaps,
-            "Xsens_position_no_level_CoM_corrected_rotated_per_move": Xsens_position_no_level_CoM_corrected_rotated_per_move[j],
-            "Xsens_jointAngle_per_move": Xsens_jointAngle_per_move[j],
-            "Xsens_orientation_per_move": Xsens_orientation_per_move[j],
-            "Xsens_CoM_per_move": Xsens_CoM_per_move[j],
-            "time_vector_pupil_per_move": time_vector_pupil_per_move[j],
-            "camera_matrix": camera_matrix,
-            "distortion_coeff": distortion_coeff,
+                            "subject_name": subject_name,
+                            "number_of_fixation": number_of_fixation,
+                            "fixation_duration_absolute" : fixation_duration_absolute,
+                            "fixation_duration_relative" : fixation_duration_relative,
+                            "fixation_positions" : fixation_positions,
+                            "fixation_timing" : fixation_timing,
+                            "fixation_index" : fixation_index,
+                            "quiet_eye_duration_absolute" : quiet_eye_duration_absolute,
+                            "quiet_eye_duration_relative" : quiet_eye_duration_relative,
+                            "quiet_eye_onset_relative" : quiet_eye_onset_relative,
+                            "gaze_position_temporal_evolution_projected" : gaze_position_temporal_evolution_projected,
+                            "gaze_position_temporal_evolution_projected_facing_front_wall" : gaze_position_temporal_evolution_projected_facing_front_wall,
+                            "position_threshold_block" : position_threshold_block,
+                            "wall_index_block" : wall_index_block,
+                            "move_orientation": move_orientation[j],
+                            "neck_amplitude" : neck_amplitude,
+                            "eye_amplitude" : eye_amplitude,
+                            "max_neck_amplitude" : max_neck_amplitude,
+                            "max_eye_amplitude" : max_eye_amplitude,
+                            "neck_amplitude_percentile" : neck_amplitude_percentile,
+                            "eye_amplitude_percentile" : eye_amplitude_percentile,
+                            "pourcentage_anticipatory" : pourcentage_anticipatory,
+                            "pourcentage_compensatory" : pourcentage_compensatory,
+                            "pourcentage_spotting" : pourcentage_spotting,
+                            "pourcentage_movement_detection" : pourcentage_movement_detection,
+                            "pourcentage_blinks" : pourcentage_blinks,
+                            "anticipatory_index" : anticipatory_index,
+                            "compensatory_index" : compensatory_index,
+                            "spotting_index" : spotting_index,
+                            "movement_detection_index" : movement_detection_index,
+                            "blinks_index" : blinks_index,
+                            "Xsens_head_position_calculated" : Xsens_head_position_calculated,
+                            "eye_position" : eye_position,
+                            "gaze_orientation" : gaze_orientation,
+                            "wall_index" : wall_index,
+                            "wall_index_facing_front_wall": wall_index_facing_front_wall,
+                            "EulAngles_head_global" : EulAngles_head_global,
+                            "EulAngles_neck" : EulAngles_neck,
+                            "eye_angles" : eye_angles,
+                            "Xsens_orthogonal_thorax_position" : Xsens_orthogonal_thorax_position,
+                            "Xsens_orthogonal_head_position" : Xsens_orthogonal_head_position,
+                            "trampoline_bed_proportions" : trampoline_bed_proportions,
+                            "trampoline_proportions" : trampoline_proportions,
+                            "wall_front_proportions" : wall_front_proportions,
+                            "wall_back_proportions" : wall_back_proportions,
+                            "ceiling_proportions" : ceiling_proportions,
+                            "side_proportions" : side_proportions,
+                            "self_proportions" : self_proportions,
+                            "blink_proportions": blink_proportions,
+                            "percetile_heatmaps" : percetile_heatmaps,
+                            "distance_heatmaps" : distance_heatmaps,
+                            "width_ellipse_heatmaps": width_ellipse_heatmaps,
+                            "height_ellipse_heatmaps": height_ellipse_heatmaps,
+                            "Xsens_position_no_level_CoM_corrected_rotated_per_move": Xsens_position_no_level_CoM_corrected_rotated_per_move[j],
+                            "Xsens_jointAngle_per_move": Xsens_jointAngle_per_move[j],
+                            "Xsens_orientation_per_move": Xsens_orientation_per_move[j],
+                            "Xsens_CoM_per_move": Xsens_CoM_per_move[j],
+                            "time_vector_pupil_per_move": time_vector_pupil_per_move[j],
+                            "camera_matrix": camera_matrix,
+                            "distortion_coeff": distortion_coeff,
+                            "Xsens_global_JCS_positions": Xsens_global_JCS_positions,
+                            "Xsens_global_JCS_orientations": Xsens_global_JCS_orientations,
             }
 
             with open(output_file_name[:-4] + "__eyetracking_metrics.pkl", 'wb') as handle:
@@ -462,20 +468,23 @@ def run_analysis(
 # Flags for Vision OCP study
 GENERATE_HEATMAPS = False
 GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
-FLAG_SYNCHRO_PLOTS = True
+FLAG_SYNCHRO_PLOTS = False
 FLAG_COM_PLOTS = False
-FLAG_ANIMAITON = True
-FLAG_PUPIL_ANGLES_PLOT = True
-FLAG_GAZE_TRAJECTORY = True
+FLAG_ANIMAITON = False
+FLAG_PUPIL_ANGLES_PLOT = False
+FLAG_GAZE_TRAJECTORY = False
 FLAG_GENERATE_STATS_METRICS = True
 FLAG_ANALYSIS = True
-FLAG_TURN_ATHLETES_FOR_PGO = True
+FLAG_TURN_ATHLETES_FOR_PGO = False
 GENERATE_STICK_FIGURE_FOR_GRAPHS = False
 
-parser = argparse.ArgumentParser("Enter Pupils API_KEY")
-parser.add_argument("API_KEY", action="store", help="Pupils API_KEY")
-args = parser.parse_args()
-API_KEY = args.API_KEY
+# parser = argparse.ArgumentParser("Enter Pupils API_KEY")
+# parser.add_argument("API_KEY", action="store", help="Pupils API_KEY")
+# args = parser.parse_args()
+# API_KEY = args.API_KEY
+
+
+##Changer au dessus si commit
 
 if os.path.exists("/home/user"):
     home_path = "/home/user"
@@ -483,10 +492,12 @@ elif os.path.exists("/home/fbailly"):
     home_path = "/home/fbailly"
 elif os.path.exists("/home/charbie"):
     home_path = "/home/charbie"
+elif os.path.exists("/home/lim"):
+    home_path = "/home/lim"
 else:
     raise ValueError("Home path not found, please provide an appropriate path")
 
-csv_name = home_path + "/disk/Eye-tracking/Trials_name_mapping.csv"
+csv_name = home_path + "/Documents/StageMathieu/Trials_name_mapping.csv"
 trial_table = np.char.split(pd.read_csv(csv_name, sep="\t").values.astype("str"), sep=",")
 
 for i_trial in range(len(trial_table)):
@@ -526,7 +537,7 @@ for i_trial in range(len(trial_table)):
             raise RuntimeError(f"Nor {gaze_position_labels} nor {points_labeled_path + movie_name + '_labeling_jumps.pkl'} exist")
         gaze_position_labels = None
         gaze_jumps_labels = points_labeled_path + movie_name + "_labeling_jumps.pkl"
-    out_path = home_path + "/disk/Eye-tracking/Results_831"  # Results_20ms_threshold
+    out_path = "/home/lim/Documents/StageMathieu/DataTrampo/Xsens_pkl"  # Results_20ms_threshold
     anthropo_name = (
         home_path
         + f"/disk/Eye-tracking/Xsens_measurements/{subject_name}_anthropo.csv"
