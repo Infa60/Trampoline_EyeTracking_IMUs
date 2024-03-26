@@ -9,9 +9,9 @@ import pandas as pd
 import casadi as cas
 from IPython import embed
 import sys
-sys.path.append("../metrics")
-from remove_data_during_blinks import remove_data_during_blinks_pupil, home_made_blink_confidence_threshold, remove_data_during_blinks_manual_labeling
-from rectangle_labeler_video_suplementary_info import load_csv
+# sys.path.append("../metrics")
+from Trampoline_EyeTracking_IMUs.metrics.remove_data_during_blinks import remove_data_during_blinks_pupil, home_made_blink_confidence_threshold, remove_data_during_blinks_manual_labeling
+from Trampoline_EyeTracking_IMUs.trampoline_bed_labeling.rectangle_labeler_video_suplementary_info import load_csv
 
 def get_blinks(filename_timestamps, filename_info, filename_curent_label, curent_label, csv_eye_tracking):
 
