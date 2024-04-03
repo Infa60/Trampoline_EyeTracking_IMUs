@@ -269,8 +269,6 @@ def run_analysis(
                 os.makedirs(home_path + f"/disk/Eye-tracking/Results/{subject_name}")
             if not os.path.exists(home_path + f"/disk/Eye-tracking/Results/{subject_name}/{move_surname}"):
                 os.makedirs(home_path + f"/disk/Eye-tracking/Results/{subject_name}/{move_surname}")
-            if not os.path.exists(home_path + f"/Documents/StageMathieu/DataTrampo/Xsens_pkl/{subject_name}/{move_surname}"):
-                os.makedirs(home_path + f"/Documents/StageMathieu/DataTrampo/Xsens_pkl/{subject_name}/{move_surname}")
 
             folder_name = (
                     f"{out_path}/{subject_name}/{move_surname}/{movie_name}__{move_surname}__{repetition_number[j]}"
@@ -442,7 +440,10 @@ def run_analysis(
                             "distortion_coeff": distortion_coeff,
                             "Xsens_global_JCS_positions": Xsens_global_JCS_positions,
                             "Xsens_global_JCS_orientations": Xsens_global_JCS_orientations,
-            }
+                            "Xsens_position_rotated_per_move": Xsens_position_rotated_per_move[j],
+                            "Xsens_position_rotated": Xsens_position_rotated,
+                            "Xsens_position": Xsens_position,
+                            }
 
             with open(output_file_name[:-4] + "__eyetracking_metrics.pkl", 'wb') as handle:
                 pickle.dump(move_summary, handle)
@@ -466,17 +467,32 @@ def run_analysis(
 # GENERATE_STICK_FIGURE_FOR_GRAPHS = False
 
 # Flags for Vision OCP study
+# GENERATE_HEATMAPS = False
+# GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
+# FLAG_SYNCHRO_PLOTS = True
+# FLAG_COM_PLOTS = False
+# FLAG_ANIMAITON = False
+# FLAG_PUPIL_ANGLES_PLOT = False
+# FLAG_GAZE_TRAJECTORY = False
+# FLAG_GENERATE_STATS_METRICS = True
+# FLAG_ANALYSIS = True
+# FLAG_TURN_ATHLETES_FOR_PGO = False
+# GENERATE_STICK_FIGURE_FOR_GRAPHS = False
+
+
+# Flags for variability
 GENERATE_HEATMAPS = False
-GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
-FLAG_SYNCHRO_PLOTS = False
+GENERATE_VIDEO_CONFIDENCE_THRESHOLD = True
+FLAG_SYNCHRO_PLOTS = True
 FLAG_COM_PLOTS = False
-FLAG_ANIMAITON = False
-FLAG_PUPIL_ANGLES_PLOT = False
-FLAG_GAZE_TRAJECTORY = False
+FLAG_ANIMAITON = True
+FLAG_PUPIL_ANGLES_PLOT = True
+FLAG_GAZE_TRAJECTORY = True
 FLAG_GENERATE_STATS_METRICS = True
 FLAG_ANALYSIS = True
 FLAG_TURN_ATHLETES_FOR_PGO = False
 GENERATE_STICK_FIGURE_FOR_GRAPHS = False
+
 
 # parser = argparse.ArgumentParser("Enter Pupils API_KEY")
 # parser.add_argument("API_KEY", action="store", help="Pupils API_KEY")
@@ -537,7 +553,7 @@ for i_trial in range(len(trial_table)):
             raise RuntimeError(f"Nor {gaze_position_labels} nor {points_labeled_path + movie_name + '_labeling_jumps.pkl'} exist")
         gaze_position_labels = None
         gaze_jumps_labels = points_labeled_path + movie_name + "_labeling_jumps.pkl"
-    out_path = "/home/lim/Documents/StageMathieu/DataTrampo/Xsens_pkl"  # Results_20ms_threshold
+    out_path = home_path + "/disk/Eye-tracking/Results_831"  # Results_20ms_threshold
     anthropo_name = (
         home_path
         + f"/disk/Eye-tracking/Xsens_measurements/{subject_name}_anthropo.csv"
