@@ -5,7 +5,6 @@ import pickle
 import scipy
 import scipy.io as sio
 from scipy import signal
-# from IPython import embed
 import pandas as pd
 import mpl_toolkits.mplot3d.axes3d as p3
 import matplotlib.animation as animation
@@ -263,7 +262,7 @@ def plot_synchro(
     plt.legend()
     plt.title("Xsens")
     plt.savefig(output_file_name)
-    plt.show()
+    # plt.show()
 
 def chose_closest_index_xsens(time_vector_pupil,
                               time_offset,
