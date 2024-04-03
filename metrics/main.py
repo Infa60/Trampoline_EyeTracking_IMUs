@@ -264,10 +264,14 @@ def run_analysis(
             else:
                 move_surname = move_names[j]
 
-            if not os.path.exists(home_path + f"/disk/Eye-tracking/Results/{subject_name}"):
-                os.makedirs(home_path + f"/disk/Eye-tracking/Results/{subject_name}")
-            if not os.path.exists(home_path + f"/disk/Eye-tracking/Results/{subject_name}/{move_surname}"):
-                os.makedirs(home_path + f"/disk/Eye-tracking/Results/{subject_name}/{move_surname}")
+            eye_tracking_subject_path = os.path.join(out_path, subject_name)
+            eye_tracking_move_path = os.path.join(eye_tracking_subject_path, move_surname)
+
+            if not os.path.exists(eye_tracking_subject_path):
+                os.makedirs(eye_tracking_subject_path)
+            if not os.path.exists(eye_tracking_move_path):
+                os.makedirs(eye_tracking_move_path)
+
 
             folder_name = (
                     f"{out_path}/{subject_name}/{move_surname}/{movie_name}__{move_surname}__{repetition_number[j]}"
@@ -498,7 +502,6 @@ GENERATE_STICK_FIGURE_FOR_GRAPHS = False
 # args = parser.parse_args()
 # API_KEY = args.API_KEY
 
-
 ##Changer au dessus si commit
 
 if os.path.exists("/home/user"):
@@ -552,7 +555,8 @@ for i_trial in range(len(trial_table)):
             raise RuntimeError(f"Nor {gaze_position_labels} nor {points_labeled_path + movie_name + '_labeling_jumps.pkl'} exist")
         gaze_position_labels = None
         gaze_jumps_labels = points_labeled_path + movie_name + "_labeling_jumps.pkl"
-    out_path = home_path + "/disk/Eye-tracking/Results_831"  # Results_20ms_threshold
+    out_path = home_path + "/Documents/StageMathieu/DataTrampo/Xsens_pkl"  # Results_20ms_threshold
+
     anthropo_name = (
         home_path
         + f"/disk/Eye-tracking/Xsens_measurements/{subject_name}_anthropo.csv"
