@@ -5,7 +5,6 @@ import pickle
 import scipy
 import scipy.io as sio
 from scipy import signal
-from IPython import embed
 import pandas as pd
 import mpl_toolkits.mplot3d.axes3d as p3
 import matplotlib.animation as animation
@@ -448,7 +447,7 @@ def sync_jump(
             temp_comb_xsens = np.zeros((len(candidate_start_xsens),))
             for j in comb_i:
                 temp_comb_xsens[j] = True
-            comb_xsens += [temp_comb_xsens.astype(np.int)]
+            comb_xsens += [temp_comb_xsens.astype(int)]
 
         comb_tuple_pupil = list(itertools.combinations(range(len(start_of_jump_pupil_index)), nb_jumps_considered))
         comb_pupil = []
@@ -456,7 +455,7 @@ def sync_jump(
             temp_comb_pupil = np.zeros((len(start_of_jump_pupil_index),))
             for j in comb_i:
                 temp_comb_pupil[j] = True
-            comb_pupil += [temp_comb_pupil.astype(np.int)]
+            comb_pupil += [temp_comb_pupil.astype(int)]
 
         combine_lists = list(itertools.product(comb_xsens, comb_pupil))
 

@@ -78,6 +78,8 @@ elif os.path.exists("/home/fbailly"):
     home_path = "/home/fbailly"
 elif os.path.exists("/home/charbie"):
     home_path = "/home/charbie"
+elif os.path.exists("/home/lim"):
+    home_path = "/home/lim"
 else:
     raise ValueError("Home path not found, please provide an appropriate path")
 
