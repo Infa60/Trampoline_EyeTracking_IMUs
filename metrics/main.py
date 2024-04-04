@@ -456,60 +456,6 @@ def run_analysis(
 
 # ------------------- Code beginning ------------------- #
 
-# Flags for elite vs sub-elite study
-GENERATE_HEATMAPS = True
-GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
-FLAG_SYNCHRO_PLOTS = True
-FLAG_COM_PLOTS = False
-FLAG_ANIMAITON = True
-FLAG_PUPIL_ANGLES_PLOT = True
-FLAG_GAZE_TRAJECTORY = True
-FLAG_GENERATE_STATS_METRICS = True
-FLAG_ANALYSIS = True
-FLAG_TURN_ATHLETES_FOR_PGO = True
-GENERATE_STICK_FIGURE_FOR_GRAPHS = False
-
-# # Flags for Vision OCP study
-# GENERATE_HEATMAPS = False
-# GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
-# FLAG_SYNCHRO_PLOTS = True
-# FLAG_COM_PLOTS = False
-# FLAG_ANIMAITON = True
-# FLAG_PUPIL_ANGLES_PLOT = True
-# FLAG_GAZE_TRAJECTORY = True
-# FLAG_GENERATE_STATS_METRICS = True
-# FLAG_ANALYSIS = True
-# FLAG_TURN_ATHLETES_FOR_PGO = True
-# GENERATE_STICK_FIGURE_FOR_GRAPHS = False
-
-# Flags for Vision OCP study
-# GENERATE_HEATMAPS = False
-# GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
-# FLAG_SYNCHRO_PLOTS = True
-# FLAG_COM_PLOTS = False
-# FLAG_ANIMAITON = False
-# FLAG_PUPIL_ANGLES_PLOT = False
-# FLAG_GAZE_TRAJECTORY = False
-# FLAG_GENERATE_STATS_METRICS = True
-# FLAG_ANALYSIS = True
-# FLAG_TURN_ATHLETES_FOR_PGO = False
-# GENERATE_STICK_FIGURE_FOR_GRAPHS = False
-
-
-# Flags for variability
-GENERATE_HEATMAPS = False
-GENERATE_VIDEO_CONFIDENCE_THRESHOLD = True
-FLAG_SYNCHRO_PLOTS = True
-FLAG_COM_PLOTS = False
-FLAG_ANIMAITON = True
-FLAG_PUPIL_ANGLES_PLOT = True
-FLAG_GAZE_TRAJECTORY = True
-FLAG_GENERATE_STATS_METRICS = True
-FLAG_ANALYSIS = True
-FLAG_TURN_ATHLETES_FOR_PGO = False
-GENERATE_STICK_FIGURE_FOR_GRAPHS = False
-
-
 # parser = argparse.ArgumentParser("Enter Pupils API_KEY")
 # parser.add_argument("API_KEY", action="store", help="Pupils API_KEY")
 # args = parser.parse_args()
@@ -528,7 +474,63 @@ elif os.path.exists("/home/lim"):
 else:
     raise ValueError("Home path not found, please provide an appropriate path")
 
+
+# # Flags for elite vs sub-elite study
+# GENERATE_HEATMAPS = True
+# GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
+# FLAG_SYNCHRO_PLOTS = True
+# FLAG_COM_PLOTS = False
+# FLAG_ANIMAITON = True
+# FLAG_PUPIL_ANGLES_PLOT = True
+# FLAG_GAZE_TRAJECTORY = True
+# FLAG_GENERATE_STATS_METRICS = True
+# FLAG_ANALYSIS = True
+# FLAG_TURN_ATHLETES_FOR_PGO = True
+# GENERATE_STICK_FIGURE_FOR_GRAPHS = False
+# csv_name = home_path + "/disk/Eye-tracking/Trials_name_mapping.csv"
+# out_path = home_path + "/disk/Eye-tracking/Results_831/"
+# points_labeled_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"
+# anthropo_path = home_path + "/disk/Eye-tracking/Xsens_measurements/"
+# eye_tracking_data_path = home_path + "/disk/Eye-tracking/PupilData/CloudExport/"
+
+# # Flags for Vision OCP study
+# GENERATE_HEATMAPS = False
+# GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
+# FLAG_SYNCHRO_PLOTS = True
+# FLAG_COM_PLOTS = False
+# FLAG_ANIMAITON = True
+# FLAG_PUPIL_ANGLES_PLOT = True
+# FLAG_GAZE_TRAJECTORY = True
+# FLAG_GENERATE_STATS_METRICS = True
+# FLAG_ANALYSIS = True
+# FLAG_TURN_ATHLETES_FOR_PGO = True
+# GENERATE_STICK_FIGURE_FOR_GRAPHS = False
+# csv_name = home_path + "/disk/Eye-tracking/Trials_name_mapping.csv"
+# out_path = home_path + "/disk/Eye-tracking/Results_831/"
+# points_labeled_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"
+# anthropo_path = home_path + "/disk/Eye-tracking/Xsens_measurements/"
+# eye_tracking_data_path = home_path + "/disk/Eye-tracking/PupilData/CloudExport/"
+
+# Flags for variability study
+GENERATE_HEATMAPS = False
+GENERATE_VIDEO_CONFIDENCE_THRESHOLD = True
+FLAG_SYNCHRO_PLOTS = True
+FLAG_COM_PLOTS = False
+FLAG_ANIMAITON = True
+FLAG_PUPIL_ANGLES_PLOT = True
+FLAG_GAZE_TRAJECTORY = True
+FLAG_GENERATE_STATS_METRICS = True
+FLAG_ANALYSIS = True
+FLAG_TURN_ATHLETES_FOR_PGO = False
+GENERATE_STICK_FIGURE_FOR_GRAPHS = False
 csv_name = home_path + "/Documents/StageMathieu/Trials_name_mapping.csv"
+out_path = home_path + "/Documents/StageMathieu/DataTrampo/Xsens_pkl"
+points_labeled_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"
+anthropo_path = home_path + "/disk/Eye-tracking/Xsens_measurements/"
+eye_tracking_data_path = home_path + "/disk/Eye-tracking/PupilData/CloudExport/"
+
+
+# Code beginning
 trial_table = np.char.split(pd.read_csv(csv_name, sep="\t").values.astype("str"), sep=",")
 
 for i_trial in range(len(trial_table)):
@@ -560,7 +562,6 @@ for i_trial in range(len(trial_table)):
 
     print(f'Analysis of trial {xsens_file_name} started')
 
-    points_labeled_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"
     gaze_position_labels = points_labeled_path + movie_name + "_labeling_points.pkl"
     gaze_jumps_labels = None
     if not os.path.exists(gaze_position_labels):
@@ -568,13 +569,9 @@ for i_trial in range(len(trial_table)):
             raise RuntimeError(f"Nor {gaze_position_labels} nor {points_labeled_path + movie_name + '_labeling_jumps.pkl'} exist")
         gaze_position_labels = None
         gaze_jumps_labels = points_labeled_path + movie_name + "_labeling_jumps.pkl"
-    out_path = home_path + "/Documents/StageMathieu/DataTrampo/Xsens_pkl"  # Results_20ms_threshold
 
-    anthropo_name = (
-        home_path
-        + f"/disk/Eye-tracking/Xsens_measurements/{subject_name}_anthropo.csv"
-    )
-    eye_tracking_data_path = home_path + "/disk/Eye-tracking/PupilData/CloudExport/" + subject_name + '/' + eye_tracking_folder + "/"
+    anthropo_name = anthropo_path + f"{subject_name}_anthropo.csv"
+    eye_tracking_data_path = eye_tracking_data_path + subject_name + '/' + eye_tracking_folder + "/"
 
     run_analysis(
         home_path,
