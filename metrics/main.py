@@ -106,7 +106,6 @@ def run_analysis(
     air_time_threshold,
     Xsens_jump_idx,
     Pupil_jump_idx,
-    GENERATE_VIDEO_CONFIDENCE_THRESHOLD,
     GENERATE_HEATMAPS,
     FLAG_SYNCHRO_PLOTS,
     FLAG_COM_PLOTS,
@@ -478,8 +477,7 @@ else:
 
 
 # # Flags for elite vs sub-elite study
-GENERATE_HEATMAPS = True
-GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
+GENERATE_HEATMAPS = False  # True
 FLAG_SYNCHRO_PLOTS = True
 FLAG_COM_PLOTS = False
 FLAG_ANIMAITON = True
@@ -489,15 +487,14 @@ FLAG_GENERATE_STATS_METRICS = True
 FLAG_ANALYSIS = True
 FLAG_TURN_ATHLETES_FOR_PGO = True
 GENERATE_STICK_FIGURE_FOR_GRAPHS = False
-csv_name = home_path + "/disk/Eye-tracking/Trials_name_mapping.csv"
-out_path = home_path + "/disk/Eye-tracking/Results_831/"
-points_labeled_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"
-anthropo_path = home_path + "/disk/Eye-tracking/Xsens_measurements/"
-eye_tracking_data_path = home_path + "/disk/Eye-tracking/PupilData/CloudExport/"
+# csv_name = home_path + "/disk/Eye-tracking/Trials_name_mapping.csv"
+# out_path = home_path + "/disk/Eye-tracking/Results_831/"
+# points_labeled_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"
+# anthropo_path = home_path + "/disk/Eye-tracking/Xsens_measurements/"
+# eye_tracking_data_path = home_path + "/disk/Eye-tracking/PupilData/CloudExport/"
 
 # # Flags for Vision OCP study
 # GENERATE_HEATMAPS = False
-# GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
 # FLAG_SYNCHRO_PLOTS = True
 # FLAG_COM_PLOTS = False
 # FLAG_ANIMAITON = True
@@ -515,17 +512,16 @@ eye_tracking_data_path = home_path + "/disk/Eye-tracking/PupilData/CloudExport/"
 
 
 # # Flags for variability study
-GENERATE_HEATMAPS = True
-GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
-FLAG_SYNCHRO_PLOTS = True
-FLAG_COM_PLOTS = False
-FLAG_ANIMAITON = True
-FLAG_PUPIL_ANGLES_PLOT = True
-FLAG_GAZE_TRAJECTORY = True
-FLAG_GENERATE_STATS_METRICS = True
-FLAG_ANALYSIS = True
-FLAG_TURN_ATHLETES_FOR_PGO = True
-GENERATE_STICK_FIGURE_FOR_GRAPHS = False
+# GENERATE_HEATMAPS = True
+# FLAG_SYNCHRO_PLOTS = True
+# FLAG_COM_PLOTS = False
+# FLAG_ANIMAITON = True
+# FLAG_PUPIL_ANGLES_PLOT = True
+# FLAG_GAZE_TRAJECTORY = True
+# FLAG_GENERATE_STATS_METRICS = True
+# FLAG_ANALYSIS = True
+# FLAG_TURN_ATHLETES_FOR_PGO = True
+# GENERATE_STICK_FIGURE_FOR_GRAPHS = False
 csv_name = home_path + "/Documents/StageMathieu/Trials_name_mapping.csv"
 out_path = home_path + "/Documents/StageMathieu/DataTrampo/Xsens_pkl"
 points_labeled_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"
@@ -594,7 +590,6 @@ for i_trial in range(len(trial_table)):
         air_time_threshold,
         Xsens_jump_idx,
         Pupil_jump_idx,
-        GENERATE_VIDEO_CONFIDENCE_THRESHOLD,
         GENERATE_HEATMAPS,
         FLAG_SYNCHRO_PLOTS,
         FLAG_COM_PLOTS,
