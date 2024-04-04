@@ -248,7 +248,7 @@ def points_to_ellipse_width(centers, ellipse_fig_name):
     ax.add_patch(ellipse_1)
     ax.add_patch(ellipse_2)
     ax.set_aspect('equal')
-    plt.savefig(ellipse_fig_name, pdi=300)
+    plt.savefig(ellipse_fig_name, dpi=300)
     # plt.show()
     plt.close(fig)
 

@@ -511,9 +511,9 @@ else:
 # anthropo_path = home_path + "/disk/Eye-tracking/Xsens_measurements/"
 # eye_tracking_data_path = home_path + "/disk/Eye-tracking/PupilData/CloudExport/"
 
-# Flags for variability study
-GENERATE_HEATMAPS = False
-GENERATE_VIDEO_CONFIDENCE_THRESHOLD = True
+# # Flags for variability study
+GENERATE_HEATMAPS = True
+GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
 FLAG_SYNCHRO_PLOTS = True
 FLAG_COM_PLOTS = False
 FLAG_ANIMAITON = True
@@ -521,7 +521,7 @@ FLAG_PUPIL_ANGLES_PLOT = True
 FLAG_GAZE_TRAJECTORY = True
 FLAG_GENERATE_STATS_METRICS = True
 FLAG_ANALYSIS = True
-FLAG_TURN_ATHLETES_FOR_PGO = False
+FLAG_TURN_ATHLETES_FOR_PGO = True
 GENERATE_STICK_FIGURE_FOR_GRAPHS = False
 csv_name = home_path + "/Documents/StageMathieu/Trials_name_mapping.csv"
 out_path = home_path + "/Documents/StageMathieu/DataTrampo/Xsens_pkl"
@@ -571,7 +571,7 @@ for i_trial in range(len(trial_table)):
         gaze_jumps_labels = points_labeled_path + movie_name + "_labeling_jumps.pkl"
 
     anthropo_name = anthropo_path + f"{subject_name}_anthropo.csv"
-    eye_tracking_data_path = eye_tracking_data_path + subject_name + '/' + eye_tracking_folder + "/"
+    eye_tracking_data_path_full = eye_tracking_data_path + subject_name + '/' + eye_tracking_folder + "/"
 
     run_analysis(
         home_path,
@@ -581,7 +581,7 @@ for i_trial in range(len(trial_table)):
         move_orientation,
         xsens_file_name,
         movie_name,
-        eye_tracking_data_path,
+        eye_tracking_data_path_full,
         subject_expertise,
         gaze_position_labels,
         gaze_jumps_labels,
