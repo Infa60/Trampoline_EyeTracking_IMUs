@@ -471,27 +471,29 @@ elif os.path.exists("/home/charbie"):
     home_path = "/home/charbie"
 elif os.path.exists("/home/lim"):
     home_path = "/home/lim"
+elif os.path.exists("/home/mickaelbegon"):
+    home_path = "/home/mickaelbegon"
 else:
     raise ValueError("Home path not found, please provide an appropriate path")
 
 
 # # Flags for elite vs sub-elite study
-# GENERATE_HEATMAPS = True
-# GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
-# FLAG_SYNCHRO_PLOTS = True
-# FLAG_COM_PLOTS = False
-# FLAG_ANIMAITON = True
-# FLAG_PUPIL_ANGLES_PLOT = True
-# FLAG_GAZE_TRAJECTORY = True
-# FLAG_GENERATE_STATS_METRICS = True
-# FLAG_ANALYSIS = True
-# FLAG_TURN_ATHLETES_FOR_PGO = True
-# GENERATE_STICK_FIGURE_FOR_GRAPHS = False
-# csv_name = home_path + "/disk/Eye-tracking/Trials_name_mapping.csv"
-# out_path = home_path + "/disk/Eye-tracking/Results_831/"
-# points_labeled_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"
-# anthropo_path = home_path + "/disk/Eye-tracking/Xsens_measurements/"
-# eye_tracking_data_path = home_path + "/disk/Eye-tracking/PupilData/CloudExport/"
+GENERATE_HEATMAPS = True
+GENERATE_VIDEO_CONFIDENCE_THRESHOLD = False
+FLAG_SYNCHRO_PLOTS = True
+FLAG_COM_PLOTS = False
+FLAG_ANIMAITON = True
+FLAG_PUPIL_ANGLES_PLOT = True
+FLAG_GAZE_TRAJECTORY = True
+FLAG_GENERATE_STATS_METRICS = True
+FLAG_ANALYSIS = True
+FLAG_TURN_ATHLETES_FOR_PGO = True
+GENERATE_STICK_FIGURE_FOR_GRAPHS = False
+csv_name = home_path + "/disk/Eye-tracking/Trials_name_mapping.csv"
+out_path = home_path + "/disk/Eye-tracking/Results_831/"
+points_labeled_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"
+anthropo_path = home_path + "/disk/Eye-tracking/Xsens_measurements/"
+eye_tracking_data_path = home_path + "/disk/Eye-tracking/PupilData/CloudExport/"
 
 # # Flags for Vision OCP study
 # GENERATE_HEATMAPS = False
@@ -510,6 +512,7 @@ else:
 # points_labeled_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"
 # anthropo_path = home_path + "/disk/Eye-tracking/Xsens_measurements/"
 # eye_tracking_data_path = home_path + "/disk/Eye-tracking/PupilData/CloudExport/"
+
 
 # # Flags for variability study
 GENERATE_HEATMAPS = True
