@@ -116,6 +116,7 @@ def run_analysis(
     FLAG_ANALYSIS,
     GENERATE_STICK_FIGURE_FOR_GRAPHS,
     API_KEY,
+    laterality,
 ):
     """
     This function is the main function of the analysis pipeline. It is called by the main.py script.
@@ -445,6 +446,7 @@ def run_analysis(
                             "Xsens_position_rotated_per_move": Xsens_position_rotated_per_move[j],
                             "Xsens_position_rotated": Xsens_position_rotated,
                             "Xsens_position": Xsens_position,
+                            "laterality": laterality,
                             }
 
             with open(output_file_name[:-4] + "__eyetracking_metrics.pkl", 'wb') as handle:
@@ -512,7 +514,7 @@ GENERATE_STICK_FIGURE_FOR_GRAPHS = False
 
 
 # # Flags for variability study
-# GENERATE_HEATMAPS = True
+# GENERATE_HEATMAPS = False
 # FLAG_SYNCHRO_PLOTS = True
 # FLAG_COM_PLOTS = False
 # FLAG_ANIMAITON = True
@@ -522,7 +524,7 @@ GENERATE_STICK_FIGURE_FOR_GRAPHS = False
 # FLAG_ANALYSIS = True
 # FLAG_TURN_ATHLETES_FOR_PGO = True
 # GENERATE_STICK_FIGURE_FOR_GRAPHS = False
-csv_name = home_path + "/Documents/StageMathieu/Trials_name_mapping.csv"
+csv_name = home_path + "/Documents/StageMathieu/Trampoline_EyeTracking_IMUs/Trials_name_mapping.csv"
 out_path = home_path + "/Documents/StageMathieu/DataTrampo/Xsens_pkl"
 points_labeled_path = home_path + "/disk/Eye-tracking/PupilData/points_labeled/"
 anthropo_path = home_path + "/disk/Eye-tracking/Xsens_measurements/"
@@ -545,6 +547,8 @@ for i_trial in range(len(trial_table)):
     eye_tracking_folder = trial_table[i_trial][0][10]
     movie_name = trial_table[i_trial][0][11].replace(".", "_")
     subject_expertise = trial_table[i_trial][0][13]
+    laterality = trial_table[i_trial][0][25]
+
     if trial_table[i_trial][0][16] != "":
         max_threshold = float(trial_table[i_trial][0][16])
     else:
@@ -600,6 +604,7 @@ for i_trial in range(len(trial_table)):
         FLAG_ANALYSIS,
         GENERATE_STICK_FIGURE_FOR_GRAPHS,
         API_KEY,
+        laterality,
     )
 
     plt.close("all")
