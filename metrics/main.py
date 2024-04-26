@@ -461,7 +461,6 @@ def run_analysis(
 # parser.add_argument("API_KEY", action="store", help="Pupils API_KEY")
 # args = parser.parse_args()
 # API_KEY = args.API_KEY
-API_KEY = "VPNzqxefqpunjUdzKWb3Fr9hQM368y7Q6Lqkc4KVxLHT"
 ##Changer au dessus si commit
 
 if os.path.exists("/home/user"):
